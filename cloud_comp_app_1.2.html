@@ -56,7 +56,7 @@
         <div class="max-w-7xl mx-auto px-6 py-4">
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">☁️ Cloud Comp</h1>
+                    <h1 class="text-3xl font-bold text-gray-900">☁️ Cloud Comp <span class="text-base font-normal text-gray-500 ml-2">v1.2</span></h1>
                     <h2 class="text-lg font-medium text-gray-700 mb-1">Learning Gamification Admin</h2>
                     <p class="text-sm text-gray-600">Manage learning activities, points, and leaderboards</p>
                 </div>
@@ -260,9 +260,9 @@
                         </div>
                         <button onclick="document.getElementById('courseFiles').click()" 
                                 class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium mb-3">
-                            Choose Multiple Course Activity Files
+                            Choose Course Activity / Classroom Training Files
                         </button>
-                        <p class="text-sm text-gray-600 mb-2">Upload multiple Excel or CSV files with course completion data</p>
+                        <p class="text-sm text-gray-600 mb-2">Upload Excel/CSV files with course completions or classroom training attendance</p>
                         <div id="courseFileList" class="text-sm text-blue-600"></div>
                     </div>
                     
@@ -852,9 +852,9 @@
                     
                     <div class="space-y-6">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Course Activity Files</h3>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Course Activity & Classroom Training Files</h3>
                             <div class="bg-gray-50 rounded-lg p-4 mb-3">
-                                <p class="font-medium text-gray-900 mb-2">Required Columns:</p>
+                                <p class="font-medium text-gray-900 mb-2">Course Activity Required Columns:</p>
                                 <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
                                     <li>Email - User's email address</li>
                                     <li>Course ID - Unique course identifier</li>
@@ -865,6 +865,16 @@
                                     <li>Completed on - Completion date (for completed courses)</li>
                                     <li>Score (optional) - For quiz scoring</li>
                                 </ul>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-4 mb-3">
+                                <p class="font-medium text-gray-900 mb-2">Classroom Training (ILT) Format:</p>
+                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                                    <li>Name - Attendee's full name</li>
+                                    <li>Email - Attendee's email address</li>
+                                    <li>Status - Completed/Not Completed</li>
+                                    <li>Evaluation Status (optional)</li>
+                                </ul>
+                                <p class="text-xs text-gray-600 mt-2">🎓 Classroom training awards 100 points per day</p>
                             </div>
                             <p class="text-gray-700">Supports Excel (.xlsx) and CSV formats. Multiple files can be processed at once.</p>
                         </div>
@@ -887,7 +897,7 @@
                             <h3 class="text-lg font-semibold text-gray-900 mb-3">Import Process</h3>
                             <ol class="list-decimal list-inside space-y-2 text-gray-700">
                                 <li>Go to the Import Data tab</li>
-                                <li>Click "Choose Multiple Course Activity Files" or "Choose Multiple Teams Meeting Files"</li>
+                                <li>Click "Choose Course Activity / Classroom Training Files" or "Choose Multiple Teams Meeting Files"</li>
                                 <li>Select one or more files from your computer</li>
                                 <li>Click "🚀 Process All Files"</li>
                                 <li>Review the import log for any issues</li>
@@ -2697,7 +2707,17 @@
                         const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                         const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
 
-                        // Find header row
+                        // Check if this is a classroom training file (ILT format)
+                        // ILT files have format: Name, Email, Status, Evaluation Status
+                        const isClassroomTraining = detectClassroomTrainingFormat(jsonData);
+                        
+                        if (isClassroomTraining) {
+                            const result = processClassroomTrainingFile(jsonData, file.name);
+                            resolve(result);
+                            return;
+                        }
+
+                        // Find header row for regular course files
                         let headerRow = -1;
                         for (let i = 0; i < Math.min(5, jsonData.length); i++) {
                             if (jsonData[i] && jsonData[i].includes('Email')) {
@@ -2746,6 +2766,141 @@
                 };
                 reader.readAsArrayBuffer(file);
             });
+        }
+
+        // Detect if file is classroom training format (ILT)
+        function detectClassroomTrainingFormat(jsonData) {
+            // ILT files typically have first row with Name, Email, and Status columns
+            // but no Course ID or Title columns
+            if (!jsonData || jsonData.length === 0) return false;
+            
+            const firstRow = jsonData[0];
+            if (!firstRow) return false;
+            
+            // Check if first row has email pattern and status values
+            // ILT format: Name, Email, Status (Completed), Evaluation Status
+            for (let i = 0; i < Math.min(10, jsonData.length); i++) {
+                const row = jsonData[i];
+                if (!row || row.length < 3) continue;
+                
+                // Check for email pattern in second column
+                const possibleEmail = String(row[1] || '');
+                const hasEmail = possibleEmail.includes('@');
+                
+                // Check for "Completed" status in third column
+                const possibleStatus = String(row[2] || '');
+                const hasCompletedStatus = possibleStatus.toLowerCase().includes('completed');
+                
+                // If we find a row with email and completed status but no course ID pattern
+                if (hasEmail && hasCompletedStatus && !row[0]?.toString().match(/^[A-Z0-9]{10}$/)) {
+                    log(`🎓 Detected classroom training (ILT) format`);
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        // Process classroom training file
+        function processClassroomTrainingFile(jsonData, filename) {
+            log(`🎓 Processing classroom training file: ${filename}`);
+            
+            let processed = 0, activities = 0;
+            const currentMonth = getCurrentMonth();
+            const completedDate = new Date().toISOString();
+            
+            // Extract training session name from filename
+            let sessionName = 'Classroom Training Session';
+            if (filename.toLowerCase().includes('ilt')) {
+                sessionName = 'Instructor-Led Training (ILT)';
+            }
+            // Try to extract more specific session info from filename
+            const nameMatch = filename.match(/([^\/\\]+?)(?:-session|-example)?\.csv$/i);
+            if (nameMatch) {
+                const cleanName = nameMatch[1].replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                if (!cleanName.toLowerCase().includes('example')) {
+                    sessionName = cleanName + ' Training';
+                }
+            }
+            
+            // Process each row as an attendee
+            jsonData.forEach((row, index) => {
+                if (!row || row.length < 2) return;
+                
+                const name = String(row[0] || '').trim();
+                const email = String(row[1] || '').trim();
+                const status = String(row[2] || '').trim();
+                
+                // Skip if no email or not completed
+                if (!email.includes('@') || !status.toLowerCase().includes('completed')) {
+                    return;
+                }
+                
+                processed++;
+                
+                // Create unique activity ID
+                const activityId = `classroom_${Date.now()}_${index}`;
+                
+                // Create activity entry (100 points per day for classroom training)
+                const activity = {
+                    id: activityId,
+                    userEmail: email.toLowerCase(),
+                    courseId: `ILT_${filename.replace(/[^a-zA-Z0-9]/g, '_')}_${index}`,
+                    title: sessionName,
+                    level: 'classroom',
+                    courseType: 'Classroom Training',
+                    pointsEarned: appData.config.pointConfig.generalCourses['Classroom Training'] || 100,
+                    completedDate: completedDate,
+                    source: 'classroom_training',
+                    importDate: new Date().toISOString(),
+                    monthYear: currentMonth
+                };
+                
+                // Check for duplicates
+                const isDuplicate = appData.activities.some(a => 
+                    a.userEmail === activity.userEmail && 
+                    a.courseId === activity.courseId
+                );
+                
+                if (!isDuplicate) {
+                    appData.activities.push(activity);
+                    activities++;
+                    
+                    // Update or create user
+                    if (!appData.users.has(email.toLowerCase())) {
+                        const nameParts = name.split(' ');
+                        appData.users.set(email.toLowerCase(), {
+                            email: email.toLowerCase(),
+                            name: name,
+                            firstName: nameParts[0] || 'Training',
+                            lastName: nameParts.slice(1).join(' ') || 'Attendee',
+                            currentMonthPoints: 0,
+                            totalPoints: 0,
+                            activities: [],
+                            inProgressActivities: [],
+                            joinDate: new Date().toISOString(),
+                            lastActivity: completedDate
+                        });
+                    }
+                    
+                    const user = appData.users.get(email.toLowerCase());
+                    user.activities = user.activities || [];
+                    user.activities.push(activityId);
+                    user.totalPoints += activity.pointsEarned;
+                    user.lastActivity = completedDate;
+                    
+                    if (activity.monthYear === currentMonth) {
+                        user.currentMonthPoints += activity.pointsEarned;
+                    }
+                    
+                    log(`✅ Added classroom training for ${name} (${email})`);
+                } else {
+                    log(`⚠️ Skipped duplicate: ${name} - ${sessionName}`);
+                }
+            });
+            
+            log(`🎓 Classroom training import complete: ${activities} activities from ${processed} attendees`);
+            return { processed, activities, inProgressCount: 0 };
         }
 
         async function processTeamsFile(file) {
