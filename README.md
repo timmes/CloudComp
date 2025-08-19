@@ -2,7 +2,7 @@
 
 > Transform your organization's learning culture with points, leaderboards, and friendly competition!
 
-[![Version](https://img.shields.io/badge/version-1.1-blue.svg)](https://github.com/timmes/cloudcomp)
+[![Version](https://img.shields.io/badge/version-1.2-blue.svg)](https://github.com/timmes/cloudcomp)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![No Server Required](https://img.shields.io/badge/deployment-local%20files-orange.svg)](#getting-started)
 
@@ -164,6 +164,6 @@ Created with ❤️ and powered by AI assistance:
 
 ---
 
-**Ready to gamify your learning?** Download `cloud_comp_app_1.1.html` and start your learning tournament today! 🚀
+**Ready to gamify your learning?** Download `cloud_comp_app_1.2.html` and start your learning tournament today! 🚀
 
 *Transform learning from a chore into a competition your team will love.*
