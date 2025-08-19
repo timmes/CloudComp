@@ -6,7 +6,7 @@
 
 **Core Principle**: Simplicity first - fast iteration, minimal complexity, local-first approach.
 
-**Current Version**: 1.0 with Teams Feature
+**Current Version**: 1.2 with Classroom Training Import
 
 ## Technical Architecture
 
@@ -52,6 +52,12 @@
   - Duplicate detection
   - Automatic point calculation based on course type
   - User creation from import data
+- **Classroom Training Import** (ILT):
+  - Auto-detection of classroom training CSV format
+  - Processes attendee lists with Name, Email, Status columns
+  - Awards 100 points per training day per attendee
+  - Supports batch processing with other course files
+  - Intelligent session name extraction from filename
 - **Teams Meeting Import**:
   - CSV format support
   - Meeting title and attendee extraction
@@ -408,7 +414,15 @@ Created with love and the help of Claude Sonnet 4 by:
 
 ## Version History
 
-### Version 1.1 (Current)
+### Version 1.2 (Current)
+- Classroom Training (ILT) import support
+- Auto-detection of classroom training CSV format
+- Process instructor-led training attendance files
+- Award 100 points per training day
+- Updated import dialog to indicate classroom training support
+- Enhanced documentation for ILT file format
+
+### Version 1.1
 - Bulk Operations feature implementation
 - Multi-select checkboxes for users and activities
 - Bulk award points to multiple users
@@ -440,4 +454,4 @@ Created with love and the help of Claude Sonnet 4 by:
 
 *Last updated: August 2025*
 *Project status: Active - Production Ready*
-*File: cloud_comp_app.html*
+*File: cloud_comp_app_1.2.html*
