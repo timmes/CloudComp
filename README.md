@@ -123,7 +123,7 @@ That's it! No installation, no configuration, no headaches.
 - ✅ Safari 14+
 - ✅ Edge 90+
 
-## 🎨 What's New in v1.1
+## 🎨 What's New in v1.2
 
 - 🔄 **Bulk Operations** - Multi-select users and activities for batch actions
 - 📊 **Enhanced Team Management** - Better member assignment and point tracking
@@ -164,6 +164,6 @@ Created with ❤️ and powered by AI assistance:
 
 ---
 
-**Ready to gamify your learning?** Download `cloud_comp_app_1.2.html` and start your learning tournament today! 🚀
+**Ready to gamify your learning?** Download `cloud_comp_app.html` and start your learning tournament today! 🚀
 
 *Transform learning from a chore into a competition your team will love.*
