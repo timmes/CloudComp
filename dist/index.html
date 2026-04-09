@@ -1,0 +1,1754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Comp - Learning Gamification Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        .tab-button {
+            @apply px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors;
+        }
+        .tab-button.active {
+            @apply bg-blue-500 text-white border-blue-500;
+        }
+        .scroll-table {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-success { background-color: #10b981; }
+        .status-warning { background-color: #f59e0b; }
+        .status-error { background-color: #ef4444; }
+        .card-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+        .sort-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 768px) {
+            .sort-controls {
+                justify-content: center;
+                margin-bottom: 1rem;
+            }
+        }
+        /* Smooth scrolling for manual navigation */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+  <script type="module" crossorigin>(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),e.crossOrigin===`use-credentials`?t.credentials=`include`:e.crossOrigin===`anonymous`?t.credentials=`omit`:t.credentials=`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})();var e=4*1024*1024,t=null;function n(e){t=e}function r(){let e=0;for(let t=0;t<localStorage.length;t++){let n=localStorage.key(t);e+=n.length*2,e+=localStorage.getItem(n).length*2}return e}function i(){let e=`__storage_test__`;try{return localStorage.setItem(e,`1`),localStorage.removeItem(e),!0}catch{return!1}}function a(e,t=null){try{if(!i())return t;let n=localStorage.getItem(e);return n===null?t:JSON.parse(n)}catch{return t}}function o(n,a){try{if(!i())return!1;let o=JSON.stringify(a),s=o.length*2,c=n.length*2,l=localStorage.getItem(n),u=l===null?0:n.length*2+l.length*2,d=r()-u+c+s;if(d>e){let e=Math.round(d/1024);return t&&t({key:n,usedKB:e}),!1}return localStorage.setItem(n,o),!0}catch{return!1}}var s=Object.freeze({DATA_CHANGED:`data:changed`,IMPORT_COMPLETE:`import:complete`,IMPORT_PROGRESS:`import:progress`,POINTS_AWARDED:`points:awarded`,BADGE_AWARDED:`badge:awarded`,CAMPAIGN_UPDATED:`campaign:updated`,STORAGE_QUOTA_WARNING:`storage:quotaWarning`}),c=new Map;function l(e,t){c.has(e)||c.set(e,new Set),c.get(e).add(t)}function u(e,t){let n=c.get(e);if(!n||n.size===0)return;let r=null;for(let e of n)try{e(t)}catch(e){r=e}if(r)throw r}n(e=>{u(s.STORAGE_QUOTA_WARNING,e)});var d=Object.freeze({awsCourseTypes:Object.freeze({"AWS Builder Lab":100,"AWS Cloud Quest":75,"AWS Jam Journey":150,"AWS Simulearn":75,"Certification Exam Preparation":100,"Digital Course With Lab":100}),generalCourses:Object.freeze({"Classroom Training":100,"Digital Courses - Foundational":50,"Digital Courses - Associate":75,"Digital Courses - Professional":100,"Digital Courses - Specialty":100}),events:Object.freeze({"Live Events":25}),hackathons:Object.freeze({"Hackathons - Participation":150,"Hackathons - 3rd Place":250,"Hackathons - 2nd Place":350,"Hackathons - 1st Place":450}),quizzes:Object.freeze({"Quiz Completion":20,"Quiz 80%+ Score":50,"Quiz Perfect Score":70})}),ee=Object.freeze([{key:`builder lab`,configSection:`awsCourseTypes`,configKey:`AWS Builder Lab`},{key:`cloud quest`,configSection:`awsCourseTypes`,configKey:`AWS Cloud Quest`},{key:`jam journey`,configSection:`awsCourseTypes`,configKey:`AWS Jam Journey`},{key:`simulearn`,configSection:`awsCourseTypes`,configKey:`AWS Simulearn`},{key:`certification exam preparation`,configSection:`awsCourseTypes`,configKey:`Certification Exam Preparation`},{key:`with lab`,configSection:`awsCourseTypes`,configKey:`Digital Course With Lab`},{key:`classroom`,configSection:`generalCourses`,configKey:`Classroom Training`}]),te=Object.freeze({fundamental:`Digital Courses - Foundational`,intermediate:`Digital Courses - Associate`,advanced:`Digital Courses - Professional`,specialty:`Digital Courses - Specialty`});function ne(e,t){let n=t.toLowerCase();for(let t of Object.keys(e))if(t.toLowerCase()===n)return e[t]}function f(e,t,n){let r=(e??``).trim();if(r){let e=ne(n.awsCourseTypes,r);if(e!==void 0)return e;let t=r.toLowerCase();for(let e of ee)if(t.includes(e.key))return n[e.configSection][e.configKey]}if(t){let e=te[t.toLowerCase()];if(e)return n.generalCourses[e]}return n.generalCourses[`Digital Courses - Foundational`]}function p(e,t){let n=e??0;return n===100?t.quizzes[`Quiz Perfect Score`]:n>=80?t.quizzes[`Quiz 80%+ Score`]:t.quizzes[`Quiz Completion`]}function re(e,t){return e===1?t.hackathons[`Hackathons - 1st Place`]:e===2?t.hackathons[`Hackathons - 2nd Place`]:e===3?t.hackathons[`Hackathons - 3rd Place`]:t.hackathons[`Hackathons - Participation`]}function m(e){return e.events[`Live Events`]}var ie=`cloudCompData`;function h(){return{pointConfig:{...d},lastReset:new Date().toISOString().slice(0,7),version:`1.2`}}var g=_();function _(){return{users:{},teams:{},activities:[],campaigns:{},config:h(),metadata:{lastImport:null,totalRecordsProcessed:0,sources:[]}}}function v(){o(ie,{...g,metadata:{...g.metadata,lastSaved:new Date().toISOString()}}),u(s.DATA_CHANGED)}function ae(){return{...g.users}}function oe(){return{...g.teams}}function se(e={}){let t=g.activities;if(e.campaignId&&(t=ce(t,e.campaignId)),e.userId){let n=e.userId.toLowerCase();t=t.filter(e=>e.userId===n)}return e.type&&(t=t.filter(t=>t.type===e.type)),e.fromDate&&(t=t.filter(t=>t.completedDate&&t.completedDate>=e.fromDate)),e.toDate&&(t=t.filter(t=>t.completedDate&&t.completedDate<=e.toDate)),t===g.activities?[...t]:t}function ce(e,t){let n=g.campaigns[t];if(!n)return[];let r=le(n);return e.filter(e=>!(!r.has(e.userId)||!e.completedDate||e.completedDate<n.startDate||n.endDate&&e.completedDate>n.endDate))}function le(e){let t=new Set(e.participantIds??[]);for(let n of e.teamIds??[]){let e=g.teams[n];if(e)for(let n of e.memberIds??[])t.add(n)}return t}function y(){return{...g.config}}function ue(e){let t=e.email.toLowerCase(),n=g.users[t];g.users[t]=n?{...n,...e,email:t}:{...e,email:t},v()}function de(e){let t=g.teams[e.id];g.teams[e.id]=t?{...t,...e}:{...e},v()}function fe(e){g.activities=[...g.activities,{...e}],v()}function pe(e){if(!g.teams[e])return;let{[e]:t,...n}=g.teams;g.teams=n,v()}function me(e){g.config={...g.config,...e},v()}function he(){let e=a(ie,null);if(!e){g=_();return}g={users:e.users??{},teams:e.teams??{},activities:e.activities??[],campaigns:e.campaigns??{},config:e.config?{...h(),...e.config}:h(),metadata:e.metadata?{lastImport:null,totalRecordsProcessed:0,sources:[],...e.metadata}:{lastImport:null,totalRecordsProcessed:0,sources:[]}}}function ge(){return{users:{...g.users},teams:{...g.teams},activities:[...g.activities],campaigns:{...g.campaigns},config:{...g.config},metadata:{...g.metadata,exportedDate:new Date().toISOString()}}}function _e(e){g={users:e.users??{},teams:e.teams??{},activities:e.activities??[],campaigns:e.campaigns??{},config:e.config?{...h(),...e.config}:h(),metadata:e.metadata?{lastImport:null,totalRecordsProcessed:0,sources:[],...e.metadata}:{lastImport:null,totalRecordsProcessed:0,sources:[]}},v()}function b(e,t){return`act_${(e??``).toLowerCase()}_${(t??``).trim()}`}function x(e){let t=(e.userId??``).toLowerCase();return{id:e.id??b(t,e.externalId??``),userId:t,title:e.title??``,type:e.type??`course`,level:e.level??``,courseType:e.courseType??``,pointsEarned:e.pointsEarned??0,completedDate:e.completedDate??null,source:e.source??`manual`,score:e.score??null,isDuplicate:e.isDuplicate??!1}}function S(e,t){let n=e.toLowerCase();return{id:n,email:n,name:t||n.split(`@`)[0],teamId:null,totalPoints:0,currentMonthPoints:0,badges:[],createdAt:new Date().toISOString()}}async function ve(e,t,n){let{config:r,filename:i=`unknown`,dryRun:a=!1}=n,o=[],s=[],c;try{let n=t.read(new Uint8Array(e),{type:`array`}),r=n.Sheets[n.SheetNames[0]];c=t.utils.sheet_to_json(r,{header:1})}catch(e){return s.push(`Failed to parse file ${i}: ${e.message}`),{activities:[],users:[],warnings:o,errors:s}}if(!c||c.length===0)return s.push(`File ${i} is empty`),{activities:[],users:[],warnings:o,errors:s};let l=ye(c)?be(c,r,i,o,s):Se(c,r,i,o,s);return a?{...l,activities:[],users:[]}:l}function ye(e){for(let t=0;t<Math.min(10,e.length);t++){let n=e[t];if(!n||n.length<3)continue;let r=String(n[1]??``),i=String(n[2]??``),a=String(n[0]??``);if(r.includes(`@`)&&i.toLowerCase().includes(`completed`)&&!a.match(/^[A-Z0-9]{10}$/))return!0}return!1}function be(e,t,n,r,i){let a=[],o=new Map,s=Ae(n),c=t?.generalCourses?.[`Classroom Training`]??100;for(let t=0;t<e.length;t++)try{let i=xe(e[t],t,c,s,n);if(i.warning){r.push(`Row ${t+1}: ${i.warning}`);continue}if(!i.activity)continue;a.push(i.activity),o.has(i.email)||o.set(i.email,S(i.email,i.name))}catch(e){r.push(`Row ${t+1}: error — ${e.message}`)}return{activities:a,users:[...o.values()],warnings:r,errors:i}}function xe(e,t,n,r,i){if(!e||e.length<2)return{};let a=String(e[0]??``).trim(),o=String(e[1]??``).trim().toLowerCase(),s=String(e[2]??``).trim();if(!o.includes(`@`))return{};if(s.toLowerCase()!==`completed`)return{warning:`skipped, status="${s}"`};let c=`ILT_${ke(i)}_${t}`;return{activity:x({id:b(o,c),userId:o,externalId:c,title:r,type:`course`,level:`classroom`,courseType:`Classroom Training`,pointsEarned:n,completedDate:new Date().toISOString(),source:`course-import`}),email:o,name:a}}function Se(e,t,n,r,i){let a=Ce(e);if(a===-1)return i.push(`No header row with "Email" column found in ${n}`),{activities:[],users:[],warnings:r,errors:i};let o=e[a],s=[],c=new Map;for(let i=a+1;i<e.length;i++)try{let a=Te(we(o,e[i]),t,n);a.warning&&r.push(`Row ${i+1}: ${a.warning}`),a.activity&&s.push(a.activity),a.user&&!c.has(a.user.email)&&c.set(a.user.email,a.user)}catch(e){r.push(`Row ${i+1}: error — ${e.message}`)}return{activities:s,users:[...c.values()],warnings:r,errors:i}}function Ce(e){for(let t=0;t<Math.min(5,e.length);t++)if(e[t]&&e[t].includes(`Email`))return t;return-1}function we(e,t){let n={};for(let r=0;r<e.length;r++)n[e[r]]=t?.[r];return n}function Te(e,t,n){let r=Ee(e);if(r.warning)return{warning:r.warning};let{type:i,points:a}=De(r.courseType,r.level,e.Score,t),o=x({id:b(r.email,r.courseId),userId:r.email,externalId:r.courseId,title:r.title,type:i,level:r.level||``,courseType:r.courseType||``,pointsEarned:a,completedDate:r.completedDate,source:`course-import`,score:C(e.Score)}),s=je(e[`First Name`],e[`Last Name`],r.email);return{activity:o,user:S(r.email,s)}}function Ee(e){let t=w(e.Email).toLowerCase(),n=w(e[`Course ID`]),r=w(e[`Course Title`]),i=w(e.Status).toUpperCase();if(!t||!n||!r)return{warning:`skipped, missing Email/Course ID/Title`};if(i===`IN PROGRESS`)return{warning:`skipped in-progress: ${r}`};if(i!==`COMPLETED`)return{warning:`skipped, status="${i}"`};let a=Oe(e[`Completed on`]);return a?{email:t,courseId:n,title:r,level:w(e.Level).toLowerCase(),courseType:w(e.CourseType),completedDate:a}:{warning:`skipped, invalid completion date`}}function De(e,t,n,r){let i=(e??``).toLowerCase();return i.includes(`quiz`)||i.includes(`card clash`)?{type:`quiz`,points:p(C(n),r)}:{type:`course`,points:f(e,t,r)}}function C(e){if(e==null)return null;let t=parseFloat(e);return Number.isNaN(t)?null:t}function Oe(e){if(!e||e===`null`||e===``)return null;try{let t=new Date(e);return Number.isNaN(t.getTime())?null:t.toISOString()}catch{return null}}function w(e){return(e??``).toString().trim()}function ke(e){return e.replace(/[^a-zA-Z0-9]/g,`_`)}function Ae(e){if(e.toLowerCase().includes(`ilt`))return`Instructor-Led Training (ILT)`;let t=e.match(/([^/\\]+?)(?:-session|-example)?\.\w+$/i);if(t){let e=t[1].replace(/[-_]/g,` `).replace(/\b\w/g,e=>e.toUpperCase());if(!e.toLowerCase().includes(`example`))return`${e} Training`}return`Classroom Training Session`}function je(e,t,n){return`${w(e)} ${w(t)}`.trim()||n.split(`@`)[0]}async function Me(e,t){let{config:n,filename:r=`unknown`,dryRun:i=!1}=t,a=[],o=[];if(!e||!e.trim())return o.push(`File ${r} is empty`),{activities:[],users:[],warnings:a,errors:o};let s;try{s=Ne(e,r,a)}catch(e){return o.push(`Failed to parse ${r}: ${e.message}`),{activities:[],users:[],warnings:a,errors:o}}if(s.length===0)return a.push(`No meetings found in ${r}`),{activities:[],users:[],warnings:a,errors:o};let c=[],l=new Map,u=m(n);for(let e of s)for(let t of e.emails){let n=`${e.meetingId}_${t}`;c.push(x({id:b(t,n),userId:t,externalId:n,title:e.title,type:`meeting`,level:``,courseType:`Teams Meeting`,pointsEarned:u,completedDate:e.date,source:`teams-import`})),l.has(t)||l.set(t,S(t,``))}return i?{activities:[],users:[],warnings:a,errors:o}:{activities:c,users:[...l.values()],warnings:a,errors:o}}function Ne(e,t,n){let r=e.split(`
+`),i=[],a=null,o=[];for(let e of r){let n=e.replace(/\0/g,``).trim();if(!n)continue;let r=Pe(n);if(r){a&&o.length>0&&(a.emails=[...o],i.push(a)),a={title:r,meetingId:Le(r),attendees:0,emails:[],date:Re(t)},o=[];continue}let s=Fe(n);if(s!==null&&a){a.attendees=s;continue}if(a){let e=Ie(n);e&&!o.includes(e)&&o.push(e)}}a&&o.length>0&&(a.emails=[...o],i.push(a));for(let e of i)e.emails.length===0&&e.attendees>0&&n.push(`Meeting "${e.title}": ${e.attendees} attendees reported but no emails found`);return i}function Pe(e){if(!e.toLowerCase().includes(`meeting title`))return null;let t=e.match(/Meeting\s+title[:\t]\s*(.+?)(?:\s*\(|$)/i);return t?t[1].trim():null}function Fe(e){if(!e.toLowerCase().includes(`attended participants`))return null;let t=e.match(/Attended\s+participants[:\t]\s*(\d+)/i);return t?parseInt(t[1],10):null}function Ie(e){let t=e.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);return t?t[1].toLowerCase():null}function Le(e){return`meeting_${e.replace(/[^a-zA-Z0-9]/g,`_`).toLowerCase()}`}function Re(e){let t=e.match(/(\d{4}[-_]\d{2}[-_]\d{2})/);if(t){let e=new Date(t[1].replace(/_/g,`-`));if(!Number.isNaN(e.getTime()))return e.toISOString()}return new Date().toISOString()}function ze(e){return`${(e.userId??``).toLowerCase()}|${(e.externalId??``).trim().toLowerCase()}`}function Be(e,t){let n=new Set(t.map(e=>ze(e))),r=[],i=[];for(let t of e){let e=ze(t);n.has(e)?i.push(t):(n.add(e),r.push(t))}return{accepted:r,duplicates:i,stats:{accepted:r.length,duplicatesSkipped:i.length}}}var Ve=class{constructor(e,t,n,r=null){this._getter=e,this._upsert=t,this._idField=n,this._delete=r}get(e){return this._getter()[e]??void 0}has(e){return e in this._getter()}set(e,t){return this._upsert({...t,[this._idField]:e}),this}delete(e){return this._delete?(this._delete(e),!0):!1}get size(){return Object.keys(this._getter()).length}values(){return Object.values(this._getter())[Symbol.iterator]()}keys(){return Object.keys(this._getter())[Symbol.iterator]()}entries(){return Object.entries(this._getter())[Symbol.iterator]()}forEach(e){let t=this._getter();for(let[n,r]of Object.entries(t))e(r,n,this)}[Symbol.iterator](){return this.entries()}},He=[],Ue=!0;function T(){return Ue&&=(He=se(),!1),He}function We(){Ue=!0}l(s.DATA_CHANGED,We);var Ge=new Ve(ae,ue,`email`,null),Ke=new Ve(oe,de,`id`,pe),E=y();l(s.DATA_CHANGED,()=>{E=y()});var D={get users(){return Ge},get teams(){return Ke},get activities(){return T()},set activities(e){},inProgressActivities:[],get config(){return E},set config(e){E=e,me(e)},get metadata(){return{lastImport:null,totalRecordsProcessed:0,sources:[]}},set metadata(e){}},qe=Array.prototype.push;Object.defineProperty(D,`activities`,{get(){let e=T();return e.push=function(...e){let t=qe.apply(this,e);for(let t of e)fe(t);return t},e.splice=function(e,t){return Array.prototype.splice.call(this,e,t)},e.find=Array.prototype.find,e.findIndex=Array.prototype.findIndex,e.filter=Array.prototype.filter,e.some=Array.prototype.some,e.sort=Array.prototype.sort,e.map=Array.prototype.map,e.forEach=Array.prototype.forEach,e},set(e){},configurable:!0}),window.appData=D,window.__stateAPI={loadFromStorage:he,exportJSON:ge,importJSON:_e,updateConfig:me},window.__pointsAPI={calculateCoursePoints:f,calculateQuizBonus:p,calculateHackathonPoints:re,calculateMeetingPoints:m},window.__importAPI={importCourseFile:ve,importTeamsFile:Me,deduplicateBatch:Be};var O=window.appData,k={course:[],teams:[]},A={users:new Set,activities:new Set},j={users:{field:`currentMonthPoints`,ascending:!1},activities:{field:`pointsEarned`,ascending:!1},teams:{field:`currentMonthPoints`,ascending:!1}};function M(e){let t=document.getElementById(`importLog`);if(t){let n=new Date().toISOString().split(`T`)[1].split(`.`)[0];t.innerHTML+=`[${n}] ${e}\n`,t.scrollTop=t.scrollHeight}console.log(e)}function N(){return new Date().toISOString().slice(0,7)}function P(e){return new Date(e).toLocaleDateString()}function F(e){return e.toLocaleString()}function Je(e,t){e.preventDefault();let n=document.getElementById(t);n&&n.scrollIntoView({behavior:`smooth`,block:`start`})}var Ye=window.__stateAPI.loadFromStorage,Xe=window.__stateAPI.exportJSON,Ze=window.__stateAPI.importJSON;function Qe(){try{Ye(),O.users.size>0||O.activities.length>0?(R(`success`,`Data loaded: ${O.users.size} users, ${O.teams.size} teams, ${O.activities.length} activities`),gt(),z(),M(`✅ Data loaded successfully from browser storage`)):(R(`warning`,`No existing data found - ready for first import`),M(`ℹ️ No existing data found, starting with empty dataset`))}catch(e){R(`error`,`Error loading data`),M(`❌ Error loading data: ${e.message}`)}}function I(){return window.__stateAPI.updateConfig(O.config),!0}function $e(){try{L(Xe(),`cloud_comp_data_${new Date().toISOString().replace(/[:.]/g,`-`).slice(0,19)}.json`),M(`📥 Data exported to JSON file`)}catch(e){M(`❌ Error exporting data: ${e.message}`),alert(`Error exporting data. Please try again.`)}}function et(){document.getElementById(`importDataModal`).classList.add(`hidden`),document.getElementById(`importDataFile`).value=``}function tt(){let e=document.getElementById(`importDataFile`).files[0];if(!e){alert(`Please select a JSON file to import`);return}let t=new FileReader;t.onload=function(e){try{let t=JSON.parse(e.target.result);if(!t.users||!t.activities){alert(`Invalid data file format. Please select a valid cloud_comp_data_*.json file.`);return}let n=t.teams?Object.keys(t.teams).length:0,r=t.inProgressActivities?t.inProgressActivities.length:0,i=`This will replace all current data with the imported data.\n\nImported data contains:\n- ${Object.keys(t.users).length} users\n- ${n} teams\n- ${t.activities.length} completed activities\n- ${r} in-progress activities\n\nContinue?`;if(!confirm(i))return;Ze(t),gt(),z(),Y(),Q(),G(),et(),M(`✅ Data imported successfully: ${O.users.size} users, ${O.teams.size} teams, ${O.activities.length} completed`)}catch(e){alert(`Error importing data: ${e.message}`),M(`❌ Error importing data: ${e.message}`)}},t.readAsText(e)}function L(e,t){let n=new Blob([JSON.stringify(e,null,2)],{type:`application/json`}),r=URL.createObjectURL(n),i=document.createElement(`a`);i.href=r,i.download=t,document.body.appendChild(i),i.click(),document.body.removeChild(i),URL.revokeObjectURL(r)}function R(e,t){let n=document.getElementById(`dataStatus`),r=n.querySelector(`.status-indicator`);r.className=`status-indicator status-${e}`,n.querySelector(`span`).textContent=t}function nt(e){A.users.clear(),A.activities.clear();let t=document.getElementById(`selectAllUsersCheckbox`);t&&(t.checked=!1);let n=document.getElementById(`selectAllActivitiesCheckbox`);n&&(n.checked=!1),document.querySelectorAll(`.tab-content`).forEach(e=>{e.classList.add(`hidden`)}),document.querySelectorAll(`.tab-button`).forEach(e=>{e.classList.remove(`active`)}),document.getElementById(e+`Section`).classList.remove(`hidden`);let r=document.getElementById(e+`Tab`);switch(r&&r.classList.add(`active`),e){case`dashboard`:z();break;case`users`:Y();break;case`activities`:Q();break;case`teams`:G(),K();break;case`manual`:window.scrollTo(0,0);break}}function z(){let e=N();document.getElementById(`totalUsers`).textContent=F(O.users.size),document.getElementById(`completedActivities`).textContent=F(O.activities.length),document.getElementById(`inProgressActivities`).textContent=F(O.inProgressActivities.length),document.getElementById(`totalTeams`).textContent=F(O.teams.size);let t=Array.from(O.users.values()).reduce((e,t)=>e+t.totalPoints,0);document.getElementById(`totalPointsAwarded`).textContent=F(t);let n=O.activities.filter(t=>t.monthYear===e).length;document.getElementById(`currentMonthActivities`).textContent=F(n),rt(),it(),at(),ot()}function rt(){N();let e=Array.from(O.users.values()).filter(e=>e.currentMonthPoints>0).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).slice(0,10),t=document.getElementById(`leaderboardBody`);t.innerHTML=e.map((e,t)=>`
+                <tr class="${t<3?`bg-gradient-to-r from-yellow-50 to-orange-50`:`hover:bg-gray-50`}">
+                    <td class="px-4 py-3">
+                        <span class="font-bold ${t===0?`text-yellow-600`:t===1?`text-gray-600`:t===2?`text-orange-600`:`text-gray-800`}">
+                            ${t+1}${t===0?`🥇`:t===1?`🥈`:t===2?`🥉`:``}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="font-medium text-gray-900">${e.name}</div>
+                        <div class="text-sm text-gray-500">${e.email}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="font-bold text-purple-600">${F(e.currentMonthPoints)}</span>
+                    </td>
+                </tr>
+            `).join(``)}function it(){W();let e=Array.from(O.teams.values()).filter(e=>e.currentMonthPoints>0).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).slice(0,5),t=document.getElementById(`teamLeaderboardBody`);if(e.length===0){t.innerHTML=`
+                    <tr>
+                        <td colspan="4" class="px-4 py-3 text-center text-gray-500 text-sm">
+                            No team activity this month
+                        </td>
+                    </tr>
+                `;return}t.innerHTML=e.map((e,t)=>{let n={blue:`bg-blue-100 text-blue-800`,green:`bg-green-100 text-green-800`,purple:`bg-purple-100 text-purple-800`,orange:`bg-orange-100 text-orange-800`,pink:`bg-pink-100 text-pink-800`,teal:`bg-teal-100 text-teal-800`,indigo:`bg-indigo-100 text-indigo-800`,red:`bg-red-100 text-red-800`}[e.color]||`bg-gray-100 text-gray-800`;return`
+                    <tr class="${t<3?`bg-gradient-to-r from-teal-50 to-cyan-50`:`hover:bg-gray-50`}">
+                        <td class="px-4 py-3">
+                            <span class="font-bold ${t===0?`text-yellow-600`:t===1?`text-gray-600`:t===2?`text-orange-600`:`text-gray-800`}">
+                                ${t+1}${t===0?`🥇`:t===1?`🥈`:t===2?`🥉`:``}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center">
+                                <span class="px-2 py-1 text-xs rounded-full ${n} mr-2">
+                                    ${e.name.substring(0,2).toUpperCase()}
+                                </span>
+                                <div class="font-medium text-gray-900">${e.name}</div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="text-gray-600">${e.members.length}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="font-bold text-teal-600">${F(e.currentMonthPoints)}</span>
+                        </td>
+                    </tr>
+                `}).join(``)}function at(){let e=O.activities.sort((e,t)=>new Date(t.completedDate)-new Date(e.completedDate)).slice(0,10),t=document.getElementById(`recentActivities`);t.innerHTML=e.map(e=>`
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div class="flex-1">
+                            <div class="font-medium text-gray-900">${O.users.get(e.userEmail)?.name||e.userEmail}</div>
+                            <div class="text-sm text-gray-600">${e.title}</div>
+                            <div class="text-xs text-gray-500">${P(e.completedDate)}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-purple-600">+${e.pointsEarned}</div>
+                            <div class="text-xs text-gray-500">${e.courseType}</div>
+                        </div>
+                    </div>
+                `).join(``)}function ot(){let e=document.getElementById(`activityCharts`),t={};O.activities.forEach(e=>{let n=e.courseType||`Unknown`;t[n]=(t[n]||0)+1}),e.innerHTML=`
+                <div class="text-center">
+                    <h4 class="font-medium text-gray-900 mb-3">Top Course Types</h4>
+                    <div class="space-y-2">
+                        ${Object.entries(t).sort(([,e],[,t])=>t-e).slice(0,5).map(([e,t])=>`
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600 truncate">${e}</span>
+                                <span class="font-medium text-blue-600">${t}</span>
+                            </div>
+                        `).join(``)}
+                    </div>
+                </div>
+                <div class="text-center">
+                    <h4 class="font-medium text-gray-900 mb-3">Monthly Activity</h4>
+                    <div class="text-3xl font-bold text-green-600">${O.activities.filter(e=>e.monthYear===N()).length}</div>
+                    <div class="text-sm text-gray-500">This Month</div>
+                </div>
+                <div class="text-center">
+                    <h4 class="font-medium text-gray-900 mb-3">Completion Rate</h4>
+                    <div class="text-3xl font-bold text-purple-600">
+                        ${O.activities.length+O.inProgressActivities.length>0?Math.round(O.activities.length/(O.activities.length+O.inProgressActivities.length)*100):0}%
+                    </div>
+                    <div class="text-sm text-gray-500">Activities Completed</div>
+                </div>
+            `}function st(){let e=document.getElementById(`teamName`).value.trim(),t=document.getElementById(`teamDescription`).value.trim(),n=document.getElementById(`teamColor`).value;if(!e){alert(`Please enter a team name`);return}if(Array.from(O.teams.values()).find(t=>t.name.toLowerCase()===e.toLowerCase())){alert(`A team with this name already exists`);return}let r=`team_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,i={id:r,name:e,description:t,color:n,members:[],createdDate:new Date().toISOString(),currentMonthPoints:0,totalPoints:0};O.teams.set(r,i),B(),G(),z(),I(),M(`✅ Team created: ${e}`)}function ct(){document.getElementById(`createTeamModal`).classList.remove(`hidden`)}function B(){document.getElementById(`createTeamModal`).classList.add(`hidden`),document.getElementById(`teamName`).value=``,document.getElementById(`teamDescription`).value=``,document.getElementById(`teamColor`).value=`blue`}function V(e){let t=O.teams.get(e);if(!t)return;document.getElementById(`managingTeamName`).textContent=t.name,document.getElementById(`managingTeamDescription`).textContent=t.description||`No description`,document.getElementById(`manageTeamMembersModal`).dataset.teamId=e;let n=document.getElementById(`availableUsers`);n.innerHTML=``,Array.from(O.users.values()).filter(e=>!t.members.includes(e.email)).sort((e,t)=>e.name.localeCompare(t.name)).forEach(e=>{let t=document.createElement(`option`);t.value=e.email,t.textContent=`${e.name} (${e.email})`,n.appendChild(t)}),H(e),document.getElementById(`manageTeamMembersModal`).classList.remove(`hidden`)}function lt(){document.getElementById(`manageTeamMembersModal`).classList.add(`hidden`)}function ut(){let e=document.getElementById(`manageTeamMembersModal`).dataset.teamId,t=O.teams.get(e);if(!t)return;let n=Array.from(document.getElementById(`availableUsers`).selectedOptions);n.forEach(n=>{let r=n.value;if(!t.members.includes(r)){t.members.push(r);let n=O.users.get(r);n&&(n.teamId=e)}}),U(e),V(e),G(),z(),I(),M(`✅ Added ${n.length} users to team ${t.name}`)}function dt(e,t){let n=O.teams.get(e);if(!n)return;n.members=n.members.filter(e=>e!==t);let r=O.users.get(t);r&&r.teamId===e&&delete r.teamId,U(e),H(e),G(),z(),I(),M(`✅ Removed user from team ${n.name}`)}function H(e){let t=O.teams.get(e);if(!t)return;let n=document.getElementById(`teamMembersList`);if(t.members.length===0){n.innerHTML=`<p class="text-gray-500 text-sm">No members yet</p>`;return}n.innerHTML=t.members.map(t=>{let n=O.users.get(t);return`
+                    <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+                        <div>
+                            <div class="font-medium text-gray-900">${n?.name||t}</div>
+                            <div class="text-sm text-gray-500">${t}</div>
+                            <div class="text-xs text-gray-600">Points this month: ${n?.currentMonthPoints||0}</div>
+                        </div>
+                        <button onclick="removeUserFromTeam('${e}', '${t}')" 
+                                class="text-red-600 hover:text-red-800 text-sm">
+                            Remove
+                        </button>
+                    </div>
+                `}).join(``)}function U(e){let t=O.teams.get(e);t&&(t.currentMonthPoints=t.members.reduce((e,t)=>e+(O.users.get(t)?.currentMonthPoints||0),0),t.totalPoints=t.members.reduce((e,t)=>e+(O.users.get(t)?.totalPoints||0),0))}function W(){O.teams.forEach((e,t)=>{U(t)})}function ft(e){let t=O.teams.get(e);t&&confirm(`Are you sure you want to delete the team "${t.name}"? This cannot be undone.`)&&(t.members.forEach(t=>{let n=O.users.get(t);n&&n.teamId===e&&delete n.teamId}),O.teams.delete(e),G(),z(),I(),M(`🗑️ Team deleted: ${t.name}`))}function G(){let e=document.getElementById(`teamsTableBody`);W();let t=Array.from(O.teams.values());if(t.sort((e,t)=>{let n,r;return j.teams.field===`members`?(n=e.members.length,r=t.members.length):(n=e[j.teams.field],r=t[j.teams.field]),typeof n==`string`&&(n=n.toLowerCase(),r=r.toLowerCase()),j.teams.ascending?n>r?1:n<r?-1:0:n<r?1:n>r?-1:0}),t.length===0){e.innerHTML=`
+                    <tr>
+                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                            No teams created yet. Click "Create Team" to get started.
+                        </td>
+                    </tr>
+                `;return}e.innerHTML=t.map(e=>`
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <div class="flex items-center">
+                                <span class="px-2 py-1 text-xs rounded-full ${{blue:`bg-blue-100 text-blue-800`,green:`bg-green-100 text-green-800`,purple:`bg-purple-100 text-purple-800`,orange:`bg-orange-100 text-orange-800`,pink:`bg-pink-100 text-pink-800`,teal:`bg-teal-100 text-teal-800`,indigo:`bg-indigo-100 text-indigo-800`,red:`bg-red-100 text-red-800`}[e.color]||`bg-gray-100 text-gray-800`} mr-2">
+                                    ${e.name.substring(0,2).toUpperCase()}
+                                </span>
+                                <div>
+                                    <div class="font-medium text-gray-900">${e.name}</div>
+                                    <div class="text-sm text-gray-500">${e.description||`No description`}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="text-gray-600">${e.members.length}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="font-bold text-teal-600">${F(e.currentMonthPoints)}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="font-medium text-gray-900">${F(e.totalPoints)}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="text-sm text-gray-500">${P(e.createdDate)}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex space-x-2">
+                                <button onclick="openManageTeamMembers('${e.id}')" 
+                                        class="text-blue-600 hover:text-blue-800 text-sm">
+                                    Manage
+                                </button>
+                                <button onclick="deleteTeam('${e.id}')" 
+                                        class="text-red-600 hover:text-red-800 text-sm">
+                                    Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join(``),K()}function pt(e){j.teams.field===e?j.teams.ascending=!j.teams.ascending:(j.teams.field=e,j.teams.ascending=!1),G()}function mt(){j.teams.ascending=!j.teams.ascending,G()}function K(){[`sortMembers`,`sortTeamCurrentMonth`,`sortTeamTotal`].forEach(e=>{let t=document.getElementById(e);t&&(t.className=`px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors`)});let e;e=j.teams.field===`members`?`sortMembers`:j.teams.field===`currentMonthPoints`?`sortTeamCurrentMonth`:`sortTeamTotal`;let t=document.getElementById(e);t&&(t.className=`px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300`);let n=document.getElementById(`sortOrderTeam`);n&&(j.teams.field,n.textContent=j.teams.ascending?`Least First ⬆️`:`Most First ⬇️`)}function ht(){let e=document.getElementById(`teamSearch`).value.toLowerCase(),t=document.querySelectorAll(`#teamsTableBody tr`);t.length===1&&t[0].querySelector(`td[colspan]`)||t.forEach(t=>{let n=t.textContent.toLowerCase();t.style.display=n.includes(e)?``:`none`})}function q(){O.config.pointConfig.awsCourseTypes[`AWS Builder Lab`]=parseInt(document.getElementById(`awsBuilderLab`).value),O.config.pointConfig.awsCourseTypes[`AWS Cloud Quest`]=parseInt(document.getElementById(`awsCloudQuest`).value),O.config.pointConfig.awsCourseTypes[`AWS Jam Journey`]=parseInt(document.getElementById(`awsJamJourney`).value),O.config.pointConfig.awsCourseTypes[`AWS Simulearn`]=parseInt(document.getElementById(`awsSimulearn`).value),O.config.pointConfig.awsCourseTypes[`Certification Exam Preparation`]=parseInt(document.getElementById(`certExamPrep`).value),O.config.pointConfig.awsCourseTypes[`Digital Course With Lab`]=parseInt(document.getElementById(`digitalCourseWithLab`).value),O.config.pointConfig.generalCourses[`Classroom Training`]=parseInt(document.getElementById(`classroomTraining`).value),O.config.pointConfig.generalCourses[`Digital Courses - Foundational`]=parseInt(document.getElementById(`digitalFoundational`).value),O.config.pointConfig.generalCourses[`Digital Courses - Associate`]=parseInt(document.getElementById(`digitalAssociate`).value),O.config.pointConfig.generalCourses[`Digital Courses - Professional`]=parseInt(document.getElementById(`digitalProfessional`).value),O.config.pointConfig.generalCourses[`Digital Courses - Specialty`]=parseInt(document.getElementById(`digitalSpecialty`).value),O.config.pointConfig.events[`Live Events`]=parseInt(document.getElementById(`liveEvents`).value),O.config.pointConfig.hackathons[`Hackathons - Participation`]=parseInt(document.getElementById(`hackathonParticipation`).value),O.config.pointConfig.hackathons[`Hackathons - 3rd Place`]=parseInt(document.getElementById(`hackathon3rd`).value),O.config.pointConfig.hackathons[`Hackathons - 2nd Place`]=parseInt(document.getElementById(`hackathon2nd`).value),O.config.pointConfig.hackathons[`Hackathons - 1st Place`]=parseInt(document.getElementById(`hackathon1st`).value),O.config.pointConfig.quizzes[`Quiz Completion`]=parseInt(document.getElementById(`quizCompletion`).value),O.config.pointConfig.quizzes[`Quiz 80%+ Score`]=parseInt(document.getElementById(`quiz80Plus`).value),O.config.pointConfig.quizzes[`Quiz Perfect Score`]=parseInt(document.getElementById(`quizPerfect`).value),M(`🔧 Point configuration updated`)}function gt(){let e=O.config.pointConfig;document.getElementById(`awsBuilderLab`).value=e.awsCourseTypes[`AWS Builder Lab`],document.getElementById(`awsCloudQuest`).value=e.awsCourseTypes[`AWS Cloud Quest`],document.getElementById(`awsJamJourney`).value=e.awsCourseTypes[`AWS Jam Journey`],document.getElementById(`awsSimulearn`).value=e.awsCourseTypes[`AWS Simulearn`],document.getElementById(`certExamPrep`).value=e.awsCourseTypes[`Certification Exam Preparation`],document.getElementById(`digitalCourseWithLab`).value=e.awsCourseTypes[`Digital Course With Lab`],document.getElementById(`classroomTraining`).value=e.generalCourses[`Classroom Training`],document.getElementById(`digitalFoundational`).value=e.generalCourses[`Digital Courses - Foundational`],document.getElementById(`digitalAssociate`).value=e.generalCourses[`Digital Courses - Associate`],document.getElementById(`digitalProfessional`).value=e.generalCourses[`Digital Courses - Professional`],document.getElementById(`digitalSpecialty`).value=e.generalCourses[`Digital Courses - Specialty`],document.getElementById(`liveEvents`).value=e.events[`Live Events`],document.getElementById(`hackathonParticipation`).value=e.hackathons[`Hackathons - Participation`],document.getElementById(`hackathon3rd`).value=e.hackathons[`Hackathons - 3rd Place`],document.getElementById(`hackathon2nd`).value=e.hackathons[`Hackathons - 2nd Place`],document.getElementById(`hackathon1st`).value=e.hackathons[`Hackathons - 1st Place`],document.getElementById(`quizCompletion`).value=e.quizzes[`Quiz Completion`],document.getElementById(`quiz80Plus`).value=e.quizzes[`Quiz 80%+ Score`],document.getElementById(`quizPerfect`).value=e.quizzes[`Quiz Perfect Score`]}function _t(){document.getElementById(`awsBuilderLab`).value=100,document.getElementById(`awsCloudQuest`).value=75,document.getElementById(`awsJamJourney`).value=150,document.getElementById(`awsSimulearn`).value=75,document.getElementById(`certExamPrep`).value=100,document.getElementById(`digitalCourseWithLab`).value=100,document.getElementById(`classroomTraining`).value=100,document.getElementById(`digitalFoundational`).value=50,document.getElementById(`digitalAssociate`).value=75,document.getElementById(`digitalProfessional`).value=100,document.getElementById(`digitalSpecialty`).value=100,document.getElementById(`liveEvents`).value=25,document.getElementById(`hackathonParticipation`).value=150,document.getElementById(`hackathon3rd`).value=250,document.getElementById(`hackathon2nd`).value=350,document.getElementById(`hackathon1st`).value=450,document.getElementById(`quizCompletion`).value=20,document.getElementById(`quiz80Plus`).value=50,document.getElementById(`quizPerfect`).value=70,q(),M(`🔄 Configuration reset to defaults`)}function vt(){q(),I();let e=document.getElementById(`configStatus`);e.textContent=`✅ Configuration saved!`,setTimeout(()=>{e.textContent=``},3e3)}function yt(){L(O.config,`cloud_comp_config.json`)}var{calculateCoursePoints:bt,calculateQuizBonus:xt,calculateHackathonPoints:St,calculateMeetingPoints:Ct}=window.__pointsAPI;function J(e,t){let n=document.getElementById(e+`FileList`);if(t.length===0){n.innerHTML=``;return}if(t.length===1)n.innerHTML=`<div class="text-xs"><strong>1 file selected:</strong><br>${t[0].name}</div>`;else{let e=Array.from(t).map((e,t)=>`${t+1}. ${e.name}`).join(`<br>`);n.innerHTML=`<div class="text-xs"><strong>${t.length} files selected:</strong><br>${e}</div>`}let r=k.course.length>0||k.teams.length>0;document.getElementById(`processBtn`).disabled=!r}var{importCourseFile:wt,importTeamsFile:Tt,deduplicateBatch:Et}=window.__importAPI;async function Dt(){if(!k.course.length&&!k.teams.length){alert(`Please select files to process`);return}M(`🚀 Starting multi-file processing...`),M(`📁 Course files: ${k.course.length}`),M(`👥 Teams files: ${k.teams.length}`),document.getElementById(`importResults`).classList.remove(`hidden`);let e=0,t=0;for(let n of k.course){let r=await Ot(n);e+=r.processed,t+=r.activities}for(let n of k.teams){let r=await kt(n);e+=r.processed,t+=r.activities}M(`✅ Multi-file processing complete!`),M(`📊 Total: ${t} completed activities from ${e} records`),jt(e,t,0),z(),await I(),k.course=[],k.teams=[],J(`course`,[]),J(`teams`,[]),document.getElementById(`processBtn`).disabled=!0}async function Ot(e){M(`📚 Processing course file: ${e.name}`);try{let t=await wt(await e.arrayBuffer(),window.XLSX,{config:O.config.pointConfig,filename:e.name});return t.warnings.forEach(t=>M(`⚠️ ${e.name}: ${t}`)),t.errors.forEach(t=>M(`❌ ${e.name}: ${t}`)),t.errors.length>0?{processed:0,activities:0}:(At(t),M(`✅ ${e.name}: ${t.activities.length} activities, ${t.users.length} users`),{processed:t.activities.length+t.warnings.length,activities:t.activities.length})}catch(t){return M(`❌ Error processing ${e.name}: ${t.message}`),{processed:0,activities:0}}}async function kt(e){M(`👥 Processing Teams file: ${e.name}`);try{let t=await Tt(await e.text(),{config:O.config.pointConfig,filename:e.name});return t.warnings.forEach(t=>M(`⚠️ ${e.name}: ${t}`)),t.errors.forEach(t=>M(`❌ ${e.name}: ${t}`)),t.errors.length>0?{processed:0,activities:0}:(At(t),M(`✅ ${e.name}: ${t.activities.length} meeting attendance activities`),{processed:t.activities.length+t.warnings.length,activities:t.activities.length})}catch(t){return M(`❌ Error processing Teams file ${e.name}: ${t.message}`),{processed:0,activities:0}}}function At(e){let{accepted:t}=Et(e.activities,O.activities);for(let e of t)O.activities.push(e);let n=N();for(let t of e.users)O.users.has(t.email)||O.users.set(t.email,{...t,currentMonthPoints:0,totalPoints:0});for(let e of t){let t=O.users.get(e.userId);t&&(t.totalPoints=(t.totalPoints||0)+e.pointsEarned,(e.completedDate?e.completedDate.slice(0,7):null)===n&&(t.currentMonthPoints=(t.currentMonthPoints||0)+e.pointsEarned))}t.length>0&&M(`📊 Dedup: ${t.length} accepted, ${e.activities.length-t.length} duplicates skipped`)}function jt(e,t,n=0){let r=document.getElementById(`importStats`);r.innerHTML=`
+                <div class="bg-blue-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-blue-600">${F(e)}</div>
+                    <div class="text-sm text-blue-800">Records Processed</div>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-green-600">${F(t)}</div>
+                    <div class="text-sm text-green-800">Completed Activities</div>
+                </div>
+                <div class="bg-orange-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-orange-600">${F(n)}</div>
+                    <div class="text-sm text-orange-800">In Progress</div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-purple-600">${F(O.users.size)}</div>
+                    <div class="text-sm text-purple-800">Total Users</div>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-indigo-600">${F(Array.from(O.users.values()).reduce((e,t)=>e+t.totalPoints,0))}</div>
+                    <div class="text-sm text-indigo-800">Points Awarded</div>
+                </div>
+            `}function Y(){let e=document.getElementById(`usersTableBody`),t=Array.from(O.users.values());t.sort((e,t)=>{let n=e[j.users.field],r=t[j.users.field];return typeof n==`string`&&(n=n.toLowerCase(),r=r.toLowerCase()),j.users.ascending?n>r?1:n<r?-1:0:n<r?1:n>r?-1:0}),e.innerHTML=t.map(e=>`
+                <tr class="hover:bg-gray-50">
+                    <td class="px-4 py-3">
+                        <input type="checkbox" 
+                               class="user-checkbox rounded" 
+                               value="${e.email}"
+                               onchange="toggleUserSelection('${e.email}')"
+                               ${A.users.has(e.email)?`checked`:``}>
+                    </td>
+                    <td class="px-4 py-3">
+                        <div class="font-medium text-gray-900">${e.name}</div>
+                        <div class="text-sm text-gray-500">${e.email}</div>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="font-bold text-purple-600">${F(e.currentMonthPoints)}</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="font-medium text-gray-900">${F(e.totalPoints)}</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="text-gray-600">${e.activities?.length||0}</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <span class="text-sm text-gray-500">${P(e.lastActivity)}</span>
+                    </td>
+                    <td class="px-4 py-3">
+                        <button onclick="viewUserDetails('${e.email}')" class="text-blue-600 hover:text-blue-800 text-sm">View</button>
+                    </td>
+                </tr>
+            `).join(``),Wt(),Z(`users`)}function Mt(e){A.users.has(e)?A.users.delete(e):A.users.add(e),Z(`users`)}function Nt(){let e=document.getElementById(`selectAllUsersCheckbox`),t=document.querySelectorAll(`.user-checkbox`);e.checked?t.forEach(e=>{e.checked=!0,A.users.add(e.value)}):(t.forEach(e=>{e.checked=!1}),A.users.clear()),Z(`users`)}function Pt(){document.querySelectorAll(`.user-checkbox`).forEach(e=>{e.checked=!0,A.users.add(e.value)}),document.getElementById(`selectAllUsersCheckbox`).checked=!0,Z(`users`)}function X(){document.querySelectorAll(`.user-checkbox`).forEach(e=>{e.checked=!1}),A.users.clear(),document.getElementById(`selectAllUsersCheckbox`).checked=!1,Z(`users`)}function Z(e){if(e===`users`){let e=A.users.size,t=document.getElementById(`userBulkActions`),n=document.getElementById(`selectedUsersCount`);e>0?(t.classList.remove(`hidden`),n.textContent=e):t.classList.add(`hidden`)}else if(e===`activities`){let e=A.activities.size,t=document.getElementById(`activityBulkActions`),n=document.getElementById(`selectedActivitiesCount`);e>0?(t.classList.remove(`hidden`),n.textContent=e):t.classList.add(`hidden`)}}function Ft(){if(A.users.size===0){alert(`Please select users first`);return}document.getElementById(`bulkAwardUserCount`).textContent=A.users.size,document.getElementById(`bulkAwardPointsModal`).classList.remove(`hidden`)}function It(){document.getElementById(`bulkAwardPointsModal`).classList.add(`hidden`),document.getElementById(`bulkActivityTitle`).value=``,document.getElementById(`bulkPoints`).value=``,document.getElementById(`bulkDescription`).value=``}function Lt(){let e=document.getElementById(`bulkActivityTitle`).value.trim(),t=parseInt(document.getElementById(`bulkPoints`).value),n=document.getElementById(`bulkDescription`).value.trim();if(!e||!t){alert(`Please fill in all required fields`);return}let r=0;A.users.forEach(i=>{let a={id:`bulk_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,userEmail:i,courseId:`bulk_${Date.now()}`,title:e,level:`manual`,courseType:`Bulk Award`,pointsEarned:t,completedDate:new Date().toISOString(),score:null,source:`bulk_award`,importDate:new Date().toISOString(),monthYear:N(),description:n};O.activities.push(a);let o=O.users.get(i);o&&(o.activities=o.activities||[],o.activities.push(a.id),o.totalPoints+=t,o.currentMonthPoints+=t,o.lastActivity=new Date().toISOString(),r++)}),It(),X(),z(),Y(),Q(),I(),M(`✅ Bulk awarded ${t} points to ${r} users for "${e}"`),alert(`Successfully awarded ${t} points to ${r} users!`)}function Rt(){if(A.users.size===0){alert(`Please select users first`);return}let e=document.getElementById(`bulkTeamSelect`);e.innerHTML=`<option value="">Choose a team...</option>`,O.teams.forEach(t=>{e.innerHTML+=`<option value="${t.id}">${t.name}</option>`}),document.getElementById(`bulkAssignUserCount`).textContent=A.users.size,document.getElementById(`bulkAssignTeamModal`).classList.remove(`hidden`)}function zt(){document.getElementById(`bulkAssignTeamModal`).classList.add(`hidden`),document.getElementById(`bulkTeamSelect`).value=``}function Bt(){let e=document.getElementById(`bulkTeamSelect`).value;if(!e){alert(`Please select a team`);return}let t=O.teams.get(e);if(!t)return;let n=0;A.users.forEach(r=>{if(!t.members.includes(r)){t.members.push(r);let i=O.users.get(r);if(i){if(i.teamId){let e=O.teams.get(i.teamId);e&&(e.members=e.members.filter(e=>e!==r))}i.teamId=e,n++}}}),U(e),zt(),X(),Y(),G(),z(),I(),M(`✅ Bulk assigned ${n} users to team ${t.name}`),alert(`Successfully assigned ${n} users to team ${t.name}!`)}function Vt(){if(A.users.size===0){alert(`Please select users first`);return}L({title:`Selected Users Export`,exportDate:new Date().toISOString(),users:Array.from(A.users).map(e=>{let t=O.users.get(e);return{email:t.email,name:t.name,currentMonthPoints:t.currentMonthPoints,totalPoints:t.totalPoints,activities:t.activities?.length||0,teamId:t.teamId,lastActivity:t.lastActivity}})},`selected_users_${new Date().toISOString().replace(/[:.]/g,`-`).slice(0,19)}.json`),M(`📥 Exported ${A.users.size} selected users`)}function Ht(e){j.users.field===e?j.users.ascending=!j.users.ascending:(j.users.field=e,j.users.ascending=!1),Y()}function Ut(){j.users.ascending=!j.users.ascending,Y()}function Wt(){[`sortCurrentMonth`,`sortTotal`].forEach(e=>{let t=document.getElementById(e);t.className=`px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors`});let e=j.users.field===`currentMonthPoints`?`sortCurrentMonth`:`sortTotal`,t=document.getElementById(e);t.className=`px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300`;let n=document.getElementById(`sortOrderUser`);n.textContent=j.users.ascending?`Least First ⬆️`:`Most First ⬇️`}function Gt(){let e=document.getElementById(`userSearch`).value.toLowerCase();document.querySelectorAll(`#usersTableBody tr`).forEach(t=>{let n=t.textContent.toLowerCase();t.style.display=n.includes(e)?``:`none`})}function Q(){let e=document.getElementById(`activitiesTableBody`),t=[...O.activities];t.sort((e,t)=>{let n,r;return j.activities.field===`pointsEarned`?(n=e.pointsEarned,r=t.pointsEarned):j.activities.field===`completedDate`&&(n=new Date(e.completedDate),r=new Date(t.completedDate)),j.activities.ascending?n>r?1:n<r?-1:0:n<r?1:n>r?-1:0}),e.innerHTML=t.map(e=>{let t=O.users.get(e.userEmail);return`
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                            <input type="checkbox" 
+                                   class="activity-checkbox rounded" 
+                                   value="${e.id}"
+                                   onchange="toggleActivitySelection('${e.id}')"
+                                   ${A.activities.has(e.id)?`checked`:``}>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-900">${t?.name||e.userEmail}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="font-medium text-gray-900">${e.title}</div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="text-sm text-gray-600">${e.courseType}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="px-2 py-1 text-xs rounded-full ${e.level===`fundamental`?`bg-green-100 text-green-800`:e.level===`intermediate`?`bg-blue-100 text-blue-800`:e.level===`advanced`?`bg-purple-100 text-purple-800`:`bg-gray-100 text-gray-800`}">${e.level}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="font-bold text-purple-600">${e.pointsEarned}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="text-sm text-gray-500">${P(e.completedDate)}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="text-xs text-gray-500">${e.source}</span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <button onclick="editActivity('${e.id}')" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
+                        </td>
+                    </tr>
+                `}).join(``),nn(),Z(`activities`)}function Kt(e){A.activities.has(e)?A.activities.delete(e):A.activities.add(e),Z(`activities`)}function qt(){let e=document.getElementById(`selectAllActivitiesCheckbox`),t=document.querySelectorAll(`.activity-checkbox`);e.checked?t.forEach(e=>{e.checked=!0,A.activities.add(e.value)}):(t.forEach(e=>{e.checked=!1}),A.activities.clear()),Z(`activities`)}function Jt(){document.querySelectorAll(`.activity-checkbox`).forEach(e=>{e.checked=!0,A.activities.add(e.value)}),document.getElementById(`selectAllActivitiesCheckbox`).checked=!0,Z(`activities`)}function $(){document.querySelectorAll(`.activity-checkbox`).forEach(e=>{e.checked=!1}),A.activities.clear(),document.getElementById(`selectAllActivitiesCheckbox`).checked=!1,Z(`activities`)}function Yt(){if(A.activities.size===0){alert(`Please select activities first`);return}document.getElementById(`bulkAdjustActivityCount`).textContent=A.activities.size,document.getElementById(`bulkAdjustPointsModal`).classList.remove(`hidden`)}function Xt(){document.getElementById(`bulkAdjustPointsModal`).classList.add(`hidden`),document.getElementById(`bulkAdjustType`).value=`add`,document.getElementById(`bulkAdjustValue`).value=``,document.getElementById(`bulkAdjustReason`).value=``}function Zt(){let e=document.getElementById(`bulkAdjustType`).value,t=parseFloat(document.getElementById(`bulkAdjustValue`).value),n=document.getElementById(`bulkAdjustReason`).value.trim();if(!t||isNaN(t)){alert(`Please enter a valid value`);return}let r=0,i=new Set;A.activities.forEach(a=>{let o=O.activities.find(e=>e.id===a);if(o){let a=o.pointsEarned,s=a;switch(e){case`add`:s=a+t;break;case`subtract`:s=Math.max(0,a-t);break;case`multiply`:s=Math.round(a*t);break;case`set`:s=t;break}let c=s-a;o.pointsEarned=s,o.adjustmentHistory=o.adjustmentHistory||[],o.adjustmentHistory.push({date:new Date().toISOString(),type:e,value:t,oldPoints:a,newPoints:s,reason:n});let l=O.users.get(o.userEmail);l&&(l.totalPoints+=c,o.monthYear===N()&&(l.currentMonthPoints+=c),i.add(o.userEmail)),r++}}),i.forEach(e=>{let t=O.users.get(e);t&&t.teamId&&U(t.teamId)}),Xt(),$(),z(),Q(),Y(),G(),I(),M(`✅ Bulk adjusted points for ${r} activities (${e} ${t})`),alert(`Successfully adjusted points for ${r} activities!`)}function Qt(){if(A.activities.size===0){alert(`Please select activities first`);return}if(!confirm(`Are you sure you want to delete ${A.activities.size} activities? This cannot be undone.`))return;let e=new Set,t=0;A.activities.forEach(n=>{let r=O.activities.findIndex(e=>e.id===n);if(r!==-1){let i=O.activities[r],a=O.users.get(i.userEmail);a&&(a.totalPoints-=i.pointsEarned,i.monthYear===N()&&(a.currentMonthPoints-=i.pointsEarned),a.activities=a.activities.filter(e=>e!==n),e.add(i.userEmail)),O.activities.splice(r,1),t++}}),e.forEach(e=>{let t=O.users.get(e);t&&t.teamId&&U(t.teamId)}),$(),z(),Q(),Y(),G(),I(),M(`🗑️ Bulk deleted ${t} activities`),alert(`Successfully deleted ${t} activities!`)}function $t(){if(A.activities.size===0){alert(`Please select activities first`);return}L({title:`Selected Activities Export`,exportDate:new Date().toISOString(),activities:Array.from(A.activities).map(e=>{let t=O.activities.find(t=>t.id===e);return{user:O.users.get(t.userEmail)?.name||t.userEmail,email:t.userEmail,activity:t.title,courseType:t.courseType,level:t.level,points:t.pointsEarned,completedDate:t.completedDate,source:t.source,adjustmentHistory:t.adjustmentHistory}})},`selected_activities_${new Date().toISOString().replace(/[:.]/g,`-`).slice(0,19)}.json`),M(`📥 Exported ${A.activities.size} selected activities`)}function en(e){j.activities.field===e?j.activities.ascending=!j.activities.ascending:(j.activities.field=e,j.activities.ascending=!1),Q()}function tn(){j.activities.ascending=!j.activities.ascending,Q()}function nn(){[`sortPoints`,`sortDate`].forEach(e=>{let t=document.getElementById(e);t.className=`px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors`});let e=j.activities.field===`pointsEarned`?`sortPoints`:`sortDate`,t=document.getElementById(e);t.className=`px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300`;let n=document.getElementById(`sortOrderActivity`);j.activities.field===`pointsEarned`?n.textContent=j.activities.ascending?`Least First ⬆️`:`Most First ⬇️`:n.textContent=j.activities.ascending?`Oldest First ⬆️`:`Recent First ⬇️`}function rn(){let e=document.getElementById(`activitySearch`).value.toLowerCase(),t=document.getElementById(`activityFilter`).value,n=N();document.querySelectorAll(`#activitiesTableBody tr`).forEach(r=>{let i=r.textContent.toLowerCase(),a=r.querySelector(`button`).onclick.toString().match(/'([^']+)'/)[1],o=O.activities.find(e=>e.id===a),s=i.includes(e);if(s&&t!==`all`)switch(t){case`current-month`:s=o?.monthYear===n;break;case`courses`:s=!o?.courseType?.includes(`Meeting`);break;case`events`:s=o?.courseType?.includes(`Meeting`)||o?.level===`live_event`;break}r.style.display=s?``:`none`})}function an(){document.getElementById(`addPointsModal`).classList.remove(`hidden`)}function on(){document.getElementById(`addPointsModal`).classList.add(`hidden`),document.getElementById(`manualUserEmail`).value=``,document.getElementById(`manualActivityTitle`).value=``,document.getElementById(`manualPoints`).value=``,document.getElementById(`manualDescription`).value=``}function sn(){let e=document.getElementById(`manualUserEmail`).value.trim().toLowerCase(),t=document.getElementById(`manualActivityTitle`).value.trim(),n=parseInt(document.getElementById(`manualPoints`).value),r=document.getElementById(`manualDescription`).value.trim();if(!e||!t||!n){alert(`Please fill in all required fields`);return}let i={id:`manual_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,userEmail:e,courseId:`manual_${Date.now()}`,title:t,level:`manual`,courseType:`Manual Award`,pointsEarned:n,completedDate:new Date().toISOString(),score:null,source:`manual_entry`,importDate:new Date().toISOString(),monthYear:N(),description:r};O.activities.push(i),O.users.has(e)||O.users.set(e,{email:e,name:e.split(`@`)[0],firstName:``,lastName:``,currentMonthPoints:0,totalPoints:0,activities:[],joinDate:new Date().toISOString(),lastActivity:new Date().toISOString()});let a=O.users.get(e);a.activities=a.activities||[],a.activities.push(i.id),a.totalPoints+=n,a.currentMonthPoints+=n,a.lastActivity=new Date().toISOString(),on(),z(),Y(),Q(),I(),M(`✅ Manual points awarded: ${n} to ${e} for "${t}"`)}function cn(){let e=N(),t=Array.from(O.users.values()).filter(e=>e.currentMonthPoints>0).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints);L({title:`Leaderboard Report - ${e}`,generated:new Date().toISOString(),data:t.map((e,t)=>({rank:t+1,name:e.name,email:e.email,currentMonthPoints:e.currentMonthPoints,totalPoints:e.totalPoints,activities:e.activities?.length||0}))},`cloud_comp_leaderboard_${e}.json`)}function ln(){L({title:`Activity Report`,generated:new Date().toISOString(),data:O.activities.map(e=>({user:O.users.get(e.userEmail)?.name||e.userEmail,email:e.userEmail,activity:e.title,courseType:e.courseType,level:e.level,points:e.pointsEarned,completedDate:e.completedDate,source:e.source}))},`cloud_comp_activities_${new Date().toISOString().slice(0,10)}.json`)}function un(){let e=N();L({title:`Summary Report`,generated:new Date().toISOString(),summary:{totalUsers:O.users.size,totalTeams:O.teams.size,totalActivities:O.activities.length,totalPoints:Array.from(O.users.values()).reduce((e,t)=>e+t.totalPoints,0),currentMonthActivities:O.activities.filter(t=>t.monthYear===e).length,currentMonthPoints:Array.from(O.users.values()).reduce((e,t)=>e+t.currentMonthPoints,0),lastImport:O.metadata.lastImport,sources:O.metadata.sources},topUsers:Array.from(O.users.values()).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).slice(0,10).map(e=>({name:e.name,email:e.email,currentMonthPoints:e.currentMonthPoints,totalPoints:e.totalPoints})),topTeams:Array.from(O.teams.values()).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).slice(0,5).map(e=>({name:e.name,members:e.members.length,currentMonthPoints:e.currentMonthPoints,totalPoints:e.totalPoints}))},`cloud_comp_summary_${new Date().toISOString().slice(0,10)}.json`)}function dn(){if(!confirm(`Are you sure you want to reset the monthly leaderboard? This will set all current month points to 0.`))return;let e=N();L({month:e,resetDate:new Date().toISOString(),leaderboard:Array.from(O.users.values()).filter(e=>e.currentMonthPoints>0).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).map(e=>({name:e.name,email:e.email,points:e.currentMonthPoints}))},`cloud_comp_leaderboard_archive_${e}.json`),O.users.forEach(e=>{e.currentMonthPoints=0}),O.config.lastReset=e,z(),Y(),I(),M(`🔄 Monthly leaderboard reset for ${e}`)}function fn(){dn()}function pn(e){alert(`User details for ${e} - Feature coming soon!`)}function mn(e){alert(`Edit activity ${e} - Feature coming soon!`)}function hn(){document.getElementById(`courseFiles`).addEventListener(`change`,function(e){k.course=Array.from(e.target.files),J(`course`,k.course)}),document.getElementById(`teamsFiles`).addEventListener(`change`,function(e){k.teams=Array.from(e.target.files),J(`teams`,k.teams)}),M(`☁️ Cloud Comp Admin initialized`),Qe(),setTimeout(()=>{Wt(),nn(),K()},100)}Object.assign(window,{showTab:nt,scrollToSection:Je,processAllFiles:Dt,processImportData:tt,closeImportDataModal:et,exportData:$e,exportConfig:yt,addManualPoints:an,closeAddPointsModal:on,submitManualPoints:sn,filterUsers:Gt,toggleUserSort:Ht,toggleUserSortOrder:Ut,toggleSelectAllUsers:Nt,selectAllUsers:Pt,deselectAllUsers:X,bulkAwardPoints:Ft,closeBulkAwardPointsModal:It,submitBulkAwardPoints:Lt,bulkAssignTeam:Rt,closeBulkAssignTeamModal:zt,submitBulkAssignTeam:Bt,bulkExportUsers:Vt,viewUserDetails:pn,toggleUserSelection:Mt,openCreateTeamModal:ct,closeCreateTeamModal:B,createTeam:st,openManageTeamMembers:V,closeManageTeamMembersModal:lt,addUsersToTeam:ut,removeUserFromTeam:dt,deleteTeam:ft,filterTeams:ht,toggleTeamSort:pt,toggleTeamSortOrder:mt,filterActivities:rn,toggleActivitySort:en,toggleActivitySortOrder:tn,toggleSelectAllActivities:qt,selectAllActivities:Jt,deselectAllActivities:$,bulkAdjustPoints:Yt,closeBulkAdjustPointsModal:Xt,submitBulkAdjustPoints:Zt,bulkDeleteActivities:Qt,bulkExportActivities:$t,editActivity:mn,toggleActivitySelection:Kt,updatePointConfig:q,resetToDefaults:_t,saveConfiguration:vt,generateLeaderboardReport:cn,generateActivityReport:ln,generateSummaryReport:un,resetMonthlyLeaderboard:dn,confirmMonthlyReset:fn,initApp:hn}),document.readyState===`loading`?document.addEventListener(`DOMContentLoaded`,()=>window.initApp()):window.initApp();</script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">☁️ Cloud Comp <span class="text-base font-normal text-gray-500 ml-2">v1.2</span></h1>
+                    <h2 class="text-lg font-medium text-gray-700 mb-1">Learning Gamification Admin</h2>
+                    <p class="text-sm text-gray-600">Manage learning activities, points, and leaderboards</p>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div id="dataStatus" class="flex items-center text-sm">
+                        <div class="status-indicator status-warning"></div>
+                        <span>No data loaded</span>
+                    </div>
+                    <button onclick="showTab('import')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+                        📤 Import Data
+                    </button>
+                    <button onclick="exportData()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
+                        📥 Export Data
+                    </button>
+                    <button onclick="showTab('manual')" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm">
+                        📖 Readme
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-6 py-8">
+        <!-- Navigation Tabs -->
+        <nav class="mb-8">
+            <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+                <button id="dashboardTab" onclick="showTab('dashboard')" class="tab-button active">
+                    📊 Dashboard
+                </button>
+                <button id="importTab" onclick="showTab('import')" class="tab-button">
+                    📁 Import Data
+                </button>
+                <button id="usersTab" onclick="showTab('users')" class="tab-button">
+                    👥 Users
+                </button>
+                <button id="teamsTab" onclick="showTab('teams')" class="tab-button">
+                    🏢 Teams
+                </button>
+                <button id="activitiesTab" onclick="showTab('activities')" class="tab-button">
+                    📚 Activities
+                </button>
+                <button id="configTab" onclick="showTab('config')" class="tab-button">
+                    ⚙️ Configuration
+                </button>
+                <button id="reportsTab" onclick="showTab('reports')" class="tab-button">
+                    📈 Reports
+                </button>
+                <button id="manualTab" onclick="showTab('manual')" class="tab-button">
+                    📖 Manual
+                </button>
+            </div>
+        </nav>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboardSection" class="tab-content">
+            <!-- Quick Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Total Users</p>
+                            <p id="totalUsers" class="text-3xl font-bold text-blue-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">👥</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Total Teams</p>
+                            <p id="totalTeams" class="text-3xl font-bold text-teal-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">🏢</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Completed</p>
+                            <p id="completedActivities" class="text-3xl font-bold text-green-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">✅</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">In Progress</p>
+                            <p id="inProgressActivities" class="text-3xl font-bold text-orange-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">🔄</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Points Awarded</p>
+                            <p id="totalPointsAwarded" class="text-3xl font-bold text-purple-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">🎯</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">This Month</p>
+                            <p id="currentMonthActivities" class="text-3xl font-bold text-indigo-600">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                            <span class="text-2xl">📅</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Month Leaderboards -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <!-- User Leaderboard -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">🏆 Top Users This Month</h3>
+                        <button onclick="resetMonthlyLeaderboard()" class="text-sm bg-red-50 text-red-600 px-3 py-1 rounded-lg hover:bg-red-100">
+                            Reset Month
+                        </button>
+                    </div>
+                    <div class="scroll-table">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Rank</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">User</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Points</th>
+                                </tr>
+                            </thead>
+                            <tbody id="leaderboardBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Team Leaderboard -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">🏆 Top Teams This Month</h3>
+                        <button onclick="showTab('teams')" class="text-sm bg-teal-50 text-teal-600 px-3 py-1 rounded-lg hover:bg-teal-100">
+                            Manage Teams
+                        </button>
+                    </div>
+                    <div class="scroll-table">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Rank</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Team</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Members</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Points</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teamLeaderboardBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Recent Activities -->
+                <div class="bg-white rounded-xl shadow-sm p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Recent Activities</h3>
+                    <div class="scroll-table">
+                        <div id="recentActivities" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Placeholder -->
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Activity Overview</h3>
+                <div id="activityCharts" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+
+        <!-- Import Tab -->
+        <div id="importSection" class="tab-content hidden">
+            <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">📁 Import Learning Data</h2>
+                
+                <!-- File Upload Areas -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- Course Activity Files -->
+                    <div class="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center bg-blue-50">
+                        <input type="file" id="courseFiles" accept=".xlsx,.csv" multiple class="hidden">
+                        <div class="mb-4">
+                            <span class="text-4xl">📚</span>
+                        </div>
+                        <button onclick="document.getElementById('courseFiles').click()" 
+                                class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium mb-3">
+                            Choose Course Activity / Classroom Training Files
+                        </button>
+                        <p class="text-sm text-gray-600 mb-2">Upload Excel/CSV files with course completions or classroom training attendance</p>
+                        <div id="courseFileList" class="text-sm text-blue-600"></div>
+                    </div>
+                    
+                    <!-- Teams Meeting Files -->
+                    <div class="border-2 border-dashed border-green-300 rounded-lg p-8 text-center bg-green-50">
+                        <input type="file" id="teamsFiles" accept=".csv,.xlsx" multiple class="hidden">
+                        <div class="mb-4">
+                            <span class="text-4xl">👥</span>
+                        </div>
+                        <button onclick="document.getElementById('teamsFiles').click()" 
+                                class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium mb-3">
+                            Choose Multiple Teams Meeting Files
+                        </button>
+                        <p class="text-sm text-gray-600 mb-2">Upload multiple CSV files with meeting attendance data</p>
+                        <div id="teamsFileList" class="text-sm text-green-600"></div>
+                    </div>
+                </div>
+                
+                <!-- Process Button -->
+                <div class="text-center">
+                    <button id="processBtn" onclick="processAllFiles()" 
+                            class="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg font-semibold text-lg disabled:bg-gray-400 disabled:cursor-not-allowed" 
+                            disabled>
+                        🚀 Process All Files
+                    </button>
+                </div>
+            </div>
+
+            <!-- Import Results -->
+            <div id="importResults" class="hidden bg-white rounded-xl shadow-sm p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Import Results</h3>
+                <div id="importStats" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"></div>
+                <div class="bg-gray-100 p-4 rounded-lg">
+                    <h4 class="font-medium mb-2">Processing Log</h4>
+                    <div id="importLog" class="bg-white p-3 rounded font-mono text-sm h-64 overflow-y-auto"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="usersSection" class="tab-content hidden">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">👥 User Management</h2>
+                    <div class="flex items-center space-x-4 flex-wrap">
+                        <div class="sort-controls">
+                            <span class="text-sm text-gray-600">Sort by:</span>
+                            <button onclick="toggleUserSort('currentMonthPoints')" 
+                                    class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    id="sortCurrentMonth">
+                                This Month 📊
+                            </button>
+                            <button onclick="toggleUserSort('totalPoints')" 
+                                    class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    id="sortTotal">
+                                Total Points 🎯
+                            </button>
+                            <button onclick="toggleUserSortOrder()" 
+                                    class="px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 transition-colors"
+                                    id="sortOrderUser">
+                                Most First ⬇️
+                            </button>
+                        </div>
+                        <input type="text" id="userSearch" placeholder="Search users..." 
+                               class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               onkeyup="filterUsers()">
+                        <button onclick="addManualPoints()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                            ➕ Add Points
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Bulk Actions Bar -->
+                <div id="userBulkActions" class="hidden bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm font-medium text-blue-900">
+                                <span id="selectedUsersCount">0</span> users selected
+                            </span>
+                            <button onclick="selectAllUsers()" class="text-sm text-blue-600 hover:text-blue-800">
+                                Select All
+                            </button>
+                            <button onclick="deselectAllUsers()" class="text-sm text-blue-600 hover:text-blue-800">
+                                Clear Selection
+                            </button>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="bulkAwardPoints()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
+                                🎁 Award Points
+                            </button>
+                            <button onclick="bulkAssignTeam()" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm">
+                                🏢 Assign to Team
+                            </button>
+                            <button onclick="bulkExportUsers()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm">
+                                📥 Export Selected
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="scroll-table">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left">
+                                    <input type="checkbox" id="selectAllUsersCheckbox" onclick="toggleSelectAllUsers()" class="rounded">
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">User</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Current Month</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Total Points</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Activities</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Last Activity</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teams Tab -->
+        <div id="teamsSection" class="tab-content hidden">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">🏢 Team Management</h2>
+                    <div class="flex items-center space-x-4 flex-wrap">
+                        <div class="sort-controls">
+                            <span class="text-sm text-gray-600">Sort by:</span>
+                            <button onclick="toggleTeamSort('members')" 
+                                    class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    id="sortMembers">
+                                Members 👥
+                            </button>
+                            <button onclick="toggleTeamSort('currentMonthPoints')" 
+                                    class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    id="sortTeamCurrentMonth">
+                                This Month 📊
+                            </button>
+                            <button onclick="toggleTeamSort('totalPoints')" 
+                                    class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    id="sortTeamTotal">
+                                Total Points 🎯
+                            </button>
+                            <button onclick="toggleTeamSortOrder()" 
+                                    class="px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 transition-colors"
+                                    id="sortOrderTeam">
+                                Most First ⬇️
+                            </button>
+                        </div>
+                        <input type="text" id="teamSearch" placeholder="Search teams..." 
+                               class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                               onkeyup="filterTeams()">
+                        <button onclick="openCreateTeamModal()" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">
+                            ➕ Create Team
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="scroll-table">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Team Name</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Members</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Current Month</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Total Points</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Created</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teamsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activities Tab -->
+        <div id="activitiesSection" class="tab-content hidden">
+            <div class="bg-white rounded-xl shadow-sm p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-semibold text-gray-900">📚 Activity Management</h2>
+                    <div class="flex items-center space-x-4 flex-wrap">
+                        <div class="sort-controls">
+                            <span class="text-sm text-gray-600">Sort by:</span>
+                            <button onclick="toggleActivitySort('pointsEarned')" 
+                                    class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    id="sortPoints">
+                                Points 🎯
+                            </button>
+                            <button onclick="toggleActivitySort('completedDate')" 
+                                    class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    id="sortDate">
+                                Date 📅
+                            </button>
+                            <button onclick="toggleActivitySortOrder()" 
+                                    class="px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 transition-colors"
+                                    id="sortOrderActivity">
+                                Most/Recent First ⬇️
+                            </button>
+                        </div>
+                        <select id="activityFilter" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="filterActivities()">
+                            <option value="all">All Activities</option>
+                            <option value="current-month">Current Month</option>
+                            <option value="courses">Courses Only</option>
+                            <option value="events">Events Only</option>
+                        </select>
+                        <input type="text" id="activitySearch" placeholder="Search activities..." 
+                               class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               onkeyup="filterActivities()">
+                    </div>
+                </div>
+                
+                <!-- Bulk Actions Bar -->
+                <div id="activityBulkActions" class="hidden bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm font-medium text-purple-900">
+                                <span id="selectedActivitiesCount">0</span> activities selected
+                            </span>
+                            <button onclick="selectAllActivities()" class="text-sm text-purple-600 hover:text-purple-800">
+                                Select All
+                            </button>
+                            <button onclick="deselectAllActivities()" class="text-sm text-purple-600 hover:text-purple-800">
+                                Clear Selection
+                            </button>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <button onclick="bulkAdjustPoints()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm">
+                                ✏️ Adjust Points
+                            </button>
+                            <button onclick="bulkDeleteActivities()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm">
+                                🗑️ Delete Selected
+                            </button>
+                            <button onclick="bulkExportActivities()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm">
+                                📥 Export Selected
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="scroll-table">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left">
+                                    <input type="checkbox" id="selectAllActivitiesCheckbox" onclick="toggleSelectAllActivities()" class="rounded">
+                                </th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">User</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Activity</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Type</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Level</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Points</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Date</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Source</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activitiesTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Configuration Tab -->
+        <div id="configSection" class="tab-content hidden">
+            <!-- Point Configuration (same as POC but enhanced) -->
+            <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">⚙️ Point Configuration</h2>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <h4 class="font-medium text-blue-900 mb-2">💡 Configuration Guide</h4>
+                    <p class="text-sm text-blue-800">
+                        Configure points for specific course types and activities. Changes are automatically saved and applied to future imports.
+                    </p>
+                </div>
+
+                <!-- AWS Course Types -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">🔧 AWS Course Types</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">AWS Builder Lab</label>
+                            <input type="number" id="awsBuilderLab" value="100" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">AWS Cloud Quest</label>
+                            <input type="number" id="awsCloudQuest" value="75" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">AWS Jam Journey</label>
+                            <input type="number" id="awsJamJourney" value="150" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">AWS Simulearn</label>
+                            <input type="number" id="awsSimulearn" value="75" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Certification Exam Preparation</label>
+                            <input type="number" id="certExamPrep" value="100" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Digital Course With Lab</label>
+                            <input type="number" id="digitalCourseWithLab" value="100" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- General Course Categories -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">📚 General Course Categories</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Classroom Training</label>
+                            <input type="number" id="classroomTraining" value="100" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Digital Courses - Foundational</label>
+                            <input type="number" id="digitalFoundational" value="50" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Digital Courses - Associate</label>
+                            <input type="number" id="digitalAssociate" value="75" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Digital Courses - Professional</label>
+                            <input type="number" id="digitalProfessional" value="100" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Digital Courses - Specialty</label>
+                            <input type="number" id="digitalSpecialty" value="100" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Events and Activities -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- Events -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">🎉 Events</h3>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Live Events</label>
+                            <input type="number" id="liveEvents" value="25" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                    </div>
+
+                    <!-- Quizzes -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">🧠 Quizzes</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Quiz Completion</label>
+                                <input type="number" id="quizCompletion" value="20" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                       onchange="updatePointConfig()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Quiz 80%+ Score</label>
+                                <input type="number" id="quiz80Plus" value="50" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                       onchange="updatePointConfig()">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Quiz Perfect Score</label>
+                                <input type="number" id="quizPerfect" value="70" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                       onchange="updatePointConfig()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hackathons -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">🏆 Hackathons</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Participation</label>
+                            <input type="number" id="hackathonParticipation" value="150" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">3rd Place</label>
+                            <input type="number" id="hackathon3rd" value="250" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">2nd Place</label>
+                            <input type="number" id="hackathon2nd" value="350" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">1st Place</label>
+                            <input type="number" id="hackathon1st" value="450" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
+                                   onchange="updatePointConfig()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuration Actions -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium text-gray-900">Configuration Management</h4>
+                            <p class="text-sm text-gray-600">Save, reset, or export your point configuration</p>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button onclick="resetToDefaults()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                                🔄 Reset Defaults
+                            </button>
+                            <button onclick="exportConfig()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                                📥 Export Config
+                            </button>
+                            <button onclick="saveConfiguration()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                                💾 Save Changes
+                            </button>
+                        </div>
+                    </div>
+                    <div id="configStatus" class="mt-2 text-sm text-green-600"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reportsSection" class="tab-content hidden">
+            <div class="space-y-8">
+                <!-- Export Options -->
+                <div class="bg-white rounded-xl shadow-sm p-8">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-6">📈 Reports & Export</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <button onclick="generateLeaderboardReport()" class="bg-purple-500 hover:bg-purple-600 text-white p-6 rounded-lg text-center">
+                            <div class="text-2xl mb-2">🏆</div>
+                            <div class="font-medium">Leaderboard Report</div>
+                            <div class="text-sm opacity-90">Current month rankings</div>
+                        </button>
+                        <button onclick="generateActivityReport()" class="bg-blue-500 hover:bg-blue-600 text-white p-6 rounded-lg text-center">
+                            <div class="text-2xl mb-2">📊</div>
+                            <div class="font-medium">Activity Report</div>
+                            <div class="text-sm opacity-90">All user activities</div>
+                        </button>
+                        <button onclick="generateSummaryReport()" class="bg-green-500 hover:bg-green-600 text-white p-6 rounded-lg text-center">
+                            <div class="text-2xl mb-2">📋</div>
+                            <div class="font-medium">Summary Report</div>
+                            <div class="text-sm opacity-90">Overall statistics</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Monthly Reset -->
+                <div class="bg-white rounded-xl shadow-sm p-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">📅 Monthly Reset</h3>
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+                        <p class="text-sm text-yellow-800">
+                            <strong>Warning:</strong> This will reset all current month points and create a backup of the current leaderboard.
+                        </p>
+                    </div>
+                    <button onclick="confirmMonthlyReset()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg">
+                        🔄 Reset Monthly Leaderboard
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual Tab -->
+        <div id="manualSection" class="tab-content hidden">
+            <div class="max-w-4xl mx-auto">
+                <!-- Manual Header -->
+                <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-4">📖 Cloud Comp User Manual</h1>
+                    <p class="text-lg text-gray-600">Complete guide to using the Learning Gamification Platform</p>
+                </div>
+
+                <!-- Table of Contents -->
+                <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">📑 Table of Contents</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <a href="#getting-started" onclick="scrollToSection(event, 'getting-started')" class="text-blue-600 hover:text-blue-800">1. Getting Started</a>
+                        <a href="#dashboard" onclick="scrollToSection(event, 'dashboard')" class="text-blue-600 hover:text-blue-800">2. Dashboard Overview</a>
+                        <a href="#importing" onclick="scrollToSection(event, 'importing')" class="text-blue-600 hover:text-blue-800">3. Importing Data</a>
+                        <a href="#users" onclick="scrollToSection(event, 'users')" class="text-blue-600 hover:text-blue-800">4. Managing Users</a>
+                        <a href="#teams" onclick="scrollToSection(event, 'teams')" class="text-blue-600 hover:text-blue-800">5. Managing Teams</a>
+                        <a href="#activities" onclick="scrollToSection(event, 'activities')" class="text-blue-600 hover:text-blue-800">6. Managing Activities</a>
+                        <a href="#configuration" onclick="scrollToSection(event, 'configuration')" class="text-blue-600 hover:text-blue-800">7. Point Configuration</a>
+                        <a href="#reports" onclick="scrollToSection(event, 'reports')" class="text-blue-600 hover:text-blue-800">8. Reports & Exports</a>
+                        <a href="#tips" onclick="scrollToSection(event, 'tips')" class="text-blue-600 hover:text-blue-800">9. Tips & Best Practices</a>
+                        <a href="#troubleshooting" onclick="scrollToSection(event, 'troubleshooting')" class="text-blue-600 hover:text-blue-800">10. Troubleshooting</a>
+                    </div>
+                </div>
+
+                <!-- Getting Started -->
+                <div id="getting-started" class="bg-white rounded-xl shadow-sm p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">🚀 1. Getting Started</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">System Requirements</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li>Modern web browser (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)</li>
+                                <li>JavaScript enabled</li>
+                                <li>Local storage enabled (for data persistence)</li>
+                                <li>No server or installation required</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">First Time Setup</h3>
+                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                <li>Open <code class="bg-gray-100 px-2 py-1 rounded">cloud_comp_app.html</code> in your browser</li>
+                                <li>The application will automatically initialize with empty data</li>
+                                <li>Start by importing existing data or creating teams manually</li>
+                                <li>Data automatically saves to your browser's local storage</li>
+                            </ol>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <p class="text-sm text-blue-800">
+                                <strong>💡 Tip:</strong> Bookmark the application for quick access. All your data persists between sessions.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Overview -->
+                <div id="dashboard" class="bg-white rounded-xl shadow-sm p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">📊 2. Dashboard Overview</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Key Metrics</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
+                                <div><strong>Total Users:</strong> Number of registered learners</div>
+                                <div><strong>Total Teams:</strong> Number of created teams</div>
+                                <div><strong>Completed:</strong> Total completed activities</div>
+                                <div><strong>In Progress:</strong> Activities currently being worked on</div>
+                                <div><strong>Points Awarded:</strong> Total points across all users</div>
+                                <div><strong>This Month:</strong> Activities completed this month</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Leaderboards</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li><strong>User Leaderboard:</strong> Top 10 individual performers for the current month</li>
+                                <li><strong>Team Leaderboard:</strong> Top 5 teams based on combined member points</li>
+                                <li>Both leaderboards reset monthly (with archive option)</li>
+                                <li>Medals (🥇🥈🥉) displayed for top 3 positions</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Recent Activities</h3>
+                            <p class="text-gray-700">Shows the 10 most recent completed activities with user, title, date, and points earned.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Importing Data -->
+                <div id="importing" class="bg-white rounded-xl shadow-sm p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">📁 3. Importing Data</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Course Activity & Classroom Training Files</h3>
+                            <div class="bg-gray-50 rounded-lg p-4 mb-3">
+                                <p class="font-medium text-gray-900 mb-2">Course Activity Required Columns:</p>
+                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                                    <li>Email - User's email address</li>
+                                    <li>Course ID - Unique course identifier</li>
+                                    <li>Course Title - Name of the course</li>
+                                    <li>Status - COMPLETED or IN PROGRESS</li>
+                                    <li>Level - fundamental/intermediate/advanced/specialty</li>
+                                    <li>CourseType - AWS Cloud Quest, Digital Course, etc.</li>
+                                    <li>Completed on - Completion date (for completed courses)</li>
+                                    <li>Score (optional) - For quiz scoring</li>
+                                </ul>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-4 mb-3">
+                                <p class="font-medium text-gray-900 mb-2">Classroom Training (ILT) Format:</p>
+                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                                    <li>Name - Attendee's full name</li>
+                                    <li>Email - Attendee's email address</li>
+                                    <li>Status - Completed/Not Completed</li>
+                                    <li>Evaluation Status (optional)</li>
+                                </ul>
+                                <p class="text-xs text-gray-600 mt-2">🎓 Classroom training awards 100 points per day</p>
+                            </div>
+                            <p class="text-gray-700">Supports Excel (.xlsx) and CSV formats. Multiple files can be processed at once.</p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Teams Meeting Files</h3>
+                            <div class="bg-gray-50 rounded-lg p-4 mb-3">
+                                <p class="font-medium text-gray-900 mb-2">Expected Format:</p>
+                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
+                                    <li>Meeting title or Meeting Title field</li>
+                                    <li>Attended participants count</li>
+                                    <li>Individual attendee emails (optional)</li>
+                                    <li>Each attendee receives 25 points per meeting</li>
+                                </ul>
+                            </div>
+                            <p class="text-gray-700">CSV format from Microsoft Teams exports. System creates placeholder emails if not found.</p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Import Process</h3>
+                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                <li>Go to the Import Data tab</li>
+                                <li>Click "Choose Course Activity / Classroom Training Files" or "Choose Multiple Teams Meeting Files"</li>
+                                <li>Select one or more files from your computer</li>
+                                <li>Click "🚀 Process All Files"</li>
+                                <li>Review the import log for any issues</li>
+                                <li>Check the dashboard for updated statistics</li>
+                            </ol>
+                        </div>
+
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <p class="text-sm text-yellow-800">
+                                <strong>⚠️ Note:</strong> The system automatically skips duplicate entries based on email + course/meeting ID.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Managing Users -->
+                <div id="users" class="bg-white rounded-xl shadow-sm p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">👥 4. Managing Users</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">User Overview</h3>
+                            <p class="text-gray-700 mb-3">Users are automatically created when importing activity data. Each user has:</p>
+                            <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                <li>Email (primary identifier)</li>
+                                <li>Name (from import data)</li>
+                                <li>Current month points</li>
+                                <li>Total all-time points</li>
+                                <li>Activity count</li>
+                                <li>Team assignment (if applicable)</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">User Management Features</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li><strong>Search:</strong> Find users by name or email</li>
+                                <li><strong>Sort:</strong> By current month or total points</li>
+                                <li><strong>Manual Points:</strong> Award custom points for special achievements</li>
+                                <li><strong>Bulk Operations:</strong> Select multiple users to award points, assign to teams, or export</li>
+                                <li><strong>View Details:</strong> See individual user activity history (coming soon)</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Bulk Operations</h3>
+                            <p class="text-gray-700 mb-3">Select multiple users for efficient bulk actions:</p>
+                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                <li>Click checkboxes next to users or use "Select All"</li>
+                                <li>The bulk actions bar appears when users are selected</li>
+                                <li>Choose from: Award Points, Assign to Team, or Export Selected</li>
+                                <li>Fill in the required information in the modal</li>
+                                <li>Confirm the bulk action</li>
+                            </ol>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Adding Manual Points</h3>
+                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                <li>Click "➕ Add Points" in the Users tab</li>
+                                <li>Enter the user's email address</li>
+                                <li>Provide an activity title</li>
+                                <li>Set the point value</li>
+                                <li>Add a description (optional)</li>
+                                <li>Click "Add Points" to award</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Managing Teams -->
+                <div id="teams" class="bg-white rounded-xl shadow-sm p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">🏢 5. Managing Teams</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Creating Teams</h3>
+                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                <li>Navigate to the Teams tab</li>
+                                <li>Click "➕ Create Team"</li>
+                                <li>Enter team name and description</li>
+                                <li>Choose a team color (8 options available)</li>
+                                <li>Click "Create Team"</li>
+                            </ol>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Managing Team Members</h3>
+                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                <li>Click "Manage" on any team</li>
+                                <li>Select users from the available list (Ctrl/Cmd for multiple)</li>
+                                <li>Click "Add →" to add members</li>
+                                <li>Click "Remove" next to any member to remove them</li>
+                                <li>Team points automatically update based on member totals</li>
+                            </ol>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Team Features</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li><strong>Color Coding:</strong> Visual identification with 8 color options</li>
+                                <li><strong>Automatic Points:</strong> Team points = sum of all member points</li>
+                                <li><strong>Sorting:</strong> Sort by members, current month points, or total points</li>
+                                <li><strong>Search:</strong> Find teams quickly by name or description</li>
+                                <li><strong>Delete:</strong> Remove teams (members remain as users)</li>
+                                <li><strong>Leaderboard:</strong> Teams compete on the dashboard</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <p class="text-sm text-green-800">
+                                <strong>💡 Tip:</strong> Teams are great for departments, project groups, or learning cohorts.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Managing Activities -->
+                <div id="activities" class="bg-white rounded-xl shadow-sm p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">📚 6. Managing Activities</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Activity Types</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
+                                <div>
+                                    <strong>Courses:</strong>
+                                    <ul class="list-disc list-inside text-sm mt-1 ml-4">
+                                        <li>Digital courses (50-100 points)</li>
+                                        <li>Classroom training (100 points)</li>
+                                        <li>AWS specialized courses</li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <strong>Events:</strong>
+                                    <ul class="list-disc list-inside text-sm mt-1 ml-4">
+                                        <li>Teams meetings (25 points)</li>
+                                        <li>Live events (25 points)</li>
+                                        <li>Hackathons (150-450 points)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Activity Management Features</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li><strong>Sort:</strong> By points earned or completion date</li>
+                                <li><strong>Filter:</strong> Current month, courses only, or events only</li>
+                                <li><strong>Search:</strong> Find activities by user or title</li>
+                                <li><strong>Bulk Operations:</strong> Select multiple activities to adjust points, delete, or export</li>
+                                <li><strong>Edit:</strong> Modify activity details (coming soon)</li>
+                                <li><strong>Source Tracking:</strong> See which import file created each activity</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Bulk Activity Operations</h3>
+                            <p class="text-gray-700 mb-3">Manage multiple activities efficiently:</p>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li><strong>Adjust Points:</strong> Add, subtract, multiply, or set new point values</li>
+                                <li><strong>Delete Selected:</strong> Remove multiple activities at once</li>
+                                <li><strong>Export Selected:</strong> Export specific activities to JSON</li>
+                                <li><strong>Adjustment History:</strong> All point changes are tracked with reasons</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">In-Progress Activities</h3>
+                            <p class="text-gray-700">The system tracks activities with "IN PROGRESS" status separately. These:</p>
+                            <ul class="list-disc list-inside space-y-1 text-gray-700 mt-2">
+                                <li>Don't award points until completed</li>
+                                <li>Show progress percentage when available</li>
+                                <li>Automatically convert to completed when re-imported with COMPLETED status</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Point Configuration -->
+                <div id="configuration" class="bg-white rounded-xl shadow-sm p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">⚙️ 7. Point Configuration</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Default Point Values</h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full text-sm">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-4 py-2 text-left">Activity Type</th>
+                                            <th class="px-4 py-2 text-left">Points</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-gray-200">
+                                        <tr><td class="px-4 py-2">Digital Course - Foundational</td><td class="px-4 py-2">50</td></tr>
+                                        <tr><td class="px-4 py-2">Digital Course - Associate</td><td class="px-4 py-2">75</td></tr>
+                                        <tr><td class="px-4 py-2">Digital Course - Professional</td><td class="px-4 py-2">100</td></tr>
+                                        <tr><td class="px-4 py-2">AWS Cloud Quest</td><td class="px-4 py-2">75</td></tr>
+                                        <tr><td class="px-4 py-2">AWS Builder Lab</td><td class="px-4 py-2">100</td></tr>
+                                        <tr><td class="px-4 py-2">Teams Meeting / Live Event</td><td class="px-4 py-2">25</td></tr>
+                                        <tr><td class="px-4 py-2">Hackathon Participation</td><td class="px-4 py-2">150</td></tr>
+                                        <tr><td class="px-4 py-2">Quiz (based on score)</td><td class="px-4 py-2">20-70</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Customizing Points</h3>
+                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                <li>Go to the Configuration tab</li>
+                                <li>Adjust point values for each activity type</li>
+                                <li>Click "💾 Save Changes" to apply</li>
+                                <li>New imports will use updated values</li>
+                                <li>Existing activities keep their original points</li>
+                            </ol>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Configuration Management</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li><strong>Reset Defaults:</strong> Restore original point values</li>
+                                <li><strong>Export Config:</strong> Save configuration as JSON</li>
+                                <li><strong>Auto-save:</strong> Changes persist in browser storage</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reports & Exports -->
+                <div id="reports" class="bg-white rounded-xl shadow-sm p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">📈 8. Reports & Exports</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Available Reports</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li><strong>Leaderboard Report:</strong> Current month user rankings with points</li>
+                                <li><strong>Activity Report:</strong> Complete list of all activities with details</li>
+                                <li><strong>Summary Report:</strong> Overall statistics, top users, and top teams</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Data Export</h3>
+                            <p class="text-gray-700 mb-3">Click "📥 Export Data" in the header to create a complete backup including:</p>
+                            <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                <li>All users and their points</li>
+                                <li>All teams and memberships</li>
+                                <li>All activities (completed and in-progress)</li>
+                                <li>Configuration settings</li>
+                                <li>Metadata and statistics</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Monthly Reset</h3>
+                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                <li>Go to Reports tab</li>
+                                <li>Click "🔄 Reset Monthly Leaderboard"</li>
+                                <li>Confirm the action</li>
+                                <li>System creates an archive of current standings</li>
+                                <li>All current month points reset to 0</li>
+                                <li>Total points remain unchanged</li>
+                            </ol>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <p class="text-sm text-blue-800">
+                                <strong>💡 Tip:</strong> Export data regularly as a backup. Files are timestamped for easy organization.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tips & Best Practices -->
+                <div id="tips" class="bg-white rounded-xl shadow-sm p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">💡 9. Tips & Best Practices</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Daily Usage</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li>Import new activity data weekly or bi-weekly</li>
+                                <li>Check dashboard for quick performance overview</li>
+                                <li>Award manual points for special achievements immediately</li>
+                                <li>Keep team memberships current</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Monthly Tasks</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li>Generate and share leaderboard reports</li>
+                                <li>Reset monthly points after announcing winners</li>
+                                <li>Review and adjust point configurations if needed</li>
+                                <li>Export full data backup</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Data Management</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li>Keep source files organized by date</li>
+                                <li>Name import files descriptively</li>
+                                <li>Regular exports protect against data loss</li>
+                                <li>Browser storage persists unless manually cleared</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Team Management</h3>
+                            <ul class="list-disc list-inside space-y-2 text-gray-700">
+                                <li>Create teams before bulk user imports</li>
+                                <li>Use consistent team names</li>
+                                <li>Color-code teams by department or function</li>
+                                <li>Review team compositions quarterly</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Troubleshooting -->
+                <div id="troubleshooting" class="bg-white rounded-xl shadow-sm p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">🔧 10. Troubleshooting</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Common Issues</h3>
+                            
+                            <div class="space-y-4">
+                                <div class="border-l-4 border-gray-300 pl-4">
+                                    <p class="font-medium text-gray-900">Data not saving</p>
+                                    <p class="text-gray-700 text-sm">Check browser settings → Privacy → ensure localStorage is enabled</p>
+                                </div>
+                                
+                                <div class="border-l-4 border-gray-300 pl-4">
+                                    <p class="font-medium text-gray-900">Import not working</p>
+                                    <p class="text-gray-700 text-sm">Verify file has required columns (Email, Course ID, Title, Status)</p>
+                                </div>
+                                
+                                <div class="border-l-4 border-gray-300 pl-4">
+                                    <p class="font-medium text-gray-900">Points not calculating correctly</p>
+                                    <p class="text-gray-700 text-sm">Check Configuration tab settings and save changes</p>
+                                </div>
+                                
+                                <div class="border-l-4 border-gray-300 pl-4">
+                                    <p class="font-medium text-gray-900">Teams not showing points</p>
+                                    <p class="text-gray-700 text-sm">Ensure team has members assigned through Manage option</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Data Recovery</h3>
+                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                                <li>Check browser console (F12) for error messages</li>
+                                <li>Try importing a recent backup JSON file</li>
+                                <li>localStorage persists unless manually cleared</li>
+                                <li>Browser cache clearing does NOT affect localStorage</li>
+                            </ol>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Browser Compatibility</h3>
+                            <p class="text-gray-700 mb-2">For best results use:</p>
+                            <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                <li>Chrome 90 or newer (recommended)</li>
+                                <li>Firefox 88 or newer</li>
+                                <li>Safari 14 or newer</li>
+                                <li>Edge 90 or newer</li>
+                            </ul>
+                        </div>
+
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <p class="text-sm text-red-800">
+                                <strong>⚠️ Important:</strong> Never clear browser data without exporting a backup first. 
+                                Clearing site data will permanently delete all stored information.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Support -->
+                <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">📞 Support & Credits</h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Getting Help</h3>
+                            <p class="text-gray-700">For additional support or feature requests, contact your system administrator or the development team.</p>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Version Information</h3>
+                            <ul class="list-disc list-inside space-y-1 text-gray-700">
+                                <li>Current Version: 1.1</li>
+                                <li>Last Updated: August 2025</li>
+                                <li>File: cloud_comp_app.html</li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Credits</h3>
+                            <p class="text-gray-700">
+                                Created with love and the help of Claude Sonnet 4 by 
+                                <strong>@timhutte</strong> and <strong>@gmmarrs</strong>
+                            </p>
+                        </div>
+
+                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                            <p class="text-sm text-purple-800">
+                                <strong>🎉 Thank you</strong> for using Cloud Comp! 
+                                Your commitment to learning and development makes our organization stronger.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 border-t mt-16">
+        <div class="max-w-7xl mx-auto px-6 py-8">
+            <div class="text-center">
+                <p class="text-sm text-gray-600">
+                    Created with love and the help of Claude Sonnet 4 by 
+                    <span class="font-medium text-gray-800">@timhutte</span> and 
+                    <span class="font-medium text-gray-800">@gmmarrs</span>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Import Data Modal -->
+    <div id="importDataModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-lg font-semibold mb-4">📤 Import Data</h3>
+            <p class="text-sm text-gray-600 mb-4">Import a previously exported cloud_comp_data_*.json file to restore your data.</p>
+            <div class="space-y-4">
+                <div>
+                    <input type="file" id="importDataFile" accept=".json" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button onclick="closeImportDataModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button onclick="processImportData()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Points Modal -->
+    <div id="addPointsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-lg font-semibold mb-4">➕ Add Manual Points</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">User Email</label>
+                    <input type="email" id="manualUserEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="user@example.com">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Activity Title</label>
+                    <input type="text" id="manualActivityTitle" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Manual Award">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Points</label>
+                    <input type="number" id="manualPoints" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="100">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea id="manualDescription" class="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="3" placeholder="Reason for award..."></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button onclick="closeAddPointsModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button onclick="submitManualPoints()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Add Points</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Team Modal -->
+    <div id="createTeamModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-lg font-semibold mb-4">🏢 Create New Team</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Team Name</label>
+                    <input type="text" id="teamName" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Engineering Team">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea id="teamDescription" class="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="3" placeholder="Team description..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Team Color</label>
+                    <select id="teamColor" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="blue">Blue</option>
+                        <option value="green">Green</option>
+                        <option value="purple">Purple</option>
+                        <option value="orange">Orange</option>
+                        <option value="pink">Pink</option>
+                        <option value="teal">Teal</option>
+                        <option value="indigo">Indigo</option>
+                        <option value="red">Red</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button onclick="closeCreateTeamModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button onclick="createTeam()" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">Create Team</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Team Members Modal -->
+    <div id="manageTeamMembersModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-lg font-semibold mb-4">👥 Manage Team Members</h3>
+            <div class="mb-4">
+                <h4 id="managingTeamName" class="font-medium text-gray-900"></h4>
+                <p id="managingTeamDescription" class="text-sm text-gray-600"></p>
+            </div>
+            
+            <!-- Add Members Section -->
+            <div class="bg-gray-50 rounded-lg p-4 mb-6">
+                <h5 class="font-medium mb-3">Add Members</h5>
+                <div class="flex space-x-2">
+                    <select id="availableUsers" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg" multiple size="5">
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                    <button onclick="addUsersToTeam()" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">
+                        Add →
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">Hold Ctrl/Cmd to select multiple users</p>
+            </div>
+            
+            <!-- Current Members Section -->
+            <div class="bg-white border rounded-lg p-4">
+                <h5 class="font-medium mb-3">Current Members</h5>
+                <div id="teamMembersList" class="space-y-2 max-h-64 overflow-y-auto">
+                    <!-- Members will be listed here -->
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3 mt-6">
+                <button onclick="closeManageTeamMembersModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Award Points Modal -->
+    <div id="bulkAwardPointsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-lg font-semibold mb-4">🎁 Bulk Award Points</h3>
+            <p class="text-sm text-gray-600 mb-4">Award points to <span id="bulkAwardUserCount" class="font-bold">0</span> selected users</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Activity Title</label>
+                    <input type="text" id="bulkActivityTitle" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Bulk Award">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Points per User</label>
+                    <input type="number" id="bulkPoints" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="100">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea id="bulkDescription" class="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="3" placeholder="Reason for bulk award..."></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button onclick="closeBulkAwardPointsModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button onclick="submitBulkAwardPoints()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">Award Points</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Assign Team Modal -->
+    <div id="bulkAssignTeamModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-lg font-semibold mb-4">🏢 Bulk Assign to Team</h3>
+            <p class="text-sm text-gray-600 mb-4">Assign <span id="bulkAssignUserCount" class="font-bold">0</span> selected users to a team</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Select Team</label>
+                    <select id="bulkTeamSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="">Choose a team...</option>
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button onclick="closeBulkAssignTeamModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button onclick="submitBulkAssignTeam()" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">Assign to Team</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Adjust Points Modal -->
+    <div id="bulkAdjustPointsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+            <h3 class="text-lg font-semibold mb-4">✏️ Bulk Adjust Points</h3>
+            <p class="text-sm text-gray-600 mb-4">Adjust points for <span id="bulkAdjustActivityCount" class="font-bold">0</span> selected activities</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Adjustment Type</label>
+                    <select id="bulkAdjustType" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                        <option value="add">Add Points</option>
+                        <option value="subtract">Subtract Points</option>
+                        <option value="multiply">Multiply by Factor</option>
+                        <option value="set">Set to Value</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Value</label>
+                    <input type="number" id="bulkAdjustValue" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Enter value">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reason</label>
+                    <textarea id="bulkAdjustReason" class="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="2" placeholder="Reason for adjustment..."></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3 mt-6">
+                <button onclick="closeBulkAdjustPointsModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button onclick="submitBulkAdjustPoints()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">Adjust Points</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

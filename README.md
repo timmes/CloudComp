@@ -133,6 +133,7 @@ That's it! No installation, no configuration, no headaches.
 
 ## 🔮 Coming Soon
 
+- 💯 **Points Lock** - No more changing points while campaigns are running
 - 🏅 **Achievement Badges** - Visual rewards for learning milestones
 - 👤 **User Detail Views** - Deep dive into individual progress
 - 🔍 **Import Preview** - See what will be imported before committing
@@ -158,8 +159,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 Created with ❤️ and powered by AI assistance:
 
-- **@timhutte** - Product vision and technical implementation
-- **@gmmarrs** - Product vision and requirements
+- **Tim Huettemeister** - Product vision and technical implementation
 - **Claude Sonnet** - AI development partner
 
 ---
