@@ -49,227 +49,102 @@
             scroll-behavior: smooth;
         }
     </style>
-  <script type="module" crossorigin>(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),e.crossOrigin===`use-credentials`?t.credentials=`include`:e.crossOrigin===`anonymous`?t.credentials=`omit`:t.credentials=`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})();var e=4*1024*1024,t=null;function n(e){t=e}function r(){let e=0;for(let t=0;t<localStorage.length;t++){let n=localStorage.key(t);e+=n.length*2,e+=localStorage.getItem(n).length*2}return e}function i(){let e=`__storage_test__`;try{return localStorage.setItem(e,`1`),localStorage.removeItem(e),!0}catch{return!1}}function a(e,t=null){try{if(!i())return t;let n=localStorage.getItem(e);return n===null?t:JSON.parse(n)}catch{return t}}function o(n,a){try{if(!i())return!1;let o=JSON.stringify(a),s=o.length*2,c=n.length*2,l=localStorage.getItem(n),u=l===null?0:n.length*2+l.length*2,d=r()-u+c+s;if(d>e){let e=Math.round(d/1024);return t&&t({key:n,usedKB:e}),!1}return localStorage.setItem(n,o),!0}catch{return!1}}var s=Object.freeze({DATA_CHANGED:`data:changed`,IMPORT_COMPLETE:`import:complete`,IMPORT_PROGRESS:`import:progress`,POINTS_AWARDED:`points:awarded`,BADGE_AWARDED:`badge:awarded`,CAMPAIGN_UPDATED:`campaign:updated`,STORAGE_QUOTA_WARNING:`storage:quotaWarning`}),c=new Map;function l(e,t){c.has(e)||c.set(e,new Set),c.get(e).add(t)}function u(e,t){let n=c.get(e);if(!n||n.size===0)return;let r=null;for(let e of n)try{e(t)}catch(e){r=e}if(r)throw r}n(e=>{u(s.STORAGE_QUOTA_WARNING,e)});var d=Object.freeze({awsCourseTypes:Object.freeze({"AWS Builder Lab":100,"AWS Cloud Quest":75,"AWS Jam Journey":150,"AWS Simulearn":75,"Certification Exam Preparation":100,"Digital Course With Lab":100}),generalCourses:Object.freeze({"Classroom Training":100,"Digital Courses - Foundational":50,"Digital Courses - Associate":75,"Digital Courses - Professional":100,"Digital Courses - Specialty":100}),events:Object.freeze({"Live Events":25}),hackathons:Object.freeze({"Hackathons - Participation":150,"Hackathons - 3rd Place":250,"Hackathons - 2nd Place":350,"Hackathons - 1st Place":450}),quizzes:Object.freeze({"Quiz Completion":20,"Quiz 80%+ Score":50,"Quiz Perfect Score":70})}),ee=Object.freeze([{key:`builder lab`,configSection:`awsCourseTypes`,configKey:`AWS Builder Lab`},{key:`cloud quest`,configSection:`awsCourseTypes`,configKey:`AWS Cloud Quest`},{key:`jam journey`,configSection:`awsCourseTypes`,configKey:`AWS Jam Journey`},{key:`simulearn`,configSection:`awsCourseTypes`,configKey:`AWS Simulearn`},{key:`certification exam preparation`,configSection:`awsCourseTypes`,configKey:`Certification Exam Preparation`},{key:`with lab`,configSection:`awsCourseTypes`,configKey:`Digital Course With Lab`},{key:`classroom`,configSection:`generalCourses`,configKey:`Classroom Training`}]),te=Object.freeze({fundamental:`Digital Courses - Foundational`,intermediate:`Digital Courses - Associate`,advanced:`Digital Courses - Professional`,specialty:`Digital Courses - Specialty`});function ne(e,t){let n=t.toLowerCase();for(let t of Object.keys(e))if(t.toLowerCase()===n)return e[t]}function f(e,t,n){let r=(e??``).trim();if(r){let e=ne(n.awsCourseTypes,r);if(e!==void 0)return e;let t=r.toLowerCase();for(let e of ee)if(t.includes(e.key))return n[e.configSection][e.configKey]}if(t){let e=te[t.toLowerCase()];if(e)return n.generalCourses[e]}return n.generalCourses[`Digital Courses - Foundational`]}function p(e,t){let n=e??0;return n===100?t.quizzes[`Quiz Perfect Score`]:n>=80?t.quizzes[`Quiz 80%+ Score`]:t.quizzes[`Quiz Completion`]}function re(e,t){return e===1?t.hackathons[`Hackathons - 1st Place`]:e===2?t.hackathons[`Hackathons - 2nd Place`]:e===3?t.hackathons[`Hackathons - 3rd Place`]:t.hackathons[`Hackathons - Participation`]}function m(e){return e.events[`Live Events`]}var ie=`cloudCompData`;function h(){return{pointConfig:{...d},lastReset:new Date().toISOString().slice(0,7),version:`1.2`}}var g=_();function _(){return{users:{},teams:{},activities:[],campaigns:{},config:h(),metadata:{lastImport:null,totalRecordsProcessed:0,sources:[]}}}function v(){o(ie,{...g,metadata:{...g.metadata,lastSaved:new Date().toISOString()}}),u(s.DATA_CHANGED)}function ae(){return{...g.users}}function oe(){return{...g.teams}}function se(e={}){let t=g.activities;if(e.campaignId&&(t=ce(t,e.campaignId)),e.userId){let n=e.userId.toLowerCase();t=t.filter(e=>e.userId===n)}return e.type&&(t=t.filter(t=>t.type===e.type)),e.fromDate&&(t=t.filter(t=>t.completedDate&&t.completedDate>=e.fromDate)),e.toDate&&(t=t.filter(t=>t.completedDate&&t.completedDate<=e.toDate)),t===g.activities?[...t]:t}function ce(e,t){let n=g.campaigns[t];if(!n)return[];let r=le(n);return e.filter(e=>!(!r.has(e.userId)||!e.completedDate||e.completedDate<n.startDate||n.endDate&&e.completedDate>n.endDate))}function le(e){let t=new Set(e.participantIds??[]);for(let n of e.teamIds??[]){let e=g.teams[n];if(e)for(let n of e.memberIds??[])t.add(n)}return t}function y(){return{...g.config}}function ue(e){let t=e.email.toLowerCase(),n=g.users[t];g.users[t]=n?{...n,...e,email:t}:{...e,email:t},v()}function de(e){let t=g.teams[e.id];g.teams[e.id]=t?{...t,...e}:{...e},v()}function fe(e){g.activities=[...g.activities,{...e}],v()}function pe(e){if(!g.teams[e])return;let{[e]:t,...n}=g.teams;g.teams=n,v()}function me(e){g.config={...g.config,...e},v()}function he(){let e=a(ie,null);if(!e){g=_();return}g={users:e.users??{},teams:e.teams??{},activities:e.activities??[],campaigns:e.campaigns??{},config:e.config?{...h(),...e.config}:h(),metadata:e.metadata?{lastImport:null,totalRecordsProcessed:0,sources:[],...e.metadata}:{lastImport:null,totalRecordsProcessed:0,sources:[]}}}function ge(){return{users:{...g.users},teams:{...g.teams},activities:[...g.activities],campaigns:{...g.campaigns},config:{...g.config},metadata:{...g.metadata,exportedDate:new Date().toISOString()}}}function _e(e){g={users:e.users??{},teams:e.teams??{},activities:e.activities??[],campaigns:e.campaigns??{},config:e.config?{...h(),...e.config}:h(),metadata:e.metadata?{lastImport:null,totalRecordsProcessed:0,sources:[],...e.metadata}:{lastImport:null,totalRecordsProcessed:0,sources:[]}},v()}function b(e,t){return`act_${(e??``).toLowerCase()}_${(t??``).trim()}`}function x(e){let t=(e.userId??``).toLowerCase();return{id:e.id??b(t,e.externalId??``),userId:t,title:e.title??``,type:e.type??`course`,level:e.level??``,courseType:e.courseType??``,pointsEarned:e.pointsEarned??0,completedDate:e.completedDate??null,source:e.source??`manual`,score:e.score??null,isDuplicate:e.isDuplicate??!1}}function S(e,t){let n=e.toLowerCase();return{id:n,email:n,name:t||n.split(`@`)[0],teamId:null,totalPoints:0,currentMonthPoints:0,badges:[],createdAt:new Date().toISOString()}}async function ve(e,t,n){let{config:r,filename:i=`unknown`,dryRun:a=!1}=n,o=[],s=[],c;try{let n=t.read(new Uint8Array(e),{type:`array`}),r=n.Sheets[n.SheetNames[0]];c=t.utils.sheet_to_json(r,{header:1})}catch(e){return s.push(`Failed to parse file ${i}: ${e.message}`),{activities:[],users:[],warnings:o,errors:s}}if(!c||c.length===0)return s.push(`File ${i} is empty`),{activities:[],users:[],warnings:o,errors:s};let l=ye(c)?be(c,r,i,o,s):Se(c,r,i,o,s);return a?{...l,activities:[],users:[]}:l}function ye(e){for(let t=0;t<Math.min(10,e.length);t++){let n=e[t];if(!n||n.length<3)continue;let r=String(n[1]??``),i=String(n[2]??``),a=String(n[0]??``);if(r.includes(`@`)&&i.toLowerCase().includes(`completed`)&&!a.match(/^[A-Z0-9]{10}$/))return!0}return!1}function be(e,t,n,r,i){let a=[],o=new Map,s=Ae(n),c=t?.generalCourses?.[`Classroom Training`]??100;for(let t=0;t<e.length;t++)try{let i=xe(e[t],t,c,s,n);if(i.warning){r.push(`Row ${t+1}: ${i.warning}`);continue}if(!i.activity)continue;a.push(i.activity),o.has(i.email)||o.set(i.email,S(i.email,i.name))}catch(e){r.push(`Row ${t+1}: error — ${e.message}`)}return{activities:a,users:[...o.values()],warnings:r,errors:i}}function xe(e,t,n,r,i){if(!e||e.length<2)return{};let a=String(e[0]??``).trim(),o=String(e[1]??``).trim().toLowerCase(),s=String(e[2]??``).trim();if(!o.includes(`@`))return{};if(s.toLowerCase()!==`completed`)return{warning:`skipped, status="${s}"`};let c=`ILT_${ke(i)}_${t}`;return{activity:x({id:b(o,c),userId:o,externalId:c,title:r,type:`course`,level:`classroom`,courseType:`Classroom Training`,pointsEarned:n,completedDate:new Date().toISOString(),source:`course-import`}),email:o,name:a}}function Se(e,t,n,r,i){let a=Ce(e);if(a===-1)return i.push(`No header row with "Email" column found in ${n}`),{activities:[],users:[],warnings:r,errors:i};let o=e[a],s=[],c=new Map;for(let i=a+1;i<e.length;i++)try{let a=Te(we(o,e[i]),t,n);a.warning&&r.push(`Row ${i+1}: ${a.warning}`),a.activity&&s.push(a.activity),a.user&&!c.has(a.user.email)&&c.set(a.user.email,a.user)}catch(e){r.push(`Row ${i+1}: error — ${e.message}`)}return{activities:s,users:[...c.values()],warnings:r,errors:i}}function Ce(e){for(let t=0;t<Math.min(5,e.length);t++)if(e[t]&&e[t].includes(`Email`))return t;return-1}function we(e,t){let n={};for(let r=0;r<e.length;r++)n[e[r]]=t?.[r];return n}function Te(e,t,n){let r=Ee(e);if(r.warning)return{warning:r.warning};let{type:i,points:a}=De(r.courseType,r.level,e.Score,t),o=x({id:b(r.email,r.courseId),userId:r.email,externalId:r.courseId,title:r.title,type:i,level:r.level||``,courseType:r.courseType||``,pointsEarned:a,completedDate:r.completedDate,source:`course-import`,score:C(e.Score)}),s=je(e[`First Name`],e[`Last Name`],r.email);return{activity:o,user:S(r.email,s)}}function Ee(e){let t=w(e.Email).toLowerCase(),n=w(e[`Course ID`]),r=w(e[`Course Title`]),i=w(e.Status).toUpperCase();if(!t||!n||!r)return{warning:`skipped, missing Email/Course ID/Title`};if(i===`IN PROGRESS`)return{warning:`skipped in-progress: ${r}`};if(i!==`COMPLETED`)return{warning:`skipped, status="${i}"`};let a=Oe(e[`Completed on`]);return a?{email:t,courseId:n,title:r,level:w(e.Level).toLowerCase(),courseType:w(e.CourseType),completedDate:a}:{warning:`skipped, invalid completion date`}}function De(e,t,n,r){let i=(e??``).toLowerCase();return i.includes(`quiz`)||i.includes(`card clash`)?{type:`quiz`,points:p(C(n),r)}:{type:`course`,points:f(e,t,r)}}function C(e){if(e==null)return null;let t=parseFloat(e);return Number.isNaN(t)?null:t}function Oe(e){if(!e||e===`null`||e===``)return null;try{let t=new Date(e);return Number.isNaN(t.getTime())?null:t.toISOString()}catch{return null}}function w(e){return(e??``).toString().trim()}function ke(e){return e.replace(/[^a-zA-Z0-9]/g,`_`)}function Ae(e){if(e.toLowerCase().includes(`ilt`))return`Instructor-Led Training (ILT)`;let t=e.match(/([^/\\]+?)(?:-session|-example)?\.\w+$/i);if(t){let e=t[1].replace(/[-_]/g,` `).replace(/\b\w/g,e=>e.toUpperCase());if(!e.toLowerCase().includes(`example`))return`${e} Training`}return`Classroom Training Session`}function je(e,t,n){return`${w(e)} ${w(t)}`.trim()||n.split(`@`)[0]}async function Me(e,t){let{config:n,filename:r=`unknown`,dryRun:i=!1}=t,a=[],o=[];if(!e||!e.trim())return o.push(`File ${r} is empty`),{activities:[],users:[],warnings:a,errors:o};let s;try{s=Ne(e,r,a)}catch(e){return o.push(`Failed to parse ${r}: ${e.message}`),{activities:[],users:[],warnings:a,errors:o}}if(s.length===0)return a.push(`No meetings found in ${r}`),{activities:[],users:[],warnings:a,errors:o};let c=[],l=new Map,u=m(n);for(let e of s)for(let t of e.emails){let n=`${e.meetingId}_${t}`;c.push(x({id:b(t,n),userId:t,externalId:n,title:e.title,type:`meeting`,level:``,courseType:`Teams Meeting`,pointsEarned:u,completedDate:e.date,source:`teams-import`})),l.has(t)||l.set(t,S(t,``))}return i?{activities:[],users:[],warnings:a,errors:o}:{activities:c,users:[...l.values()],warnings:a,errors:o}}function Ne(e,t,n){let r=e.split(`
-`),i=[],a=null,o=[];for(let e of r){let n=e.replace(/\0/g,``).trim();if(!n)continue;let r=Pe(n);if(r){a&&o.length>0&&(a.emails=[...o],i.push(a)),a={title:r,meetingId:Le(r),attendees:0,emails:[],date:Re(t)},o=[];continue}let s=Fe(n);if(s!==null&&a){a.attendees=s;continue}if(a){let e=Ie(n);e&&!o.includes(e)&&o.push(e)}}a&&o.length>0&&(a.emails=[...o],i.push(a));for(let e of i)e.emails.length===0&&e.attendees>0&&n.push(`Meeting "${e.title}": ${e.attendees} attendees reported but no emails found`);return i}function Pe(e){if(!e.toLowerCase().includes(`meeting title`))return null;let t=e.match(/Meeting\s+title[:\t]\s*(.+?)(?:\s*\(|$)/i);return t?t[1].trim():null}function Fe(e){if(!e.toLowerCase().includes(`attended participants`))return null;let t=e.match(/Attended\s+participants[:\t]\s*(\d+)/i);return t?parseInt(t[1],10):null}function Ie(e){let t=e.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);return t?t[1].toLowerCase():null}function Le(e){return`meeting_${e.replace(/[^a-zA-Z0-9]/g,`_`).toLowerCase()}`}function Re(e){let t=e.match(/(\d{4}[-_]\d{2}[-_]\d{2})/);if(t){let e=new Date(t[1].replace(/_/g,`-`));if(!Number.isNaN(e.getTime()))return e.toISOString()}return new Date().toISOString()}function ze(e){return`${(e.userId??``).toLowerCase()}|${(e.externalId??``).trim().toLowerCase()}`}function Be(e,t){let n=new Set(t.map(e=>ze(e))),r=[],i=[];for(let t of e){let e=ze(t);n.has(e)?i.push(t):(n.add(e),r.push(t))}return{accepted:r,duplicates:i,stats:{accepted:r.length,duplicatesSkipped:i.length}}}var Ve=class{constructor(e,t,n,r=null){this._getter=e,this._upsert=t,this._idField=n,this._delete=r}get(e){return this._getter()[e]??void 0}has(e){return e in this._getter()}set(e,t){return this._upsert({...t,[this._idField]:e}),this}delete(e){return this._delete?(this._delete(e),!0):!1}get size(){return Object.keys(this._getter()).length}values(){return Object.values(this._getter())[Symbol.iterator]()}keys(){return Object.keys(this._getter())[Symbol.iterator]()}entries(){return Object.entries(this._getter())[Symbol.iterator]()}forEach(e){let t=this._getter();for(let[n,r]of Object.entries(t))e(r,n,this)}[Symbol.iterator](){return this.entries()}},He=[],Ue=!0;function T(){return Ue&&=(He=se(),!1),He}function We(){Ue=!0}l(s.DATA_CHANGED,We);var Ge=new Ve(ae,ue,`email`,null),Ke=new Ve(oe,de,`id`,pe),E=y();l(s.DATA_CHANGED,()=>{E=y()});var D={get users(){return Ge},get teams(){return Ke},get activities(){return T()},set activities(e){},inProgressActivities:[],get config(){return E},set config(e){E=e,me(e)},get metadata(){return{lastImport:null,totalRecordsProcessed:0,sources:[]}},set metadata(e){}},qe=Array.prototype.push;Object.defineProperty(D,`activities`,{get(){let e=T();return e.push=function(...e){let t=qe.apply(this,e);for(let t of e)fe(t);return t},e.splice=function(e,t){return Array.prototype.splice.call(this,e,t)},e.find=Array.prototype.find,e.findIndex=Array.prototype.findIndex,e.filter=Array.prototype.filter,e.some=Array.prototype.some,e.sort=Array.prototype.sort,e.map=Array.prototype.map,e.forEach=Array.prototype.forEach,e},set(e){},configurable:!0}),window.appData=D,window.__stateAPI={loadFromStorage:he,exportJSON:ge,importJSON:_e,updateConfig:me},window.__pointsAPI={calculateCoursePoints:f,calculateQuizBonus:p,calculateHackathonPoints:re,calculateMeetingPoints:m},window.__importAPI={importCourseFile:ve,importTeamsFile:Me,deduplicateBatch:Be};var O=window.appData,k={course:[],teams:[]},A={users:new Set,activities:new Set},j={users:{field:`currentMonthPoints`,ascending:!1},activities:{field:`pointsEarned`,ascending:!1},teams:{field:`currentMonthPoints`,ascending:!1}};function M(e){let t=document.getElementById(`importLog`);if(t){let n=new Date().toISOString().split(`T`)[1].split(`.`)[0];t.innerHTML+=`[${n}] ${e}\n`,t.scrollTop=t.scrollHeight}console.log(e)}function N(){return new Date().toISOString().slice(0,7)}function P(e){return new Date(e).toLocaleDateString()}function F(e){return e.toLocaleString()}function Je(e,t){e.preventDefault();let n=document.getElementById(t);n&&n.scrollIntoView({behavior:`smooth`,block:`start`})}var Ye=window.__stateAPI.loadFromStorage,Xe=window.__stateAPI.exportJSON,Ze=window.__stateAPI.importJSON;function Qe(){try{Ye(),O.users.size>0||O.activities.length>0?(R(`success`,`Data loaded: ${O.users.size} users, ${O.teams.size} teams, ${O.activities.length} activities`),gt(),z(),M(`✅ Data loaded successfully from browser storage`)):(R(`warning`,`No existing data found - ready for first import`),M(`ℹ️ No existing data found, starting with empty dataset`))}catch(e){R(`error`,`Error loading data`),M(`❌ Error loading data: ${e.message}`)}}function I(){return window.__stateAPI.updateConfig(O.config),!0}function $e(){try{L(Xe(),`cloud_comp_data_${new Date().toISOString().replace(/[:.]/g,`-`).slice(0,19)}.json`),M(`📥 Data exported to JSON file`)}catch(e){M(`❌ Error exporting data: ${e.message}`),alert(`Error exporting data. Please try again.`)}}function et(){document.getElementById(`importDataModal`).classList.add(`hidden`),document.getElementById(`importDataFile`).value=``}function tt(){let e=document.getElementById(`importDataFile`).files[0];if(!e){alert(`Please select a JSON file to import`);return}let t=new FileReader;t.onload=function(e){try{let t=JSON.parse(e.target.result);if(!t.users||!t.activities){alert(`Invalid data file format. Please select a valid cloud_comp_data_*.json file.`);return}let n=t.teams?Object.keys(t.teams).length:0,r=t.inProgressActivities?t.inProgressActivities.length:0,i=`This will replace all current data with the imported data.\n\nImported data contains:\n- ${Object.keys(t.users).length} users\n- ${n} teams\n- ${t.activities.length} completed activities\n- ${r} in-progress activities\n\nContinue?`;if(!confirm(i))return;Ze(t),gt(),z(),Y(),Q(),G(),et(),M(`✅ Data imported successfully: ${O.users.size} users, ${O.teams.size} teams, ${O.activities.length} completed`)}catch(e){alert(`Error importing data: ${e.message}`),M(`❌ Error importing data: ${e.message}`)}},t.readAsText(e)}function L(e,t){let n=new Blob([JSON.stringify(e,null,2)],{type:`application/json`}),r=URL.createObjectURL(n),i=document.createElement(`a`);i.href=r,i.download=t,document.body.appendChild(i),i.click(),document.body.removeChild(i),URL.revokeObjectURL(r)}function R(e,t){let n=document.getElementById(`dataStatus`),r=n.querySelector(`.status-indicator`);r.className=`status-indicator status-${e}`,n.querySelector(`span`).textContent=t}function nt(e){A.users.clear(),A.activities.clear();let t=document.getElementById(`selectAllUsersCheckbox`);t&&(t.checked=!1);let n=document.getElementById(`selectAllActivitiesCheckbox`);n&&(n.checked=!1),document.querySelectorAll(`.tab-content`).forEach(e=>{e.classList.add(`hidden`)}),document.querySelectorAll(`.tab-button`).forEach(e=>{e.classList.remove(`active`)}),document.getElementById(e+`Section`).classList.remove(`hidden`);let r=document.getElementById(e+`Tab`);switch(r&&r.classList.add(`active`),e){case`dashboard`:z();break;case`users`:Y();break;case`activities`:Q();break;case`teams`:G(),K();break;case`manual`:window.scrollTo(0,0);break}}function z(){let e=N();document.getElementById(`totalUsers`).textContent=F(O.users.size),document.getElementById(`completedActivities`).textContent=F(O.activities.length),document.getElementById(`inProgressActivities`).textContent=F(O.inProgressActivities.length),document.getElementById(`totalTeams`).textContent=F(O.teams.size);let t=Array.from(O.users.values()).reduce((e,t)=>e+t.totalPoints,0);document.getElementById(`totalPointsAwarded`).textContent=F(t);let n=O.activities.filter(t=>t.monthYear===e).length;document.getElementById(`currentMonthActivities`).textContent=F(n),rt(),it(),at(),ot()}function rt(){N();let e=Array.from(O.users.values()).filter(e=>e.currentMonthPoints>0).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).slice(0,10),t=document.getElementById(`leaderboardBody`);t.innerHTML=e.map((e,t)=>`
-                <tr class="${t<3?`bg-gradient-to-r from-yellow-50 to-orange-50`:`hover:bg-gray-50`}">
-                    <td class="px-4 py-3">
-                        <span class="font-bold ${t===0?`text-yellow-600`:t===1?`text-gray-600`:t===2?`text-orange-600`:`text-gray-800`}">
-                            ${t+1}${t===0?`🥇`:t===1?`🥈`:t===2?`🥉`:``}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3">
-                        <div class="font-medium text-gray-900">${e.name}</div>
-                        <div class="text-sm text-gray-500">${e.email}</div>
-                    </td>
-                    <td class="px-4 py-3">
-                        <span class="font-bold text-purple-600">${F(e.currentMonthPoints)}</span>
-                    </td>
-                </tr>
-            `).join(``)}function it(){W();let e=Array.from(O.teams.values()).filter(e=>e.currentMonthPoints>0).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).slice(0,5),t=document.getElementById(`teamLeaderboardBody`);if(e.length===0){t.innerHTML=`
-                    <tr>
-                        <td colspan="4" class="px-4 py-3 text-center text-gray-500 text-sm">
-                            No team activity this month
-                        </td>
-                    </tr>
-                `;return}t.innerHTML=e.map((e,t)=>{let n={blue:`bg-blue-100 text-blue-800`,green:`bg-green-100 text-green-800`,purple:`bg-purple-100 text-purple-800`,orange:`bg-orange-100 text-orange-800`,pink:`bg-pink-100 text-pink-800`,teal:`bg-teal-100 text-teal-800`,indigo:`bg-indigo-100 text-indigo-800`,red:`bg-red-100 text-red-800`}[e.color]||`bg-gray-100 text-gray-800`;return`
-                    <tr class="${t<3?`bg-gradient-to-r from-teal-50 to-cyan-50`:`hover:bg-gray-50`}">
-                        <td class="px-4 py-3">
-                            <span class="font-bold ${t===0?`text-yellow-600`:t===1?`text-gray-600`:t===2?`text-orange-600`:`text-gray-800`}">
-                                ${t+1}${t===0?`🥇`:t===1?`🥈`:t===2?`🥉`:``}
-                            </span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center">
-                                <span class="px-2 py-1 text-xs rounded-full ${n} mr-2">
-                                    ${e.name.substring(0,2).toUpperCase()}
-                                </span>
-                                <div class="font-medium text-gray-900">${e.name}</div>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="text-gray-600">${e.members.length}</span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="font-bold text-teal-600">${F(e.currentMonthPoints)}</span>
-                        </td>
-                    </tr>
-                `}).join(``)}function at(){let e=O.activities.sort((e,t)=>new Date(t.completedDate)-new Date(e.completedDate)).slice(0,10),t=document.getElementById(`recentActivities`);t.innerHTML=e.map(e=>`
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div class="flex-1">
-                            <div class="font-medium text-gray-900">${O.users.get(e.userEmail)?.name||e.userEmail}</div>
-                            <div class="text-sm text-gray-600">${e.title}</div>
-                            <div class="text-xs text-gray-500">${P(e.completedDate)}</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="font-bold text-purple-600">+${e.pointsEarned}</div>
-                            <div class="text-xs text-gray-500">${e.courseType}</div>
-                        </div>
-                    </div>
-                `).join(``)}function ot(){let e=document.getElementById(`activityCharts`),t={};O.activities.forEach(e=>{let n=e.courseType||`Unknown`;t[n]=(t[n]||0)+1}),e.innerHTML=`
-                <div class="text-center">
-                    <h4 class="font-medium text-gray-900 mb-3">Top Course Types</h4>
-                    <div class="space-y-2">
-                        ${Object.entries(t).sort(([,e],[,t])=>t-e).slice(0,5).map(([e,t])=>`
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600 truncate">${e}</span>
-                                <span class="font-medium text-blue-600">${t}</span>
-                            </div>
-                        `).join(``)}
-                    </div>
-                </div>
-                <div class="text-center">
-                    <h4 class="font-medium text-gray-900 mb-3">Monthly Activity</h4>
-                    <div class="text-3xl font-bold text-green-600">${O.activities.filter(e=>e.monthYear===N()).length}</div>
-                    <div class="text-sm text-gray-500">This Month</div>
-                </div>
-                <div class="text-center">
-                    <h4 class="font-medium text-gray-900 mb-3">Completion Rate</h4>
-                    <div class="text-3xl font-bold text-purple-600">
-                        ${O.activities.length+O.inProgressActivities.length>0?Math.round(O.activities.length/(O.activities.length+O.inProgressActivities.length)*100):0}%
-                    </div>
-                    <div class="text-sm text-gray-500">Activities Completed</div>
-                </div>
-            `}function st(){let e=document.getElementById(`teamName`).value.trim(),t=document.getElementById(`teamDescription`).value.trim(),n=document.getElementById(`teamColor`).value;if(!e){alert(`Please enter a team name`);return}if(Array.from(O.teams.values()).find(t=>t.name.toLowerCase()===e.toLowerCase())){alert(`A team with this name already exists`);return}let r=`team_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,i={id:r,name:e,description:t,color:n,members:[],createdDate:new Date().toISOString(),currentMonthPoints:0,totalPoints:0};O.teams.set(r,i),B(),G(),z(),I(),M(`✅ Team created: ${e}`)}function ct(){document.getElementById(`createTeamModal`).classList.remove(`hidden`)}function B(){document.getElementById(`createTeamModal`).classList.add(`hidden`),document.getElementById(`teamName`).value=``,document.getElementById(`teamDescription`).value=``,document.getElementById(`teamColor`).value=`blue`}function V(e){let t=O.teams.get(e);if(!t)return;document.getElementById(`managingTeamName`).textContent=t.name,document.getElementById(`managingTeamDescription`).textContent=t.description||`No description`,document.getElementById(`manageTeamMembersModal`).dataset.teamId=e;let n=document.getElementById(`availableUsers`);n.innerHTML=``,Array.from(O.users.values()).filter(e=>!t.members.includes(e.email)).sort((e,t)=>e.name.localeCompare(t.name)).forEach(e=>{let t=document.createElement(`option`);t.value=e.email,t.textContent=`${e.name} (${e.email})`,n.appendChild(t)}),H(e),document.getElementById(`manageTeamMembersModal`).classList.remove(`hidden`)}function lt(){document.getElementById(`manageTeamMembersModal`).classList.add(`hidden`)}function ut(){let e=document.getElementById(`manageTeamMembersModal`).dataset.teamId,t=O.teams.get(e);if(!t)return;let n=Array.from(document.getElementById(`availableUsers`).selectedOptions);n.forEach(n=>{let r=n.value;if(!t.members.includes(r)){t.members.push(r);let n=O.users.get(r);n&&(n.teamId=e)}}),U(e),V(e),G(),z(),I(),M(`✅ Added ${n.length} users to team ${t.name}`)}function dt(e,t){let n=O.teams.get(e);if(!n)return;n.members=n.members.filter(e=>e!==t);let r=O.users.get(t);r&&r.teamId===e&&delete r.teamId,U(e),H(e),G(),z(),I(),M(`✅ Removed user from team ${n.name}`)}function H(e){let t=O.teams.get(e);if(!t)return;let n=document.getElementById(`teamMembersList`);if(t.members.length===0){n.innerHTML=`<p class="text-gray-500 text-sm">No members yet</p>`;return}n.innerHTML=t.members.map(t=>{let n=O.users.get(t);return`
-                    <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
-                        <div>
-                            <div class="font-medium text-gray-900">${n?.name||t}</div>
-                            <div class="text-sm text-gray-500">${t}</div>
-                            <div class="text-xs text-gray-600">Points this month: ${n?.currentMonthPoints||0}</div>
-                        </div>
-                        <button onclick="removeUserFromTeam('${e}', '${t}')" 
-                                class="text-red-600 hover:text-red-800 text-sm">
-                            Remove
-                        </button>
-                    </div>
-                `}).join(``)}function U(e){let t=O.teams.get(e);t&&(t.currentMonthPoints=t.members.reduce((e,t)=>e+(O.users.get(t)?.currentMonthPoints||0),0),t.totalPoints=t.members.reduce((e,t)=>e+(O.users.get(t)?.totalPoints||0),0))}function W(){O.teams.forEach((e,t)=>{U(t)})}function ft(e){let t=O.teams.get(e);t&&confirm(`Are you sure you want to delete the team "${t.name}"? This cannot be undone.`)&&(t.members.forEach(t=>{let n=O.users.get(t);n&&n.teamId===e&&delete n.teamId}),O.teams.delete(e),G(),z(),I(),M(`🗑️ Team deleted: ${t.name}`))}function G(){let e=document.getElementById(`teamsTableBody`);W();let t=Array.from(O.teams.values());if(t.sort((e,t)=>{let n,r;return j.teams.field===`members`?(n=e.members.length,r=t.members.length):(n=e[j.teams.field],r=t[j.teams.field]),typeof n==`string`&&(n=n.toLowerCase(),r=r.toLowerCase()),j.teams.ascending?n>r?1:n<r?-1:0:n<r?1:n>r?-1:0}),t.length===0){e.innerHTML=`
-                    <tr>
-                        <td colspan="6" class="px-4 py-8 text-center text-gray-500">
-                            No teams created yet. Click "Create Team" to get started.
-                        </td>
-                    </tr>
-                `;return}e.innerHTML=t.map(e=>`
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3">
-                            <div class="flex items-center">
-                                <span class="px-2 py-1 text-xs rounded-full ${{blue:`bg-blue-100 text-blue-800`,green:`bg-green-100 text-green-800`,purple:`bg-purple-100 text-purple-800`,orange:`bg-orange-100 text-orange-800`,pink:`bg-pink-100 text-pink-800`,teal:`bg-teal-100 text-teal-800`,indigo:`bg-indigo-100 text-indigo-800`,red:`bg-red-100 text-red-800`}[e.color]||`bg-gray-100 text-gray-800`} mr-2">
-                                    ${e.name.substring(0,2).toUpperCase()}
-                                </span>
-                                <div>
-                                    <div class="font-medium text-gray-900">${e.name}</div>
-                                    <div class="text-sm text-gray-500">${e.description||`No description`}</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="text-gray-600">${e.members.length}</span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="font-bold text-teal-600">${F(e.currentMonthPoints)}</span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="font-medium text-gray-900">${F(e.totalPoints)}</span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="text-sm text-gray-500">${P(e.createdDate)}</span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex space-x-2">
-                                <button onclick="openManageTeamMembers('${e.id}')" 
-                                        class="text-blue-600 hover:text-blue-800 text-sm">
-                                    Manage
-                                </button>
-                                <button onclick="deleteTeam('${e.id}')" 
-                                        class="text-red-600 hover:text-red-800 text-sm">
-                                    Delete
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                `).join(``),K()}function pt(e){j.teams.field===e?j.teams.ascending=!j.teams.ascending:(j.teams.field=e,j.teams.ascending=!1),G()}function mt(){j.teams.ascending=!j.teams.ascending,G()}function K(){[`sortMembers`,`sortTeamCurrentMonth`,`sortTeamTotal`].forEach(e=>{let t=document.getElementById(e);t&&(t.className=`px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors`)});let e;e=j.teams.field===`members`?`sortMembers`:j.teams.field===`currentMonthPoints`?`sortTeamCurrentMonth`:`sortTeamTotal`;let t=document.getElementById(e);t&&(t.className=`px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300`);let n=document.getElementById(`sortOrderTeam`);n&&(j.teams.field,n.textContent=j.teams.ascending?`Least First ⬆️`:`Most First ⬇️`)}function ht(){let e=document.getElementById(`teamSearch`).value.toLowerCase(),t=document.querySelectorAll(`#teamsTableBody tr`);t.length===1&&t[0].querySelector(`td[colspan]`)||t.forEach(t=>{let n=t.textContent.toLowerCase();t.style.display=n.includes(e)?``:`none`})}function q(){O.config.pointConfig.awsCourseTypes[`AWS Builder Lab`]=parseInt(document.getElementById(`awsBuilderLab`).value),O.config.pointConfig.awsCourseTypes[`AWS Cloud Quest`]=parseInt(document.getElementById(`awsCloudQuest`).value),O.config.pointConfig.awsCourseTypes[`AWS Jam Journey`]=parseInt(document.getElementById(`awsJamJourney`).value),O.config.pointConfig.awsCourseTypes[`AWS Simulearn`]=parseInt(document.getElementById(`awsSimulearn`).value),O.config.pointConfig.awsCourseTypes[`Certification Exam Preparation`]=parseInt(document.getElementById(`certExamPrep`).value),O.config.pointConfig.awsCourseTypes[`Digital Course With Lab`]=parseInt(document.getElementById(`digitalCourseWithLab`).value),O.config.pointConfig.generalCourses[`Classroom Training`]=parseInt(document.getElementById(`classroomTraining`).value),O.config.pointConfig.generalCourses[`Digital Courses - Foundational`]=parseInt(document.getElementById(`digitalFoundational`).value),O.config.pointConfig.generalCourses[`Digital Courses - Associate`]=parseInt(document.getElementById(`digitalAssociate`).value),O.config.pointConfig.generalCourses[`Digital Courses - Professional`]=parseInt(document.getElementById(`digitalProfessional`).value),O.config.pointConfig.generalCourses[`Digital Courses - Specialty`]=parseInt(document.getElementById(`digitalSpecialty`).value),O.config.pointConfig.events[`Live Events`]=parseInt(document.getElementById(`liveEvents`).value),O.config.pointConfig.hackathons[`Hackathons - Participation`]=parseInt(document.getElementById(`hackathonParticipation`).value),O.config.pointConfig.hackathons[`Hackathons - 3rd Place`]=parseInt(document.getElementById(`hackathon3rd`).value),O.config.pointConfig.hackathons[`Hackathons - 2nd Place`]=parseInt(document.getElementById(`hackathon2nd`).value),O.config.pointConfig.hackathons[`Hackathons - 1st Place`]=parseInt(document.getElementById(`hackathon1st`).value),O.config.pointConfig.quizzes[`Quiz Completion`]=parseInt(document.getElementById(`quizCompletion`).value),O.config.pointConfig.quizzes[`Quiz 80%+ Score`]=parseInt(document.getElementById(`quiz80Plus`).value),O.config.pointConfig.quizzes[`Quiz Perfect Score`]=parseInt(document.getElementById(`quizPerfect`).value),M(`🔧 Point configuration updated`)}function gt(){let e=O.config.pointConfig;document.getElementById(`awsBuilderLab`).value=e.awsCourseTypes[`AWS Builder Lab`],document.getElementById(`awsCloudQuest`).value=e.awsCourseTypes[`AWS Cloud Quest`],document.getElementById(`awsJamJourney`).value=e.awsCourseTypes[`AWS Jam Journey`],document.getElementById(`awsSimulearn`).value=e.awsCourseTypes[`AWS Simulearn`],document.getElementById(`certExamPrep`).value=e.awsCourseTypes[`Certification Exam Preparation`],document.getElementById(`digitalCourseWithLab`).value=e.awsCourseTypes[`Digital Course With Lab`],document.getElementById(`classroomTraining`).value=e.generalCourses[`Classroom Training`],document.getElementById(`digitalFoundational`).value=e.generalCourses[`Digital Courses - Foundational`],document.getElementById(`digitalAssociate`).value=e.generalCourses[`Digital Courses - Associate`],document.getElementById(`digitalProfessional`).value=e.generalCourses[`Digital Courses - Professional`],document.getElementById(`digitalSpecialty`).value=e.generalCourses[`Digital Courses - Specialty`],document.getElementById(`liveEvents`).value=e.events[`Live Events`],document.getElementById(`hackathonParticipation`).value=e.hackathons[`Hackathons - Participation`],document.getElementById(`hackathon3rd`).value=e.hackathons[`Hackathons - 3rd Place`],document.getElementById(`hackathon2nd`).value=e.hackathons[`Hackathons - 2nd Place`],document.getElementById(`hackathon1st`).value=e.hackathons[`Hackathons - 1st Place`],document.getElementById(`quizCompletion`).value=e.quizzes[`Quiz Completion`],document.getElementById(`quiz80Plus`).value=e.quizzes[`Quiz 80%+ Score`],document.getElementById(`quizPerfect`).value=e.quizzes[`Quiz Perfect Score`]}function _t(){document.getElementById(`awsBuilderLab`).value=100,document.getElementById(`awsCloudQuest`).value=75,document.getElementById(`awsJamJourney`).value=150,document.getElementById(`awsSimulearn`).value=75,document.getElementById(`certExamPrep`).value=100,document.getElementById(`digitalCourseWithLab`).value=100,document.getElementById(`classroomTraining`).value=100,document.getElementById(`digitalFoundational`).value=50,document.getElementById(`digitalAssociate`).value=75,document.getElementById(`digitalProfessional`).value=100,document.getElementById(`digitalSpecialty`).value=100,document.getElementById(`liveEvents`).value=25,document.getElementById(`hackathonParticipation`).value=150,document.getElementById(`hackathon3rd`).value=250,document.getElementById(`hackathon2nd`).value=350,document.getElementById(`hackathon1st`).value=450,document.getElementById(`quizCompletion`).value=20,document.getElementById(`quiz80Plus`).value=50,document.getElementById(`quizPerfect`).value=70,q(),M(`🔄 Configuration reset to defaults`)}function vt(){q(),I();let e=document.getElementById(`configStatus`);e.textContent=`✅ Configuration saved!`,setTimeout(()=>{e.textContent=``},3e3)}function yt(){L(O.config,`cloud_comp_config.json`)}var{calculateCoursePoints:bt,calculateQuizBonus:xt,calculateHackathonPoints:St,calculateMeetingPoints:Ct}=window.__pointsAPI;function J(e,t){let n=document.getElementById(e+`FileList`);if(t.length===0){n.innerHTML=``;return}if(t.length===1)n.innerHTML=`<div class="text-xs"><strong>1 file selected:</strong><br>${t[0].name}</div>`;else{let e=Array.from(t).map((e,t)=>`${t+1}. ${e.name}`).join(`<br>`);n.innerHTML=`<div class="text-xs"><strong>${t.length} files selected:</strong><br>${e}</div>`}let r=k.course.length>0||k.teams.length>0;document.getElementById(`processBtn`).disabled=!r}var{importCourseFile:wt,importTeamsFile:Tt,deduplicateBatch:Et}=window.__importAPI;async function Dt(){if(!k.course.length&&!k.teams.length){alert(`Please select files to process`);return}M(`🚀 Starting multi-file processing...`),M(`📁 Course files: ${k.course.length}`),M(`👥 Teams files: ${k.teams.length}`),document.getElementById(`importResults`).classList.remove(`hidden`);let e=0,t=0;for(let n of k.course){let r=await Ot(n);e+=r.processed,t+=r.activities}for(let n of k.teams){let r=await kt(n);e+=r.processed,t+=r.activities}M(`✅ Multi-file processing complete!`),M(`📊 Total: ${t} completed activities from ${e} records`),jt(e,t,0),z(),await I(),k.course=[],k.teams=[],J(`course`,[]),J(`teams`,[]),document.getElementById(`processBtn`).disabled=!0}async function Ot(e){M(`📚 Processing course file: ${e.name}`);try{let t=await wt(await e.arrayBuffer(),window.XLSX,{config:O.config.pointConfig,filename:e.name});return t.warnings.forEach(t=>M(`⚠️ ${e.name}: ${t}`)),t.errors.forEach(t=>M(`❌ ${e.name}: ${t}`)),t.errors.length>0?{processed:0,activities:0}:(At(t),M(`✅ ${e.name}: ${t.activities.length} activities, ${t.users.length} users`),{processed:t.activities.length+t.warnings.length,activities:t.activities.length})}catch(t){return M(`❌ Error processing ${e.name}: ${t.message}`),{processed:0,activities:0}}}async function kt(e){M(`👥 Processing Teams file: ${e.name}`);try{let t=await Tt(await e.text(),{config:O.config.pointConfig,filename:e.name});return t.warnings.forEach(t=>M(`⚠️ ${e.name}: ${t}`)),t.errors.forEach(t=>M(`❌ ${e.name}: ${t}`)),t.errors.length>0?{processed:0,activities:0}:(At(t),M(`✅ ${e.name}: ${t.activities.length} meeting attendance activities`),{processed:t.activities.length+t.warnings.length,activities:t.activities.length})}catch(t){return M(`❌ Error processing Teams file ${e.name}: ${t.message}`),{processed:0,activities:0}}}function At(e){let{accepted:t}=Et(e.activities,O.activities);for(let e of t)O.activities.push(e);let n=N();for(let t of e.users)O.users.has(t.email)||O.users.set(t.email,{...t,currentMonthPoints:0,totalPoints:0});for(let e of t){let t=O.users.get(e.userId);t&&(t.totalPoints=(t.totalPoints||0)+e.pointsEarned,(e.completedDate?e.completedDate.slice(0,7):null)===n&&(t.currentMonthPoints=(t.currentMonthPoints||0)+e.pointsEarned))}t.length>0&&M(`📊 Dedup: ${t.length} accepted, ${e.activities.length-t.length} duplicates skipped`)}function jt(e,t,n=0){let r=document.getElementById(`importStats`);r.innerHTML=`
-                <div class="bg-blue-50 p-4 rounded-lg text-center">
-                    <div class="text-2xl font-bold text-blue-600">${F(e)}</div>
-                    <div class="text-sm text-blue-800">Records Processed</div>
-                </div>
-                <div class="bg-green-50 p-4 rounded-lg text-center">
-                    <div class="text-2xl font-bold text-green-600">${F(t)}</div>
-                    <div class="text-sm text-green-800">Completed Activities</div>
-                </div>
-                <div class="bg-orange-50 p-4 rounded-lg text-center">
-                    <div class="text-2xl font-bold text-orange-600">${F(n)}</div>
-                    <div class="text-sm text-orange-800">In Progress</div>
-                </div>
-                <div class="bg-purple-50 p-4 rounded-lg text-center">
-                    <div class="text-2xl font-bold text-purple-600">${F(O.users.size)}</div>
-                    <div class="text-sm text-purple-800">Total Users</div>
-                </div>
-                <div class="bg-indigo-50 p-4 rounded-lg text-center">
-                    <div class="text-2xl font-bold text-indigo-600">${F(Array.from(O.users.values()).reduce((e,t)=>e+t.totalPoints,0))}</div>
-                    <div class="text-sm text-indigo-800">Points Awarded</div>
-                </div>
-            `}function Y(){let e=document.getElementById(`usersTableBody`),t=Array.from(O.users.values());t.sort((e,t)=>{let n=e[j.users.field],r=t[j.users.field];return typeof n==`string`&&(n=n.toLowerCase(),r=r.toLowerCase()),j.users.ascending?n>r?1:n<r?-1:0:n<r?1:n>r?-1:0}),e.innerHTML=t.map(e=>`
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-3">
-                        <input type="checkbox" 
-                               class="user-checkbox rounded" 
-                               value="${e.email}"
-                               onchange="toggleUserSelection('${e.email}')"
-                               ${A.users.has(e.email)?`checked`:``}>
-                    </td>
-                    <td class="px-4 py-3">
-                        <div class="font-medium text-gray-900">${e.name}</div>
-                        <div class="text-sm text-gray-500">${e.email}</div>
-                    </td>
-                    <td class="px-4 py-3">
-                        <span class="font-bold text-purple-600">${F(e.currentMonthPoints)}</span>
-                    </td>
-                    <td class="px-4 py-3">
-                        <span class="font-medium text-gray-900">${F(e.totalPoints)}</span>
-                    </td>
-                    <td class="px-4 py-3">
-                        <span class="text-gray-600">${e.activities?.length||0}</span>
-                    </td>
-                    <td class="px-4 py-3">
-                        <span class="text-sm text-gray-500">${P(e.lastActivity)}</span>
-                    </td>
-                    <td class="px-4 py-3">
-                        <button onclick="viewUserDetails('${e.email}')" class="text-blue-600 hover:text-blue-800 text-sm">View</button>
-                    </td>
-                </tr>
-            `).join(``),Wt(),Z(`users`)}function Mt(e){A.users.has(e)?A.users.delete(e):A.users.add(e),Z(`users`)}function Nt(){let e=document.getElementById(`selectAllUsersCheckbox`),t=document.querySelectorAll(`.user-checkbox`);e.checked?t.forEach(e=>{e.checked=!0,A.users.add(e.value)}):(t.forEach(e=>{e.checked=!1}),A.users.clear()),Z(`users`)}function Pt(){document.querySelectorAll(`.user-checkbox`).forEach(e=>{e.checked=!0,A.users.add(e.value)}),document.getElementById(`selectAllUsersCheckbox`).checked=!0,Z(`users`)}function X(){document.querySelectorAll(`.user-checkbox`).forEach(e=>{e.checked=!1}),A.users.clear(),document.getElementById(`selectAllUsersCheckbox`).checked=!1,Z(`users`)}function Z(e){if(e===`users`){let e=A.users.size,t=document.getElementById(`userBulkActions`),n=document.getElementById(`selectedUsersCount`);e>0?(t.classList.remove(`hidden`),n.textContent=e):t.classList.add(`hidden`)}else if(e===`activities`){let e=A.activities.size,t=document.getElementById(`activityBulkActions`),n=document.getElementById(`selectedActivitiesCount`);e>0?(t.classList.remove(`hidden`),n.textContent=e):t.classList.add(`hidden`)}}function Ft(){if(A.users.size===0){alert(`Please select users first`);return}document.getElementById(`bulkAwardUserCount`).textContent=A.users.size,document.getElementById(`bulkAwardPointsModal`).classList.remove(`hidden`)}function It(){document.getElementById(`bulkAwardPointsModal`).classList.add(`hidden`),document.getElementById(`bulkActivityTitle`).value=``,document.getElementById(`bulkPoints`).value=``,document.getElementById(`bulkDescription`).value=``}function Lt(){let e=document.getElementById(`bulkActivityTitle`).value.trim(),t=parseInt(document.getElementById(`bulkPoints`).value),n=document.getElementById(`bulkDescription`).value.trim();if(!e||!t){alert(`Please fill in all required fields`);return}let r=0;A.users.forEach(i=>{let a={id:`bulk_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,userEmail:i,courseId:`bulk_${Date.now()}`,title:e,level:`manual`,courseType:`Bulk Award`,pointsEarned:t,completedDate:new Date().toISOString(),score:null,source:`bulk_award`,importDate:new Date().toISOString(),monthYear:N(),description:n};O.activities.push(a);let o=O.users.get(i);o&&(o.activities=o.activities||[],o.activities.push(a.id),o.totalPoints+=t,o.currentMonthPoints+=t,o.lastActivity=new Date().toISOString(),r++)}),It(),X(),z(),Y(),Q(),I(),M(`✅ Bulk awarded ${t} points to ${r} users for "${e}"`),alert(`Successfully awarded ${t} points to ${r} users!`)}function Rt(){if(A.users.size===0){alert(`Please select users first`);return}let e=document.getElementById(`bulkTeamSelect`);e.innerHTML=`<option value="">Choose a team...</option>`,O.teams.forEach(t=>{e.innerHTML+=`<option value="${t.id}">${t.name}</option>`}),document.getElementById(`bulkAssignUserCount`).textContent=A.users.size,document.getElementById(`bulkAssignTeamModal`).classList.remove(`hidden`)}function zt(){document.getElementById(`bulkAssignTeamModal`).classList.add(`hidden`),document.getElementById(`bulkTeamSelect`).value=``}function Bt(){let e=document.getElementById(`bulkTeamSelect`).value;if(!e){alert(`Please select a team`);return}let t=O.teams.get(e);if(!t)return;let n=0;A.users.forEach(r=>{if(!t.members.includes(r)){t.members.push(r);let i=O.users.get(r);if(i){if(i.teamId){let e=O.teams.get(i.teamId);e&&(e.members=e.members.filter(e=>e!==r))}i.teamId=e,n++}}}),U(e),zt(),X(),Y(),G(),z(),I(),M(`✅ Bulk assigned ${n} users to team ${t.name}`),alert(`Successfully assigned ${n} users to team ${t.name}!`)}function Vt(){if(A.users.size===0){alert(`Please select users first`);return}L({title:`Selected Users Export`,exportDate:new Date().toISOString(),users:Array.from(A.users).map(e=>{let t=O.users.get(e);return{email:t.email,name:t.name,currentMonthPoints:t.currentMonthPoints,totalPoints:t.totalPoints,activities:t.activities?.length||0,teamId:t.teamId,lastActivity:t.lastActivity}})},`selected_users_${new Date().toISOString().replace(/[:.]/g,`-`).slice(0,19)}.json`),M(`📥 Exported ${A.users.size} selected users`)}function Ht(e){j.users.field===e?j.users.ascending=!j.users.ascending:(j.users.field=e,j.users.ascending=!1),Y()}function Ut(){j.users.ascending=!j.users.ascending,Y()}function Wt(){[`sortCurrentMonth`,`sortTotal`].forEach(e=>{let t=document.getElementById(e);t.className=`px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors`});let e=j.users.field===`currentMonthPoints`?`sortCurrentMonth`:`sortTotal`,t=document.getElementById(e);t.className=`px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300`;let n=document.getElementById(`sortOrderUser`);n.textContent=j.users.ascending?`Least First ⬆️`:`Most First ⬇️`}function Gt(){let e=document.getElementById(`userSearch`).value.toLowerCase();document.querySelectorAll(`#usersTableBody tr`).forEach(t=>{let n=t.textContent.toLowerCase();t.style.display=n.includes(e)?``:`none`})}function Q(){let e=document.getElementById(`activitiesTableBody`),t=[...O.activities];t.sort((e,t)=>{let n,r;return j.activities.field===`pointsEarned`?(n=e.pointsEarned,r=t.pointsEarned):j.activities.field===`completedDate`&&(n=new Date(e.completedDate),r=new Date(t.completedDate)),j.activities.ascending?n>r?1:n<r?-1:0:n<r?1:n>r?-1:0}),e.innerHTML=t.map(e=>{let t=O.users.get(e.userEmail);return`
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3">
-                            <input type="checkbox" 
-                                   class="activity-checkbox rounded" 
-                                   value="${e.id}"
-                                   onchange="toggleActivitySelection('${e.id}')"
-                                   ${A.activities.has(e.id)?`checked`:``}>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="font-medium text-gray-900">${t?.name||e.userEmail}</div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="font-medium text-gray-900">${e.title}</div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="text-sm text-gray-600">${e.courseType}</span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="px-2 py-1 text-xs rounded-full ${e.level===`fundamental`?`bg-green-100 text-green-800`:e.level===`intermediate`?`bg-blue-100 text-blue-800`:e.level===`advanced`?`bg-purple-100 text-purple-800`:`bg-gray-100 text-gray-800`}">${e.level}</span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="font-bold text-purple-600">${e.pointsEarned}</span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="text-sm text-gray-500">${P(e.completedDate)}</span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="text-xs text-gray-500">${e.source}</span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <button onclick="editActivity('${e.id}')" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
-                        </td>
-                    </tr>
-                `}).join(``),nn(),Z(`activities`)}function Kt(e){A.activities.has(e)?A.activities.delete(e):A.activities.add(e),Z(`activities`)}function qt(){let e=document.getElementById(`selectAllActivitiesCheckbox`),t=document.querySelectorAll(`.activity-checkbox`);e.checked?t.forEach(e=>{e.checked=!0,A.activities.add(e.value)}):(t.forEach(e=>{e.checked=!1}),A.activities.clear()),Z(`activities`)}function Jt(){document.querySelectorAll(`.activity-checkbox`).forEach(e=>{e.checked=!0,A.activities.add(e.value)}),document.getElementById(`selectAllActivitiesCheckbox`).checked=!0,Z(`activities`)}function $(){document.querySelectorAll(`.activity-checkbox`).forEach(e=>{e.checked=!1}),A.activities.clear(),document.getElementById(`selectAllActivitiesCheckbox`).checked=!1,Z(`activities`)}function Yt(){if(A.activities.size===0){alert(`Please select activities first`);return}document.getElementById(`bulkAdjustActivityCount`).textContent=A.activities.size,document.getElementById(`bulkAdjustPointsModal`).classList.remove(`hidden`)}function Xt(){document.getElementById(`bulkAdjustPointsModal`).classList.add(`hidden`),document.getElementById(`bulkAdjustType`).value=`add`,document.getElementById(`bulkAdjustValue`).value=``,document.getElementById(`bulkAdjustReason`).value=``}function Zt(){let e=document.getElementById(`bulkAdjustType`).value,t=parseFloat(document.getElementById(`bulkAdjustValue`).value),n=document.getElementById(`bulkAdjustReason`).value.trim();if(!t||isNaN(t)){alert(`Please enter a valid value`);return}let r=0,i=new Set;A.activities.forEach(a=>{let o=O.activities.find(e=>e.id===a);if(o){let a=o.pointsEarned,s=a;switch(e){case`add`:s=a+t;break;case`subtract`:s=Math.max(0,a-t);break;case`multiply`:s=Math.round(a*t);break;case`set`:s=t;break}let c=s-a;o.pointsEarned=s,o.adjustmentHistory=o.adjustmentHistory||[],o.adjustmentHistory.push({date:new Date().toISOString(),type:e,value:t,oldPoints:a,newPoints:s,reason:n});let l=O.users.get(o.userEmail);l&&(l.totalPoints+=c,o.monthYear===N()&&(l.currentMonthPoints+=c),i.add(o.userEmail)),r++}}),i.forEach(e=>{let t=O.users.get(e);t&&t.teamId&&U(t.teamId)}),Xt(),$(),z(),Q(),Y(),G(),I(),M(`✅ Bulk adjusted points for ${r} activities (${e} ${t})`),alert(`Successfully adjusted points for ${r} activities!`)}function Qt(){if(A.activities.size===0){alert(`Please select activities first`);return}if(!confirm(`Are you sure you want to delete ${A.activities.size} activities? This cannot be undone.`))return;let e=new Set,t=0;A.activities.forEach(n=>{let r=O.activities.findIndex(e=>e.id===n);if(r!==-1){let i=O.activities[r],a=O.users.get(i.userEmail);a&&(a.totalPoints-=i.pointsEarned,i.monthYear===N()&&(a.currentMonthPoints-=i.pointsEarned),a.activities=a.activities.filter(e=>e!==n),e.add(i.userEmail)),O.activities.splice(r,1),t++}}),e.forEach(e=>{let t=O.users.get(e);t&&t.teamId&&U(t.teamId)}),$(),z(),Q(),Y(),G(),I(),M(`🗑️ Bulk deleted ${t} activities`),alert(`Successfully deleted ${t} activities!`)}function $t(){if(A.activities.size===0){alert(`Please select activities first`);return}L({title:`Selected Activities Export`,exportDate:new Date().toISOString(),activities:Array.from(A.activities).map(e=>{let t=O.activities.find(t=>t.id===e);return{user:O.users.get(t.userEmail)?.name||t.userEmail,email:t.userEmail,activity:t.title,courseType:t.courseType,level:t.level,points:t.pointsEarned,completedDate:t.completedDate,source:t.source,adjustmentHistory:t.adjustmentHistory}})},`selected_activities_${new Date().toISOString().replace(/[:.]/g,`-`).slice(0,19)}.json`),M(`📥 Exported ${A.activities.size} selected activities`)}function en(e){j.activities.field===e?j.activities.ascending=!j.activities.ascending:(j.activities.field=e,j.activities.ascending=!1),Q()}function tn(){j.activities.ascending=!j.activities.ascending,Q()}function nn(){[`sortPoints`,`sortDate`].forEach(e=>{let t=document.getElementById(e);t.className=`px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors`});let e=j.activities.field===`pointsEarned`?`sortPoints`:`sortDate`,t=document.getElementById(e);t.className=`px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300`;let n=document.getElementById(`sortOrderActivity`);j.activities.field===`pointsEarned`?n.textContent=j.activities.ascending?`Least First ⬆️`:`Most First ⬇️`:n.textContent=j.activities.ascending?`Oldest First ⬆️`:`Recent First ⬇️`}function rn(){let e=document.getElementById(`activitySearch`).value.toLowerCase(),t=document.getElementById(`activityFilter`).value,n=N();document.querySelectorAll(`#activitiesTableBody tr`).forEach(r=>{let i=r.textContent.toLowerCase(),a=r.querySelector(`button`).onclick.toString().match(/'([^']+)'/)[1],o=O.activities.find(e=>e.id===a),s=i.includes(e);if(s&&t!==`all`)switch(t){case`current-month`:s=o?.monthYear===n;break;case`courses`:s=!o?.courseType?.includes(`Meeting`);break;case`events`:s=o?.courseType?.includes(`Meeting`)||o?.level===`live_event`;break}r.style.display=s?``:`none`})}function an(){document.getElementById(`addPointsModal`).classList.remove(`hidden`)}function on(){document.getElementById(`addPointsModal`).classList.add(`hidden`),document.getElementById(`manualUserEmail`).value=``,document.getElementById(`manualActivityTitle`).value=``,document.getElementById(`manualPoints`).value=``,document.getElementById(`manualDescription`).value=``}function sn(){let e=document.getElementById(`manualUserEmail`).value.trim().toLowerCase(),t=document.getElementById(`manualActivityTitle`).value.trim(),n=parseInt(document.getElementById(`manualPoints`).value),r=document.getElementById(`manualDescription`).value.trim();if(!e||!t||!n){alert(`Please fill in all required fields`);return}let i={id:`manual_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,userEmail:e,courseId:`manual_${Date.now()}`,title:t,level:`manual`,courseType:`Manual Award`,pointsEarned:n,completedDate:new Date().toISOString(),score:null,source:`manual_entry`,importDate:new Date().toISOString(),monthYear:N(),description:r};O.activities.push(i),O.users.has(e)||O.users.set(e,{email:e,name:e.split(`@`)[0],firstName:``,lastName:``,currentMonthPoints:0,totalPoints:0,activities:[],joinDate:new Date().toISOString(),lastActivity:new Date().toISOString()});let a=O.users.get(e);a.activities=a.activities||[],a.activities.push(i.id),a.totalPoints+=n,a.currentMonthPoints+=n,a.lastActivity=new Date().toISOString(),on(),z(),Y(),Q(),I(),M(`✅ Manual points awarded: ${n} to ${e} for "${t}"`)}function cn(){let e=N(),t=Array.from(O.users.values()).filter(e=>e.currentMonthPoints>0).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints);L({title:`Leaderboard Report - ${e}`,generated:new Date().toISOString(),data:t.map((e,t)=>({rank:t+1,name:e.name,email:e.email,currentMonthPoints:e.currentMonthPoints,totalPoints:e.totalPoints,activities:e.activities?.length||0}))},`cloud_comp_leaderboard_${e}.json`)}function ln(){L({title:`Activity Report`,generated:new Date().toISOString(),data:O.activities.map(e=>({user:O.users.get(e.userEmail)?.name||e.userEmail,email:e.userEmail,activity:e.title,courseType:e.courseType,level:e.level,points:e.pointsEarned,completedDate:e.completedDate,source:e.source}))},`cloud_comp_activities_${new Date().toISOString().slice(0,10)}.json`)}function un(){let e=N();L({title:`Summary Report`,generated:new Date().toISOString(),summary:{totalUsers:O.users.size,totalTeams:O.teams.size,totalActivities:O.activities.length,totalPoints:Array.from(O.users.values()).reduce((e,t)=>e+t.totalPoints,0),currentMonthActivities:O.activities.filter(t=>t.monthYear===e).length,currentMonthPoints:Array.from(O.users.values()).reduce((e,t)=>e+t.currentMonthPoints,0),lastImport:O.metadata.lastImport,sources:O.metadata.sources},topUsers:Array.from(O.users.values()).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).slice(0,10).map(e=>({name:e.name,email:e.email,currentMonthPoints:e.currentMonthPoints,totalPoints:e.totalPoints})),topTeams:Array.from(O.teams.values()).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).slice(0,5).map(e=>({name:e.name,members:e.members.length,currentMonthPoints:e.currentMonthPoints,totalPoints:e.totalPoints}))},`cloud_comp_summary_${new Date().toISOString().slice(0,10)}.json`)}function dn(){if(!confirm(`Are you sure you want to reset the monthly leaderboard? This will set all current month points to 0.`))return;let e=N();L({month:e,resetDate:new Date().toISOString(),leaderboard:Array.from(O.users.values()).filter(e=>e.currentMonthPoints>0).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).map(e=>({name:e.name,email:e.email,points:e.currentMonthPoints}))},`cloud_comp_leaderboard_archive_${e}.json`),O.users.forEach(e=>{e.currentMonthPoints=0}),O.config.lastReset=e,z(),Y(),I(),M(`🔄 Monthly leaderboard reset for ${e}`)}function fn(){dn()}function pn(e){alert(`User details for ${e} - Feature coming soon!`)}function mn(e){alert(`Edit activity ${e} - Feature coming soon!`)}function hn(){document.getElementById(`courseFiles`).addEventListener(`change`,function(e){k.course=Array.from(e.target.files),J(`course`,k.course)}),document.getElementById(`teamsFiles`).addEventListener(`change`,function(e){k.teams=Array.from(e.target.files),J(`teams`,k.teams)}),M(`☁️ Cloud Comp Admin initialized`),Qe(),setTimeout(()=>{Wt(),nn(),K()},100)}Object.assign(window,{showTab:nt,scrollToSection:Je,processAllFiles:Dt,processImportData:tt,closeImportDataModal:et,exportData:$e,exportConfig:yt,addManualPoints:an,closeAddPointsModal:on,submitManualPoints:sn,filterUsers:Gt,toggleUserSort:Ht,toggleUserSortOrder:Ut,toggleSelectAllUsers:Nt,selectAllUsers:Pt,deselectAllUsers:X,bulkAwardPoints:Ft,closeBulkAwardPointsModal:It,submitBulkAwardPoints:Lt,bulkAssignTeam:Rt,closeBulkAssignTeamModal:zt,submitBulkAssignTeam:Bt,bulkExportUsers:Vt,viewUserDetails:pn,toggleUserSelection:Mt,openCreateTeamModal:ct,closeCreateTeamModal:B,createTeam:st,openManageTeamMembers:V,closeManageTeamMembersModal:lt,addUsersToTeam:ut,removeUserFromTeam:dt,deleteTeam:ft,filterTeams:ht,toggleTeamSort:pt,toggleTeamSortOrder:mt,filterActivities:rn,toggleActivitySort:en,toggleActivitySortOrder:tn,toggleSelectAllActivities:qt,selectAllActivities:Jt,deselectAllActivities:$,bulkAdjustPoints:Yt,closeBulkAdjustPointsModal:Xt,submitBulkAdjustPoints:Zt,bulkDeleteActivities:Qt,bulkExportActivities:$t,editActivity:mn,toggleActivitySelection:Kt,updatePointConfig:q,resetToDefaults:_t,saveConfiguration:vt,generateLeaderboardReport:cn,generateActivityReport:ln,generateSummaryReport:un,resetMonthlyLeaderboard:dn,confirmMonthlyReset:fn,initApp:hn}),document.readyState===`loading`?document.addEventListener(`DOMContentLoaded`,()=>window.initApp()):window.initApp();</script>
+  <script type="module" crossorigin>(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),e.crossOrigin===`use-credentials`?t.credentials=`include`:e.crossOrigin===`anonymous`?t.credentials=`omit`:t.credentials=`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})();var e=4*1024*1024,t=null;function n(e){t=e}function r(){let e=0;for(let t=0;t<localStorage.length;t++){let n=localStorage.key(t);e+=n.length*2,e+=localStorage.getItem(n).length*2}return e}function i(){let e=`__storage_test__`;try{return localStorage.setItem(e,`1`),localStorage.removeItem(e),!0}catch{return!1}}function a(e,t=null){try{if(!i())return t;let n=localStorage.getItem(e);return n===null?t:JSON.parse(n)}catch{return t}}function o(n,a){try{if(!i())return!1;let o=JSON.stringify(a),s=o.length*2,c=n.length*2,l=localStorage.getItem(n),u=l===null?0:n.length*2+l.length*2,d=r()-u+c+s;if(d>e){let e=Math.round(d/1024);return t&&t({key:n,usedKB:e}),!1}return localStorage.setItem(n,o),!0}catch{return!1}}var s=Object.freeze({DATA_CHANGED:`data:changed`,IMPORT_COMPLETE:`import:complete`,IMPORT_PROGRESS:`import:progress`,POINTS_AWARDED:`points:awarded`,BADGE_AWARDED:`badge:awarded`,CAMPAIGN_UPDATED:`campaign:updated`,STORAGE_QUOTA_WARNING:`storage:quotaWarning`}),c=new Map;function l(e,t){c.has(e)||c.set(e,new Set),c.get(e).add(t)}function u(e,t){let n=c.get(e);if(!n||n.size===0)return;let r=null;for(let e of n)try{e(t)}catch(e){r=e}if(r)throw r}n(e=>{u(s.STORAGE_QUOTA_WARNING,e)});var d=Object.freeze({awsCourseTypes:Object.freeze({"AWS Builder Lab":100,"AWS Cloud Quest":75,"AWS Jam Journey":150,"AWS Simulearn":75,"Certification Exam Preparation":100,"Digital Course With Lab":100}),generalCourses:Object.freeze({"Classroom Training":100,"Digital Courses - Foundational":50,"Digital Courses - Associate":75,"Digital Courses - Professional":100,"Digital Courses - Specialty":100}),events:Object.freeze({"Live Events":25}),hackathons:Object.freeze({"Hackathons - Participation":150,"Hackathons - 3rd Place":250,"Hackathons - 2nd Place":350,"Hackathons - 1st Place":450}),quizzes:Object.freeze({"Quiz Completion":20,"Quiz 80%+ Score":50,"Quiz Perfect Score":70})}),ee=Object.freeze([{key:`builder lab`,configSection:`awsCourseTypes`,configKey:`AWS Builder Lab`},{key:`cloud quest`,configSection:`awsCourseTypes`,configKey:`AWS Cloud Quest`},{key:`jam journey`,configSection:`awsCourseTypes`,configKey:`AWS Jam Journey`},{key:`simulearn`,configSection:`awsCourseTypes`,configKey:`AWS Simulearn`},{key:`certification exam preparation`,configSection:`awsCourseTypes`,configKey:`Certification Exam Preparation`},{key:`with lab`,configSection:`awsCourseTypes`,configKey:`Digital Course With Lab`},{key:`classroom`,configSection:`generalCourses`,configKey:`Classroom Training`}]),te=Object.freeze({fundamental:`Digital Courses - Foundational`,intermediate:`Digital Courses - Associate`,advanced:`Digital Courses - Professional`,specialty:`Digital Courses - Specialty`});function ne(e,t){let n=t.toLowerCase();for(let t of Object.keys(e))if(t.toLowerCase()===n)return e[t]}function re(e,t,n){let r=(e??``).trim();if(r){let e=ne(n.awsCourseTypes,r);if(e!==void 0)return e;let t=r.toLowerCase();for(let e of ee)if(t.includes(e.key))return n[e.configSection][e.configKey]}if(t){let e=te[t.toLowerCase()];if(e)return n.generalCourses[e]}return n.generalCourses[`Digital Courses - Foundational`]}function ie(e,t){let n=e??0;return n===100?t.quizzes[`Quiz Perfect Score`]:n>=80?t.quizzes[`Quiz 80%+ Score`]:t.quizzes[`Quiz Completion`]}function ae(e){return e.events[`Live Events`]}var oe=`cloudCompData`;function f(){return{pointConfig:{...d},lastReset:new Date().toISOString().slice(0,7),version:`1.2`}}var p=se();function se(){return{users:{},teams:{},activities:[],campaigns:{},config:f(),metadata:{lastImport:null,totalRecordsProcessed:0,sources:[]}}}function m(){o(oe,{...p,metadata:{...p.metadata,lastSaved:new Date().toISOString()}}),u(s.DATA_CHANGED)}function h(){return{...p.users}}function g(e){let t=p.users[e?.toLowerCase()];return t?{...t}:null}function _(){return{...p.teams}}function v(e={}){let t=p.activities;if(e.campaignId&&(t=ce(t,e.campaignId)),e.userId){let n=e.userId.toLowerCase();t=t.filter(e=>e.userId===n)}return e.type&&(t=t.filter(t=>t.type===e.type)),e.fromDate&&(t=t.filter(t=>t.completedDate&&t.completedDate>=e.fromDate)),e.toDate&&(t=t.filter(t=>t.completedDate&&t.completedDate<=e.toDate)),t===p.activities?[...t]:t}function ce(e,t){let n=p.campaigns[t];if(!n)return[];let r=le(n);return e.filter(e=>!(!r.has(e.userId)||!e.completedDate||e.completedDate<n.startDate||n.endDate&&e.completedDate>n.endDate))}function le(e){let t=new Set(e.participantIds??[]);for(let n of e.teamIds??[]){let e=p.teams[n];if(e)for(let n of e.memberIds??[])t.add(n)}return t}function y(){return{...p.config}}function b(e){let t=e.email.toLowerCase(),n=p.users[t];p.users[t]=n?{...n,...e,email:t}:{...e,email:t},m()}function x(e){let t=p.teams[e.id];p.teams[e.id]=t?{...t,...e}:{...e},m()}function ue(e){p.activities=[...p.activities,{...e}],m()}function de(e){if(!p.teams[e])return;let{[e]:t,...n}=p.teams;p.teams=n,m()}function fe(e){p.config={...p.config,...e},m()}function pe(){let e=a(oe,null);if(!e){p=se();return}p={users:e.users??{},teams:e.teams??{},activities:e.activities??[],campaigns:e.campaigns??{},config:e.config?{...f(),...e.config}:f(),metadata:e.metadata?{lastImport:null,totalRecordsProcessed:0,sources:[],...e.metadata}:{lastImport:null,totalRecordsProcessed:0,sources:[]}}}function me(){return{users:{...p.users},teams:{...p.teams},activities:[...p.activities],campaigns:{...p.campaigns},config:{...p.config},metadata:{...p.metadata,exportedDate:new Date().toISOString()}}}function he(e){p={users:e.users??{},teams:e.teams??{},activities:e.activities??[],campaigns:e.campaigns??{},config:e.config?{...f(),...e.config}:f(),metadata:e.metadata?{lastImport:null,totalRecordsProcessed:0,sources:[],...e.metadata}:{lastImport:null,totalRecordsProcessed:0,sources:[]}},m()}function S(e,t){return`act_${(e??``).toLowerCase()}_${(t??``).trim()}`}function ge(e){let t=(e.userId??``).toLowerCase();return{id:e.id??S(t,e.externalId??``),userId:t,title:e.title??``,type:e.type??`course`,level:e.level??``,courseType:e.courseType??``,pointsEarned:e.pointsEarned??0,completedDate:e.completedDate??null,source:e.source??`manual`,score:e.score??null,isDuplicate:e.isDuplicate??!1}}function _e(e,t){let n=e.toLowerCase();return{id:n,email:n,name:t||n.split(`@`)[0],teamId:null,totalPoints:0,currentMonthPoints:0,badges:[],createdAt:new Date().toISOString()}}async function ve(e,t,n){let{config:r,filename:i=`unknown`,dryRun:a=!1}=n,o=[],s=[],c;try{let n=t.read(new Uint8Array(e),{type:`array`}),r=n.Sheets[n.SheetNames[0]];c=t.utils.sheet_to_json(r,{header:1})}catch(e){return s.push(`Failed to parse file ${i}: ${e.message}`),{activities:[],users:[],warnings:o,errors:s}}if(!c||c.length===0)return s.push(`File ${i} is empty`),{activities:[],users:[],warnings:o,errors:s};let l=ye(c)?be(c,r,i,o,s):Se(c,r,i,o,s);return a?{...l,activities:[],users:[]}:l}function ye(e){for(let t=0;t<Math.min(10,e.length);t++){let n=e[t];if(!n||n.length<3)continue;let r=String(n[1]??``),i=String(n[2]??``),a=String(n[0]??``);if(r.includes(`@`)&&i.toLowerCase().includes(`completed`)&&!a.match(/^[A-Z0-9]{10}$/))return!0}return!1}function be(e,t,n,r,i){let a=[],o=new Map,s=je(n),c=t?.generalCourses?.[`Classroom Training`]??100;for(let t=0;t<e.length;t++)try{let i=xe(e[t],t,c,s,n);if(i.warning){r.push(`Row ${t+1}: ${i.warning}`);continue}if(!i.activity)continue;a.push(i.activity),o.has(i.email)||o.set(i.email,_e(i.email,i.name))}catch(e){r.push(`Row ${t+1}: error — ${e.message}`)}return{activities:a,users:[...o.values()],warnings:r,errors:i}}function xe(e,t,n,r,i){if(!e||e.length<2)return{};let a=String(e[0]??``).trim(),o=String(e[1]??``).trim().toLowerCase(),s=String(e[2]??``).trim();if(!o.includes(`@`))return{};if(s.toLowerCase()!==`completed`)return{warning:`skipped, status="${s}"`};let c=`ILT_${Ae(i)}_${t}`;return{activity:ge({id:S(o,c),userId:o,externalId:c,title:r,type:`course`,level:`classroom`,courseType:`Classroom Training`,pointsEarned:n,completedDate:new Date().toISOString(),source:`course-import`}),email:o,name:a}}function Se(e,t,n,r,i){let a=Ce(e);if(a===-1)return i.push(`No header row with "Email" column found in ${n}`),{activities:[],users:[],warnings:r,errors:i};let o=e[a],s=[],c=new Map;for(let i=a+1;i<e.length;i++)try{let a=Te(we(o,e[i]),t,n);a.warning&&r.push(`Row ${i+1}: ${a.warning}`),a.activity&&s.push(a.activity),a.user&&!c.has(a.user.email)&&c.set(a.user.email,a.user)}catch(e){r.push(`Row ${i+1}: error — ${e.message}`)}return{activities:s,users:[...c.values()],warnings:r,errors:i}}function Ce(e){for(let t=0;t<Math.min(5,e.length);t++)if(e[t]&&e[t].includes(`Email`))return t;return-1}function we(e,t){let n={};for(let r=0;r<e.length;r++)n[e[r]]=t?.[r];return n}function Te(e,t,n){let r=Ee(e);if(r.warning)return{warning:r.warning};let{type:i,points:a}=De(r.courseType,r.level,e.Score,t),o=ge({id:S(r.email,r.courseId),userId:r.email,externalId:r.courseId,title:r.title,type:i,level:r.level||``,courseType:r.courseType||``,pointsEarned:a,completedDate:r.completedDate,source:`course-import`,score:Oe(e.Score)}),s=Me(e[`First Name`],e[`Last Name`],r.email);return{activity:o,user:_e(r.email,s)}}function Ee(e){let t=C(e.Email).toLowerCase(),n=C(e[`Course ID`]),r=C(e[`Course Title`]),i=C(e.Status).toUpperCase();if(!t||!n||!r)return{warning:`skipped, missing Email/Course ID/Title`};if(i===`IN PROGRESS`)return{warning:`skipped in-progress: ${r}`};if(i!==`COMPLETED`)return{warning:`skipped, status="${i}"`};let a=ke(e[`Completed on`]);return a?{email:t,courseId:n,title:r,level:C(e.Level).toLowerCase(),courseType:C(e.CourseType),completedDate:a}:{warning:`skipped, invalid completion date`}}function De(e,t,n,r){let i=(e??``).toLowerCase();return i.includes(`quiz`)||i.includes(`card clash`)?{type:`quiz`,points:ie(Oe(n),r)}:{type:`course`,points:re(e,t,r)}}function Oe(e){if(e==null)return null;let t=parseFloat(e);return Number.isNaN(t)?null:t}function ke(e){if(!e||e===`null`||e===``)return null;try{let t=new Date(e);return Number.isNaN(t.getTime())?null:t.toISOString()}catch{return null}}function C(e){return(e??``).toString().trim()}function Ae(e){return e.replace(/[^a-zA-Z0-9]/g,`_`)}function je(e){if(e.toLowerCase().includes(`ilt`))return`Instructor-Led Training (ILT)`;let t=e.match(/([^/\\]+?)(?:-session|-example)?\.\w+$/i);if(t){let e=t[1].replace(/[-_]/g,` `).replace(/\b\w/g,e=>e.toUpperCase());if(!e.toLowerCase().includes(`example`))return`${e} Training`}return`Classroom Training Session`}function Me(e,t,n){return`${C(e)} ${C(t)}`.trim()||n.split(`@`)[0]}async function Ne(e,t){let{config:n,filename:r=`unknown`,dryRun:i=!1}=t,a=[],o=[];if(!e||!e.trim())return o.push(`File ${r} is empty`),{activities:[],users:[],warnings:a,errors:o};let s;try{s=Pe(e,r,a)}catch(e){return o.push(`Failed to parse ${r}: ${e.message}`),{activities:[],users:[],warnings:a,errors:o}}if(s.length===0)return a.push(`No meetings found in ${r}`),{activities:[],users:[],warnings:a,errors:o};let c=[],l=new Map,u=ae(n);for(let e of s)for(let t of e.emails){let n=`${e.meetingId}_${t}`;c.push(ge({id:S(t,n),userId:t,externalId:n,title:e.title,type:`meeting`,level:``,courseType:`Teams Meeting`,pointsEarned:u,completedDate:e.date,source:`teams-import`})),l.has(t)||l.set(t,_e(t,``))}return i?{activities:[],users:[],warnings:a,errors:o}:{activities:c,users:[...l.values()],warnings:a,errors:o}}function Pe(e,t,n){let r=e.split(`
+`),i=[],a=null,o=[];for(let e of r){let n=e.replace(/\0/g,``).trim();if(!n)continue;let r=Fe(n);if(r){a&&o.length>0&&(a.emails=[...o],i.push(a)),a={title:r,meetingId:Re(r),attendees:0,emails:[],date:ze(t)},o=[];continue}let s=Ie(n);if(s!==null&&a){a.attendees=s;continue}if(a){let e=Le(n);e&&!o.includes(e)&&o.push(e)}}a&&o.length>0&&(a.emails=[...o],i.push(a));for(let e of i)e.emails.length===0&&e.attendees>0&&n.push(`Meeting "${e.title}": ${e.attendees} attendees reported but no emails found`);return i}function Fe(e){if(!e.toLowerCase().includes(`meeting title`))return null;let t=e.match(/Meeting\s+title[:\t]\s*(.+?)(?:\s*\(|$)/i);return t?t[1].trim():null}function Ie(e){if(!e.toLowerCase().includes(`attended participants`))return null;let t=e.match(/Attended\s+participants[:\t]\s*(\d+)/i);return t?parseInt(t[1],10):null}function Le(e){let t=e.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);return t?t[1].toLowerCase():null}function Re(e){return`meeting_${e.replace(/[^a-zA-Z0-9]/g,`_`).toLowerCase()}`}function ze(e){let t=e.match(/(\d{4}[-_]\d{2}[-_]\d{2})/);if(t){let e=new Date(t[1].replace(/_/g,`-`));if(!Number.isNaN(e.getTime()))return e.toISOString()}return new Date().toISOString()}function Be(e){return`${(e.userId??``).toLowerCase()}|${(e.externalId??``).trim().toLowerCase()}`}function Ve(e,t){let n=new Set(t.map(e=>Be(e))),r=[],i=[];for(let t of e){let e=Be(t);n.has(e)?i.push(t):(n.add(e),r.push(t))}return{accepted:r,duplicates:i,stats:{accepted:r.length,duplicatesSkipped:i.length}}}var w={course:[],teams:[]},T={users:new Set,activities:new Set},E={users:{field:`currentMonthPoints`,ascending:!1},activities:{field:`pointsEarned`,ascending:!1},teams:{field:`currentMonthPoints`,ascending:!1}};function D(e){return String(e??``).replace(/&/g,`&amp;`).replace(/</g,`&lt;`).replace(/>/g,`&gt;`).replace(/"/g,`&quot;`).replace(/'/g,`&#39;`)}function O(e){let t=document.getElementById(`importLog`);if(t){let n=new Date().toISOString().split(`T`)[1].split(`.`)[0];t.innerHTML+=`[${n}] ${D(e)}\n`,t.scrollTop=t.scrollHeight}}function k(){return new Date().toISOString().slice(0,7)}function A(e){return new Date(e).toLocaleDateString()}function j(e){return e.toLocaleString()}function M(e,t){let n=new Blob([JSON.stringify(e,null,2)],{type:`application/json`}),r=URL.createObjectURL(n),i=document.createElement(`a`);i.href=r,i.download=t,document.body.appendChild(i),i.click(),document.body.removeChild(i),URL.revokeObjectURL(r)}function He(e,t){let n=document.getElementById(`dataStatus`),r=n.querySelector(`.status-indicator`);r.className=`status-indicator status-${e}`,n.querySelector(`span`).textContent=t}var N=null;l(s.DATA_CHANGED,()=>{N=null});function P(){if(N)return N;let e=k(),t=v(),n=new Map;for(let r of t){let t=r.userId||r.userEmail||``,i=n.get(t)||{total:0,month:0};i.total+=r.pointsEarned,r.completedDate&&r.completedDate.startsWith(e)&&(i.month+=r.pointsEarned),n.set(t,i)}return N=n,n}function Ue(e){return P().get(e)?.total??0}function We(e){return P().get(e)?.month??0}function Ge(e){let t=g(e);if(!t)return null;let n=P().get(e)||{total:0,month:0};return{...t,totalPoints:n.total,currentMonthPoints:n.month}}function F(){let e=h(),t=P(),n={};for(let[r,i]of Object.entries(e)){let e=t.get(r)||{total:0,month:0};n[r]={...i,totalPoints:e.total,currentMonthPoints:e.month}}return n}function I(){return fe(y()),!0}function Ke(e,t){e.preventDefault();let n=document.getElementById(t);n&&n.scrollIntoView({behavior:`smooth`,block:`start`})}var L,R,qe,Je,Ye;function Xe(e){({loadConfiguration:L,refreshDashboard:R,refreshUsersTable:qe,refreshActivitiesTable:Je,refreshTeamsTable:Ye}=e)}function Ze(){try{pe();let e=h(),t=v(),n=_(),r=Object.keys(e).length,i=Object.keys(n).length;r>0||t.length>0?(He(`success`,`Data loaded: ${r} users, ${i} teams, ${t.length} activities`),L&&L(),R&&R(),O(`Data loaded successfully from browser storage`)):(He(`warning`,`No existing data found - ready for first import`),O(`No existing data found, starting with empty dataset`))}catch(e){He(`error`,`Error loading data`),O(`Error loading data: ${e.message}`)}}function Qe(){try{M(me(),`cloud_comp_data_${new Date().toISOString().replace(/[:.]/g,`-`).slice(0,19)}.json`),O(`Data exported to JSON file`)}catch(e){O(`Error exporting data: ${e.message}`),alert(`Error exporting data. Please try again.`)}}function $e(){document.getElementById(`importDataModal`).classList.add(`hidden`),document.getElementById(`importDataFile`).value=``}function et(){let e=document.getElementById(`importDataFile`).files[0];if(!e){alert(`Please select a JSON file to import`);return}let t=new FileReader;t.onload=function(e){try{let t=JSON.parse(e.target.result);if(!t.users||!t.activities){alert(`Invalid data file format.`);return}let n=t.teams?Object.keys(t.teams).length:0,r=t.inProgressActivities?t.inProgressActivities.length:0,i=`This will replace all current data.\n\n- ${Object.keys(t.users).length} users\n- ${n} teams\n- ${t.activities.length} completed activities\n- ${r} in-progress activities\n\nContinue?`;if(!confirm(i))return;he(t),L&&L(),R&&R(),qe&&qe(),Je&&Je(),Ye&&Ye(),$e();let a=h(),o=_(),s=v();O(`Data imported successfully: ${Object.keys(a).length} users, ${Object.keys(o).length} teams, ${s.length} completed`)}catch(e){alert(`Error importing data: ${e.message}`),O(`Error importing data: ${e.message}`)}},t.readAsText(e)}var z;function tt(e){({refreshDashboard:z}=e)}function B(e){let t=_()[e];if(!t)return;let n=t.members||[],r=n.reduce((e,t)=>e+We(t),0),i=n.reduce((e,t)=>e+Ue(t),0);x({...t,currentMonthPoints:r,totalPoints:i})}function nt(){let e=_();for(let t of Object.keys(e))B(t)}function rt(){let e=document.getElementById(`teamName`).value.trim(),t=document.getElementById(`teamDescription`).value.trim(),n=document.getElementById(`teamColor`).value;if(!e){alert(`Please enter a team name`);return}if(Object.values(_()).find(t=>t.name.toLowerCase()===e.toLowerCase())){alert(`A team with this name already exists`);return}x({id:`team_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,name:e,description:t,color:n,members:[],createdDate:new Date().toISOString(),currentMonthPoints:0,totalPoints:0}),at(),V(),z&&z(),O(`Team created: ${e}`)}function it(){document.getElementById(`createTeamModal`).classList.remove(`hidden`)}function at(){document.getElementById(`createTeamModal`).classList.add(`hidden`),document.getElementById(`teamName`).value=``,document.getElementById(`teamDescription`).value=``,document.getElementById(`teamColor`).value=`blue`}function ot(e){let t=_()[e];t&&confirm(`Are you sure you want to delete the team "${t.name}"? This cannot be undone.`)&&((t.members||[]).forEach(t=>{let n=g(t);n&&n.teamId===e&&b({...n,teamId:null})}),de(e),V(),z&&z(),O(`Team deleted: ${t.name}`))}function st(e){let t=_()[e];if(!t)return;document.getElementById(`managingTeamName`).textContent=t.name,document.getElementById(`managingTeamDescription`).textContent=t.description||`No description`,document.getElementById(`manageTeamMembersModal`).dataset.teamId=e;let n=document.getElementById(`availableUsers`);n.innerHTML=``,Object.values(h()).filter(e=>!(t.members||[]).includes(e.email)).sort((e,t)=>e.name.localeCompare(t.name)).forEach(e=>{let t=document.createElement(`option`);t.value=e.email,t.textContent=`${e.name} (${e.email})`,n.appendChild(t)}),dt(e),document.getElementById(`manageTeamMembersModal`).classList.remove(`hidden`)}function ct(){document.getElementById(`manageTeamMembersModal`).classList.add(`hidden`)}function lt(){let e=document.getElementById(`manageTeamMembersModal`).dataset.teamId,t=_()[e];if(!t)return;let n=Array.from(document.getElementById(`availableUsers`).selectedOptions),r=[...t.members||[]];n.forEach(t=>{let n=t.value;if(!r.includes(n)){r.push(n);let t=g(n);t&&b({...t,teamId:e})}}),x({...t,members:r}),B(e),st(e),V(),z&&z(),O(`Added ${n.length} users to team ${t.name}`)}function ut(e,t){let n=_()[e];if(!n)return;x({...n,members:(n.members||[]).filter(e=>e!==t)});let r=g(t);r&&r.teamId===e&&b({...r,teamId:null}),B(e),dt(e),V(),z&&z(),O(`Removed user from team ${n.name}`)}function dt(e){let t=_()[e];if(!t)return;let n=document.getElementById(`teamMembersList`),r=t.members||[];if(r.length===0){n.innerHTML=`<p class="text-gray-500 text-sm">No members yet</p>`;return}n.innerHTML=r.map(t=>{let n=Ge(t);return`
+      <div class="flex items-center justify-between p-2 bg-gray-50 rounded">
+        <div>
+          <div class="font-medium text-gray-900">${D(n?.name||t)}</div>
+          <div class="text-sm text-gray-500">${D(t)}</div>
+          <div class="text-xs text-gray-600">Points this month: ${n?.currentMonthPoints||0}</div>
+        </div>
+        <button data-action="removeUserFromTeam" data-team-id="${D(e)}" data-email="${D(t)}" class="text-red-600 hover:text-red-800 text-sm">Remove</button>
+      </div>`}).join(``)}function V(){let e=document.getElementById(`teamsTableBody`);nt();let t=Object.values(_());if(t.sort((e,t)=>{let n,r;return E.teams.field===`members`?(n=(e.members||[]).length,r=(t.members||[]).length):(n=e[E.teams.field],r=t[E.teams.field]),typeof n==`string`&&(n=n.toLowerCase(),r=r.toLowerCase()),E.teams.ascending?n>r?1:n<r?-1:0:n<r?1:n>r?-1:0}),t.length===0){e.innerHTML=`<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No teams created yet. Click "Create Team" to get started.</td></tr>`;return}e.innerHTML=t.map(e=>`
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-3"><div class="flex items-center"><span class="px-2 py-1 text-xs rounded-full ${{blue:`bg-blue-100 text-blue-800`,green:`bg-green-100 text-green-800`,purple:`bg-purple-100 text-purple-800`,orange:`bg-orange-100 text-orange-800`,pink:`bg-pink-100 text-pink-800`,teal:`bg-teal-100 text-teal-800`,indigo:`bg-indigo-100 text-indigo-800`,red:`bg-red-100 text-red-800`}[e.color]||`bg-gray-100 text-gray-800`} mr-2">${D(e.name.substring(0,2).toUpperCase())}</span><div><div class="font-medium text-gray-900">${D(e.name)}</div><div class="text-sm text-gray-500">${D(e.description||`No description`)}</div></div></div></td>
+        <td class="px-4 py-3"><span class="text-gray-600">${(e.members||[]).length}</span></td>
+        <td class="px-4 py-3"><span class="font-bold text-teal-600">${j(e.currentMonthPoints)}</span></td>
+        <td class="px-4 py-3"><span class="font-medium text-gray-900">${j(e.totalPoints)}</span></td>
+        <td class="px-4 py-3"><span class="text-sm text-gray-500">${D(A(e.createdDate))}</span></td>
+        <td class="px-4 py-3"><div class="flex space-x-2"><button data-action="openManageTeamMembers" data-team-id="${D(e.id)}" class="text-blue-600 hover:text-blue-800 text-sm">Manage</button><button data-action="deleteTeam" data-team-id="${D(e.id)}" class="text-red-600 hover:text-red-800 text-sm">Delete</button></div></td>
+      </tr>`).join(``),mt()}function ft(e){E.teams.field===e?E.teams.ascending=!E.teams.ascending:(E.teams.field=e,E.teams.ascending=!1),V()}function pt(){E.teams.ascending=!E.teams.ascending,V()}function mt(){[`sortMembers`,`sortTeamCurrentMonth`,`sortTeamTotal`].forEach(e=>{let t=document.getElementById(e);t&&(t.className=`px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors`)});let e=E.teams.field===`members`?`sortMembers`:E.teams.field===`currentMonthPoints`?`sortTeamCurrentMonth`:`sortTeamTotal`,t=document.getElementById(e);t&&(t.className=`px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300`);let n=document.getElementById(`sortOrderTeam`);n&&(n.textContent=E.teams.ascending?`Least First ⬆️`:`Most First ⬇️`)}function ht(){let e=document.getElementById(`teamSearch`).value.toLowerCase(),t=document.querySelectorAll(`#teamsTableBody tr`);t.length===1&&t[0].querySelector(`td[colspan]`)||t.forEach(t=>{t.style.display=t.textContent.toLowerCase().includes(e)?``:`none`})}function H(){let e=k(),t=F(),n=v(),r=_();document.getElementById(`totalUsers`).textContent=j(Object.keys(t).length),document.getElementById(`completedActivities`).textContent=j(n.length),document.getElementById(`inProgressActivities`).textContent=`0`,document.getElementById(`totalTeams`).textContent=j(Object.keys(r).length);let i=Object.values(t).reduce((e,t)=>e+(t.totalPoints||0),0);document.getElementById(`totalPointsAwarded`).textContent=j(i);let a=n.filter(t=>t.monthYear===e).length;document.getElementById(`currentMonthActivities`).textContent=j(a),gt(),_t(),vt(),yt()}function gt(){let e=Object.values(F()).filter(e=>e.currentMonthPoints>0).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).slice(0,10);document.getElementById(`leaderboardBody`).innerHTML=e.map((e,t)=>`
+    <tr class="${t<3?`bg-gradient-to-r from-yellow-50 to-orange-50`:`hover:bg-gray-50`}">
+      <td class="px-4 py-3">
+        <span class="font-bold ${t===0?`text-yellow-600`:t===1?`text-gray-600`:t===2?`text-orange-600`:`text-gray-800`}">
+          ${t+1}${t===0?`🥇`:t===1?`🥈`:t===2?`🥉`:``}
+        </span>
+      </td>
+      <td class="px-4 py-3">
+        <div class="font-medium text-gray-900">${D(e.name)}</div>
+        <div class="text-sm text-gray-500">${D(e.email)}</div>
+      </td>
+      <td class="px-4 py-3"><span class="font-bold text-purple-600">${j(e.currentMonthPoints)}</span></td>
+    </tr>
+  `).join(``)}function _t(){nt();let e=Object.values(_()).filter(e=>e.currentMonthPoints>0).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).slice(0,5),t=document.getElementById(`teamLeaderboardBody`);if(e.length===0){t.innerHTML=`<tr><td colspan="4" class="px-4 py-3 text-center text-gray-500 text-sm">No team activity this month</td></tr>`;return}t.innerHTML=e.map((e,t)=>{let n={blue:`bg-blue-100 text-blue-800`,green:`bg-green-100 text-green-800`,purple:`bg-purple-100 text-purple-800`,orange:`bg-orange-100 text-orange-800`,pink:`bg-pink-100 text-pink-800`,teal:`bg-teal-100 text-teal-800`,indigo:`bg-indigo-100 text-indigo-800`,red:`bg-red-100 text-red-800`}[e.color]||`bg-gray-100 text-gray-800`;return`
+      <tr class="${t<3?`bg-gradient-to-r from-teal-50 to-cyan-50`:`hover:bg-gray-50`}">
+        <td class="px-4 py-3"><span class="font-bold ${t===0?`text-yellow-600`:t===1?`text-gray-600`:t===2?`text-orange-600`:`text-gray-800`}">${t+1}${t===0?`🥇`:t===1?`🥈`:t===2?`🥉`:``}</span></td>
+        <td class="px-4 py-3"><div class="flex items-center"><span class="px-2 py-1 text-xs rounded-full ${n} mr-2">${D(e.name.substring(0,2).toUpperCase())}</span><div class="font-medium text-gray-900">${D(e.name)}</div></div></td>
+        <td class="px-4 py-3"><span class="text-gray-600">${(e.members||e.memberIds||[]).length}</span></td>
+        <td class="px-4 py-3"><span class="font-bold text-teal-600">${j(e.currentMonthPoints)}</span></td>
+      </tr>`}).join(``)}function vt(){let e=[...v()].sort((e,t)=>new Date(t.completedDate)-new Date(e.completedDate)).slice(0,10);document.getElementById(`recentActivities`).innerHTML=e.map(e=>`
+      <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+        <div class="flex-1">
+          <div class="font-medium text-gray-900">${D(Ge(e.userEmail||e.userId)?.name||e.userEmail||e.userId)}</div>
+          <div class="text-sm text-gray-600">${D(e.title)}</div>
+          <div class="text-xs text-gray-500">${D(A(e.completedDate))}</div>
+        </div>
+        <div class="text-right">
+          <div class="font-bold text-purple-600">+${e.pointsEarned}</div>
+          <div class="text-xs text-gray-500">${D(e.courseType)}</div>
+        </div>
+      </div>`).join(``)}function yt(){let e=v(),t={};e.forEach(e=>{let n=e.courseType||`Unknown`;t[n]=(t[n]||0)+1});let n=Object.entries(t).sort(([,e],[,t])=>t-e).slice(0,5);document.getElementById(`activityCharts`).innerHTML=`
+    <div class="text-center">
+      <h4 class="font-medium text-gray-900 mb-3">Top Course Types</h4>
+      <div class="space-y-2">${n.map(([e,t])=>`<div class="flex justify-between items-center"><span class="text-sm text-gray-600 truncate">${D(e)}</span><span class="font-medium text-blue-600">${t}</span></div>`).join(``)}</div>
+    </div>
+    <div class="text-center">
+      <h4 class="font-medium text-gray-900 mb-3">Monthly Activity</h4>
+      <div class="text-3xl font-bold text-green-600">${e.filter(e=>e.monthYear===k()).length}</div>
+      <div class="text-sm text-gray-500">This Month</div>
+    </div>
+    <div class="text-center">
+      <h4 class="font-medium text-gray-900 mb-3">Completion Rate</h4>
+      <div class="text-3xl font-bold text-purple-600">${e.length>0?100:0}%</div>
+      <div class="text-sm text-gray-500">Activities Completed</div>
+    </div>`}var U,W,bt;function xt(e){({refreshDashboard:U,refreshActivitiesTable:W,refreshTeamsTable:bt}=e)}function G(){let e=document.getElementById(`usersTableBody`),t=Object.values(F());t.sort((e,t)=>{let n=e[E.users.field],r=t[E.users.field];return typeof n==`string`&&(n=n.toLowerCase(),r=r.toLowerCase()),E.users.ascending?n>r?1:n<r?-1:0:n<r?1:n>r?-1:0}),e.innerHTML=t.map(e=>`
+    <tr class="hover:bg-gray-50">
+      <td class="px-4 py-3">
+        <input type="checkbox" class="user-checkbox rounded" value="${D(e.email)}"
+               data-action="toggleUserSelection" data-email="${D(e.email)}" data-trigger="change"
+               ${T.users.has(e.email)?`checked`:``}>
+      </td>
+      <td class="px-4 py-3">
+        <div class="font-medium text-gray-900">${D(e.name)}</div>
+        <div class="text-sm text-gray-500">${D(e.email)}</div>
+      </td>
+      <td class="px-4 py-3"><span class="font-bold text-purple-600">${j(e.currentMonthPoints)}</span></td>
+      <td class="px-4 py-3"><span class="font-medium text-gray-900">${j(e.totalPoints)}</span></td>
+      <td class="px-4 py-3"><span class="text-gray-600">${e.activities?.length||0}</span></td>
+      <td class="px-4 py-3"><span class="text-sm text-gray-500">${D(A(e.lastActivity))}</span></td>
+      <td class="px-4 py-3"><button data-action="viewUserDetails" data-email="${D(e.email)}" class="text-blue-600 hover:text-blue-800 text-sm">View</button></td>
+    </tr>
+  `).join(``),Ft(),K(`users`)}function St(e){T.users.has(e)?T.users.delete(e):T.users.add(e),K(`users`)}function Ct(){let e=document.getElementById(`selectAllUsersCheckbox`),t=document.querySelectorAll(`.user-checkbox`);e.checked?t.forEach(e=>{e.checked=!0,T.users.add(e.value)}):(t.forEach(e=>{e.checked=!1}),T.users.clear()),K(`users`)}function wt(){document.querySelectorAll(`.user-checkbox`).forEach(e=>{e.checked=!0,T.users.add(e.value)}),document.getElementById(`selectAllUsersCheckbox`).checked=!0,K(`users`)}function Tt(){document.querySelectorAll(`.user-checkbox`).forEach(e=>{e.checked=!1}),T.users.clear(),document.getElementById(`selectAllUsersCheckbox`).checked=!1,K(`users`)}function K(e){if(e===`users`){let e=T.users.size;document.getElementById(`selectedUsersCount`).textContent=e,e>0?document.getElementById(`userBulkActions`).classList.remove(`hidden`):document.getElementById(`userBulkActions`).classList.add(`hidden`)}else if(e===`activities`){let e=T.activities.size;document.getElementById(`selectedActivitiesCount`).textContent=e,e>0?document.getElementById(`activityBulkActions`).classList.remove(`hidden`):document.getElementById(`activityBulkActions`).classList.add(`hidden`)}}function Et(){if(T.users.size===0){alert(`Please select users first`);return}document.getElementById(`bulkAwardUserCount`).textContent=T.users.size,document.getElementById(`bulkAwardPointsModal`).classList.remove(`hidden`)}function Dt(){document.getElementById(`bulkAwardPointsModal`).classList.add(`hidden`),document.getElementById(`bulkActivityTitle`).value=``,document.getElementById(`bulkPoints`).value=``,document.getElementById(`bulkDescription`).value=``}function Ot(){let e=document.getElementById(`bulkActivityTitle`).value.trim(),t=parseInt(document.getElementById(`bulkPoints`).value),n=document.getElementById(`bulkDescription`).value.trim();if(!e||!t){alert(`Please fill in all required fields`);return}let r=0;T.users.forEach(i=>{ue({id:`bulk_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,userEmail:i,userId:i,courseId:`bulk_${Date.now()}`,title:e,level:`manual`,courseType:`Bulk Award`,pointsEarned:t,completedDate:new Date().toISOString(),score:null,source:`bulk_award`,importDate:new Date().toISOString(),monthYear:k(),description:n});let a=g(i);a&&(b({...a,lastActivity:new Date().toISOString()}),r++)}),Dt(),Tt(),U&&U(),G(),W&&W(),I(),O(`Bulk awarded ${t} points to ${r} users for "${e}"`),alert(`Successfully awarded ${t} points to ${r} users!`)}function kt(){if(T.users.size===0){alert(`Please select users first`);return}let e=document.getElementById(`bulkTeamSelect`);e.innerHTML=`<option value="">Choose a team...</option>`,Object.values(_()).forEach(t=>{e.innerHTML+=`<option value="${D(t.id)}">${D(t.name)}</option>`}),document.getElementById(`bulkAssignUserCount`).textContent=T.users.size,document.getElementById(`bulkAssignTeamModal`).classList.remove(`hidden`)}function At(){document.getElementById(`bulkAssignTeamModal`).classList.add(`hidden`),document.getElementById(`bulkTeamSelect`).value=``}function jt(){let e=document.getElementById(`bulkTeamSelect`).value;if(!e){alert(`Please select a team`);return}let t=_(),n=t[e];if(!n)return;let r=0,i=[...n.members||[]];T.users.forEach(n=>{if(!i.includes(n)){i.push(n);let a=g(n);if(a){if(a.teamId&&t[a.teamId]){let e=t[a.teamId];x({...e,members:(e.members||[]).filter(e=>e!==n)})}b({...a,teamId:e}),r++}}}),x({...n,members:i}),B(e),At(),Tt(),G(),bt&&bt(),U&&U(),I(),O(`Bulk assigned ${r} users to team ${n.name}`),alert(`Successfully assigned ${r} users to team ${n.name}!`)}function Mt(){if(T.users.size===0){alert(`Please select users first`);return}M({title:`Selected Users Export`,exportDate:new Date().toISOString(),users:Array.from(T.users).map(e=>{let t=Ge(e);return{email:t.email,name:t.name,currentMonthPoints:t.currentMonthPoints,totalPoints:t.totalPoints,activities:t.activities?.length||0,teamId:t.teamId,lastActivity:t.lastActivity}})},`selected_users_${new Date().toISOString().replace(/[:.]/g,`-`).slice(0,19)}.json`),O(`Exported ${T.users.size} selected users`)}function Nt(e){E.users.field===e?E.users.ascending=!E.users.ascending:(E.users.field=e,E.users.ascending=!1),G()}function Pt(){E.users.ascending=!E.users.ascending,G()}function Ft(){[`sortCurrentMonth`,`sortTotal`].forEach(e=>{document.getElementById(e).className=`px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors`});let e=E.users.field===`currentMonthPoints`?`sortCurrentMonth`:`sortTotal`;document.getElementById(e).className=`px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300`,document.getElementById(`sortOrderUser`).textContent=E.users.ascending?`Least First ⬆️`:`Most First ⬇️`}function It(){let e=document.getElementById(`userSearch`).value.toLowerCase();document.querySelectorAll(`#usersTableBody tr`).forEach(t=>{t.style.display=t.textContent.toLowerCase().includes(e)?``:`none`})}function Lt(){document.getElementById(`addPointsModal`).classList.remove(`hidden`)}function Rt(){document.getElementById(`addPointsModal`).classList.add(`hidden`),document.getElementById(`manualUserEmail`).value=``,document.getElementById(`manualActivityTitle`).value=``,document.getElementById(`manualPoints`).value=``,document.getElementById(`manualDescription`).value=``}function zt(){let e=document.getElementById(`manualUserEmail`).value.trim().toLowerCase(),t=document.getElementById(`manualActivityTitle`).value.trim(),n=parseInt(document.getElementById(`manualPoints`).value),r=document.getElementById(`manualDescription`).value.trim();if(!e||!t||!n){alert(`Please fill in all required fields`);return}ue({id:`manual_${Date.now()}_${Math.random().toString(36).substr(2,9)}`,userEmail:e,userId:e,courseId:`manual_${Date.now()}`,title:t,level:`manual`,courseType:`Manual Award`,pointsEarned:n,completedDate:new Date().toISOString(),score:null,source:`manual_entry`,importDate:new Date().toISOString(),monthYear:k(),description:r});let i=g(e);i||=(b({email:e,name:e.split(`@`)[0],activities:[],joinDate:new Date().toISOString(),lastActivity:new Date().toISOString()}),g(e)),b({...i,lastActivity:new Date().toISOString()}),Rt(),U&&U(),G(),W&&W(),I(),O(`Manual points awarded: ${n} to ${e} for "${t}"`)}function Bt(e){alert(`User details for ${e} - Feature coming soon!`)}var q,J,Y;function Vt(e){({refreshDashboard:q,refreshUsersTable:J,refreshTeamsTable:Y}=e)}function X(){let e=document.getElementById(`activitiesTableBody`),t=[...v()];t.sort((e,t)=>{let n,r;return E.activities.field===`pointsEarned`?(n=e.pointsEarned,r=t.pointsEarned):(n=new Date(e.completedDate),r=new Date(t.completedDate)),E.activities.ascending?n>r?1:n<r?-1:0:n<r?1:n>r?-1:0}),e.innerHTML=t.map(e=>{let t=g(e.userEmail||e.userId);return`
+      <tr class="hover:bg-gray-50">
+        <td class="px-4 py-3"><input type="checkbox" class="activity-checkbox rounded" value="${D(e.id)}" data-action="toggleActivitySelection" data-activity-id="${D(e.id)}" data-trigger="change" ${T.activities.has(e.id)?`checked`:``}></td>
+        <td class="px-4 py-3"><div class="font-medium text-gray-900">${D(t?.name||e.userEmail||e.userId)}</div></td>
+        <td class="px-4 py-3"><div class="font-medium text-gray-900">${D(e.title)}</div></td>
+        <td class="px-4 py-3"><span class="text-sm text-gray-600">${D(e.courseType)}</span></td>
+        <td class="px-4 py-3"><span class="px-2 py-1 text-xs rounded-full ${e.level===`fundamental`?`bg-green-100 text-green-800`:e.level===`intermediate`?`bg-blue-100 text-blue-800`:e.level===`advanced`?`bg-purple-100 text-purple-800`:`bg-gray-100 text-gray-800`}">${D(e.level)}</span></td>
+        <td class="px-4 py-3"><span class="font-bold text-purple-600">${e.pointsEarned}</span></td>
+        <td class="px-4 py-3"><span class="text-sm text-gray-500">${D(A(e.completedDate))}</span></td>
+        <td class="px-4 py-3"><span class="text-xs text-gray-500">${D(e.source)}</span></td>
+        <td class="px-4 py-3"><button data-action="editActivity" data-activity-id="${D(e.id)}" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button></td>
+      </tr>`}).join(``),$t(),K(`activities`)}function Ht(e){T.activities.has(e)?T.activities.delete(e):T.activities.add(e),K(`activities`)}function Ut(){let e=document.getElementById(`selectAllActivitiesCheckbox`),t=document.querySelectorAll(`.activity-checkbox`);e.checked?t.forEach(e=>{e.checked=!0,T.activities.add(e.value)}):(t.forEach(e=>{e.checked=!1}),T.activities.clear()),K(`activities`)}function Wt(){document.querySelectorAll(`.activity-checkbox`).forEach(e=>{e.checked=!0,T.activities.add(e.value)}),document.getElementById(`selectAllActivitiesCheckbox`).checked=!0,K(`activities`)}function Gt(){document.querySelectorAll(`.activity-checkbox`).forEach(e=>{e.checked=!1}),T.activities.clear(),document.getElementById(`selectAllActivitiesCheckbox`).checked=!1,K(`activities`)}function Kt(){if(T.activities.size===0){alert(`Please select activities first`);return}document.getElementById(`bulkAdjustActivityCount`).textContent=T.activities.size,document.getElementById(`bulkAdjustPointsModal`).classList.remove(`hidden`)}function qt(){document.getElementById(`bulkAdjustPointsModal`).classList.add(`hidden`),document.getElementById(`bulkAdjustType`).value=`add`,document.getElementById(`bulkAdjustValue`).value=``,document.getElementById(`bulkAdjustReason`).value=``}function Jt(){let e=document.getElementById(`bulkAdjustType`).value,t=parseFloat(document.getElementById(`bulkAdjustValue`).value),n=document.getElementById(`bulkAdjustReason`).value.trim();if(!t||isNaN(t)){alert(`Please enter a valid value`);return}let r=v(),i=0,a=new Set;T.activities.forEach(o=>{let s=r.find(e=>e.id===o);if(s){let r=s.pointsEarned,o=r;switch(e){case`add`:o=r+t;break;case`subtract`:o=Math.max(0,r-t);break;case`multiply`:o=Math.round(r*t);break;case`set`:o=t;break}o-r,s.pointsEarned=o,s.adjustmentHistory=s.adjustmentHistory||[],s.adjustmentHistory.push({date:new Date().toISOString(),type:e,value:t,oldPoints:r,newPoints:o,reason:n}),a.add(s.userEmail||s.userId),i++}}),a.forEach(e=>{let t=g(e);t?.teamId&&B(t.teamId)}),qt(),Gt(),q&&q(),X(),J&&J(),Y&&Y(),I(),O(`Bulk adjusted points for ${i} activities (${e} ${t})`),alert(`Successfully adjusted points for ${i} activities!`)}function Yt(){if(T.activities.size===0){alert(`Please select activities first`);return}if(!confirm(`Are you sure you want to delete ${T.activities.size} activities?`))return;let e=v(),t=new Set,n=0;T.activities.forEach(r=>{let i=e.findIndex(e=>e.id===r);if(i!==-1){let r=e[i];t.add(r.userEmail||r.userId),e.splice(i,1),n++}}),t.forEach(e=>{let t=g(e);t?.teamId&&B(t.teamId)}),Gt(),q&&q(),X(),J&&J(),Y&&Y(),I(),O(`Bulk deleted ${n} activities`),alert(`Successfully deleted ${n} activities!`)}function Xt(){if(T.activities.size===0){alert(`Please select activities first`);return}let e=v();M({title:`Selected Activities Export`,exportDate:new Date().toISOString(),activities:Array.from(T.activities).map(t=>{let n=e.find(e=>e.id===t);return{user:g(n.userEmail||n.userId)?.name||n.userEmail||n.userId,email:n.userEmail||n.userId,activity:n.title,courseType:n.courseType,level:n.level,points:n.pointsEarned,completedDate:n.completedDate,source:n.source,adjustmentHistory:n.adjustmentHistory}})},`selected_activities_${new Date().toISOString().replace(/[:.]/g,`-`).slice(0,19)}.json`),O(`Exported ${T.activities.size} selected activities`)}function Zt(e){E.activities.field===e?E.activities.ascending=!E.activities.ascending:(E.activities.field=e,E.activities.ascending=!1),X()}function Qt(){E.activities.ascending=!E.activities.ascending,X()}function $t(){[`sortPoints`,`sortDate`].forEach(e=>{document.getElementById(e).className=`px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors`});let e=E.activities.field===`pointsEarned`?`sortPoints`:`sortDate`;document.getElementById(e).className=`px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300`;let t=document.getElementById(`sortOrderActivity`);t.textContent=E.activities.field===`pointsEarned`?E.activities.ascending?`Least First ⬆️`:`Most First ⬇️`:E.activities.ascending?`Oldest First ⬆️`:`Recent First ⬇️`}function en(){let e=document.getElementById(`activitySearch`).value.toLowerCase(),t=document.getElementById(`activityFilter`).value,n=k(),r=v();document.querySelectorAll(`#activitiesTableBody tr`).forEach(i=>{let a=i.textContent.toLowerCase(),o=i.querySelector(`button`)?.onclick?.toString()?.match(/'([^']+)'/)?.[1],s=o?r.find(e=>e.id===o):null,c=a.includes(e);if(c&&t!==`all`)switch(t){case`current-month`:c=s?.monthYear===n;break;case`courses`:c=!s?.courseType?.includes(`Meeting`);break;case`events`:c=s?.courseType?.includes(`Meeting`)||s?.level===`live_event`;break}i.style.display=c?``:`none`})}function tn(e){alert(`Edit activity ${e} - Feature coming soon!`)}function nn(e){T.users.clear(),T.activities.clear();let t=document.getElementById(`selectAllUsersCheckbox`);t&&(t.checked=!1);let n=document.getElementById(`selectAllActivitiesCheckbox`);n&&(n.checked=!1),document.querySelectorAll(`.tab-content`).forEach(e=>e.classList.add(`hidden`)),document.querySelectorAll(`.tab-button`).forEach(e=>e.classList.remove(`active`)),document.getElementById(e+`Section`).classList.remove(`hidden`);let r=document.getElementById(e+`Tab`);switch(r&&r.classList.add(`active`),e){case`dashboard`:H();break;case`users`:G();break;case`activities`:X();break;case`teams`:V(),mt();break;case`manual`:window.scrollTo(0,0);break}}function rn(){let e=y(),t=e.pointConfig;t.awsCourseTypes[`AWS Builder Lab`]=parseInt(document.getElementById(`awsBuilderLab`).value),t.awsCourseTypes[`AWS Cloud Quest`]=parseInt(document.getElementById(`awsCloudQuest`).value),t.awsCourseTypes[`AWS Jam Journey`]=parseInt(document.getElementById(`awsJamJourney`).value),t.awsCourseTypes[`AWS Simulearn`]=parseInt(document.getElementById(`awsSimulearn`).value),t.awsCourseTypes[`Certification Exam Preparation`]=parseInt(document.getElementById(`certExamPrep`).value),t.awsCourseTypes[`Digital Course With Lab`]=parseInt(document.getElementById(`digitalCourseWithLab`).value),t.generalCourses[`Classroom Training`]=parseInt(document.getElementById(`classroomTraining`).value),t.generalCourses[`Digital Courses - Foundational`]=parseInt(document.getElementById(`digitalFoundational`).value),t.generalCourses[`Digital Courses - Associate`]=parseInt(document.getElementById(`digitalAssociate`).value),t.generalCourses[`Digital Courses - Professional`]=parseInt(document.getElementById(`digitalProfessional`).value),t.generalCourses[`Digital Courses - Specialty`]=parseInt(document.getElementById(`digitalSpecialty`).value),t.events[`Live Events`]=parseInt(document.getElementById(`liveEvents`).value),t.hackathons[`Hackathons - Participation`]=parseInt(document.getElementById(`hackathonParticipation`).value),t.hackathons[`Hackathons - 3rd Place`]=parseInt(document.getElementById(`hackathon3rd`).value),t.hackathons[`Hackathons - 2nd Place`]=parseInt(document.getElementById(`hackathon2nd`).value),t.hackathons[`Hackathons - 1st Place`]=parseInt(document.getElementById(`hackathon1st`).value),t.quizzes[`Quiz Completion`]=parseInt(document.getElementById(`quizCompletion`).value),t.quizzes[`Quiz 80%+ Score`]=parseInt(document.getElementById(`quiz80Plus`).value),t.quizzes[`Quiz Perfect Score`]=parseInt(document.getElementById(`quizPerfect`).value),fe({...e,pointConfig:t}),O(`Point configuration updated`)}function an(){let e=y().pointConfig;document.getElementById(`awsBuilderLab`).value=e.awsCourseTypes[`AWS Builder Lab`],document.getElementById(`awsCloudQuest`).value=e.awsCourseTypes[`AWS Cloud Quest`],document.getElementById(`awsJamJourney`).value=e.awsCourseTypes[`AWS Jam Journey`],document.getElementById(`awsSimulearn`).value=e.awsCourseTypes[`AWS Simulearn`],document.getElementById(`certExamPrep`).value=e.awsCourseTypes[`Certification Exam Preparation`],document.getElementById(`digitalCourseWithLab`).value=e.awsCourseTypes[`Digital Course With Lab`],document.getElementById(`classroomTraining`).value=e.generalCourses[`Classroom Training`],document.getElementById(`digitalFoundational`).value=e.generalCourses[`Digital Courses - Foundational`],document.getElementById(`digitalAssociate`).value=e.generalCourses[`Digital Courses - Associate`],document.getElementById(`digitalProfessional`).value=e.generalCourses[`Digital Courses - Professional`],document.getElementById(`digitalSpecialty`).value=e.generalCourses[`Digital Courses - Specialty`],document.getElementById(`liveEvents`).value=e.events[`Live Events`],document.getElementById(`hackathonParticipation`).value=e.hackathons[`Hackathons - Participation`],document.getElementById(`hackathon3rd`).value=e.hackathons[`Hackathons - 3rd Place`],document.getElementById(`hackathon2nd`).value=e.hackathons[`Hackathons - 2nd Place`],document.getElementById(`hackathon1st`).value=e.hackathons[`Hackathons - 1st Place`],document.getElementById(`quizCompletion`).value=e.quizzes[`Quiz Completion`],document.getElementById(`quiz80Plus`).value=e.quizzes[`Quiz 80%+ Score`],document.getElementById(`quizPerfect`).value=e.quizzes[`Quiz Perfect Score`]}function on(){document.getElementById(`awsBuilderLab`).value=100,document.getElementById(`awsCloudQuest`).value=75,document.getElementById(`awsJamJourney`).value=150,document.getElementById(`awsSimulearn`).value=75,document.getElementById(`certExamPrep`).value=100,document.getElementById(`digitalCourseWithLab`).value=100,document.getElementById(`classroomTraining`).value=100,document.getElementById(`digitalFoundational`).value=50,document.getElementById(`digitalAssociate`).value=75,document.getElementById(`digitalProfessional`).value=100,document.getElementById(`digitalSpecialty`).value=100,document.getElementById(`liveEvents`).value=25,document.getElementById(`hackathonParticipation`).value=150,document.getElementById(`hackathon3rd`).value=250,document.getElementById(`hackathon2nd`).value=350,document.getElementById(`hackathon1st`).value=450,document.getElementById(`quizCompletion`).value=20,document.getElementById(`quiz80Plus`).value=50,document.getElementById(`quizPerfect`).value=70,rn(),O(`Configuration reset to defaults`)}function sn(){rn();let e=document.getElementById(`configStatus`);e.textContent=`Configuration saved!`,setTimeout(()=>{e.textContent=``},3e3)}function cn(){M(y(),`cloud_comp_config.json`)}var ln;function un(e){({refreshDashboard:ln}=e)}function Z(e,t){let n=document.getElementById(e+`FileList`);if(t.length===0){n.innerHTML=``;return}if(t.length===1)n.innerHTML=`<div class="text-xs"><strong>1 file selected:</strong><br>${D(t[0].name)}</div>`;else{let e=Array.from(t).map((e,t)=>`${t+1}. ${D(e.name)}`).join(`<br>`);n.innerHTML=`<div class="text-xs"><strong>${t.length} files selected:</strong><br>${e}</div>`}document.getElementById(`processBtn`).disabled=!(w.course.length>0||w.teams.length>0)}async function dn(){if(!w.course.length&&!w.teams.length){alert(`Please select files to process`);return}O(`Starting multi-file processing...`),document.getElementById(`importResults`).classList.remove(`hidden`);let e=0,t=0;for(let n of w.course){let r=await fn(n);e+=r.processed,t+=r.activities}for(let n of w.teams){let r=await pn(n);e+=r.processed,t+=r.activities}O(`Multi-file processing complete! ${t} activities from ${e} records`),hn(e,t,0),ln&&ln(),I(),w.course=[],w.teams=[],Z(`course`,[]),Z(`teams`,[]),document.getElementById(`processBtn`).disabled=!0}async function fn(e){O(`Processing course file: ${e.name}`);try{let t=await ve(await e.arrayBuffer(),window.XLSX,{config:y().pointConfig,filename:e.name});return t.warnings.forEach(t=>O(`${e.name}: ${t}`)),t.errors.forEach(t=>O(`${e.name}: ${t}`)),t.errors.length>0?{processed:0,activities:0}:(mn(t),O(`${e.name}: ${t.activities.length} activities, ${t.users.length} users`),{processed:t.activities.length+t.warnings.length,activities:t.activities.length})}catch(t){return O(`Error processing ${e.name}: ${t.message}`),{processed:0,activities:0}}}async function pn(e){O(`Processing Teams file: ${e.name}`);try{let t=await Ne(await e.text(),{config:y().pointConfig,filename:e.name});return t.warnings.forEach(t=>O(`${e.name}: ${t}`)),t.errors.forEach(t=>O(`${e.name}: ${t}`)),t.errors.length>0?{processed:0,activities:0}:(mn(t),O(`${e.name}: ${t.activities.length} meeting attendance activities`),{processed:t.activities.length+t.warnings.length,activities:t.activities.length})}catch(t){return O(`Error processing Teams file ${e.name}: ${t.message}`),{processed:0,activities:0}}}function mn(e){let{accepted:t}=Ve(e.activities,v());for(let e of t)ue(e);for(let t of e.users)g(t.email)||b(t);t.length>0&&O(`Dedup: ${t.length} accepted, ${e.activities.length-t.length} duplicates skipped`)}function hn(e,t,n){let r=F();document.getElementById(`importStats`).innerHTML=`
+    <div class="bg-blue-50 p-4 rounded-lg text-center"><div class="text-2xl font-bold text-blue-600">${j(e)}</div><div class="text-sm text-blue-800">Records Processed</div></div>
+    <div class="bg-green-50 p-4 rounded-lg text-center"><div class="text-2xl font-bold text-green-600">${j(t)}</div><div class="text-sm text-green-800">Completed Activities</div></div>
+    <div class="bg-orange-50 p-4 rounded-lg text-center"><div class="text-2xl font-bold text-orange-600">${j(n)}</div><div class="text-sm text-orange-800">In Progress</div></div>
+    <div class="bg-purple-50 p-4 rounded-lg text-center"><div class="text-2xl font-bold text-purple-600">${j(Object.keys(r).length)}</div><div class="text-sm text-purple-800">Total Users</div></div>
+    <div class="bg-indigo-50 p-4 rounded-lg text-center"><div class="text-2xl font-bold text-indigo-600">${j(Object.values(r).reduce((e,t)=>e+(t.totalPoints||0),0))}</div><div class="text-sm text-indigo-800">Points Awarded</div></div>
+  `}var Q,gn;function _n(e){({refreshDashboard:Q,refreshUsersTable:gn}=e)}function vn(){let e=k(),t=Object.values(F()).filter(e=>e.currentMonthPoints>0).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints);M({title:`Leaderboard Report - ${e}`,generated:new Date().toISOString(),data:t.map((e,t)=>({rank:t+1,name:e.name,email:e.email,currentMonthPoints:e.currentMonthPoints,totalPoints:e.totalPoints,activities:e.activities?.length||0}))},`cloud_comp_leaderboard_${e}.json`)}function yn(){M({title:`Activity Report`,generated:new Date().toISOString(),data:v().map(e=>({user:h()[e.userEmail||e.userId]?.name||e.userEmail||e.userId,email:e.userEmail||e.userId,activity:e.title,courseType:e.courseType,level:e.level,points:e.pointsEarned,completedDate:e.completedDate,source:e.source}))},`cloud_comp_activities_${new Date().toISOString().slice(0,10)}.json`)}function bn(){let e=k(),t=F(),n=v(),r=_();M({title:`Summary Report`,generated:new Date().toISOString(),summary:{totalUsers:Object.keys(t).length,totalTeams:Object.keys(r).length,totalActivities:n.length,totalPoints:Object.values(t).reduce((e,t)=>e+(t.totalPoints||0),0),currentMonthActivities:n.filter(t=>t.monthYear===e).length,currentMonthPoints:Object.values(t).reduce((e,t)=>e+(t.currentMonthPoints||0),0)},topUsers:Object.values(t).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).slice(0,10).map(e=>({name:e.name,email:e.email,currentMonthPoints:e.currentMonthPoints,totalPoints:e.totalPoints})),topTeams:Object.values(r).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).slice(0,5).map(e=>({name:e.name,members:(e.members||[]).length,currentMonthPoints:e.currentMonthPoints,totalPoints:e.totalPoints}))},`cloud_comp_summary_${new Date().toISOString().slice(0,10)}.json`)}function xn(){if(!confirm(`Are you sure you want to reset the monthly leaderboard?`))return;let e=k(),t=F();M({month:e,resetDate:new Date().toISOString(),leaderboard:Object.values(t).filter(e=>e.currentMonthPoints>0).sort((e,t)=>t.currentMonthPoints-e.currentMonthPoints).map(e=>({name:e.name,email:e.email,points:e.currentMonthPoints}))},`cloud_comp_leaderboard_archive_${e}.json`),fe({...y(),lastReset:e}),Q&&Q(),gn&&gn(),O(`Monthly leaderboard reset for ${e}`)}function Sn(){xn()}Xe({loadConfiguration:an,refreshDashboard:H,refreshUsersTable:G,refreshActivitiesTable:X,refreshTeamsTable:V}),xt({refreshDashboard:H,refreshActivitiesTable:X,refreshTeamsTable:V}),tt({refreshDashboard:H}),Vt({refreshDashboard:H,refreshUsersTable:G,refreshTeamsTable:V}),un({refreshDashboard:H}),_n({refreshDashboard:H,refreshUsersTable:G});var Cn={showTab:e=>nn(e.dataset.tab),scrollToSection:(e,t)=>Ke(t,e.dataset.section),exportData:Qe,clickCourseFiles:()=>document.getElementById(`courseFiles`).click(),clickTeamsFiles:()=>document.getElementById(`teamsFiles`).click(),processAllFiles:dn,processImportData:et,closeImportDataModal:$e,addManualPoints:Lt,closeAddPointsModal:Rt,submitManualPoints:zt,filterUsers:It,toggleUserSort:e=>Nt(e.dataset.field),toggleUserSortOrder:Pt,toggleSelectAllUsers:Ct,selectAllUsers:wt,deselectAllUsers:Tt,bulkAwardPoints:Et,closeBulkAwardPointsModal:Dt,submitBulkAwardPoints:Ot,bulkAssignTeam:kt,closeBulkAssignTeamModal:At,submitBulkAssignTeam:jt,bulkExportUsers:Mt,viewUserDetails:e=>Bt(e.dataset.email),toggleUserSelection:e=>St(e.dataset.email),openCreateTeamModal:it,closeCreateTeamModal:at,createTeam:rt,openManageTeamMembers:e=>st(e.dataset.teamId),closeManageTeamMembersModal:ct,addUsersToTeam:lt,removeUserFromTeam:e=>ut(e.dataset.teamId,e.dataset.email),deleteTeam:e=>ot(e.dataset.teamId),filterTeams:ht,toggleTeamSort:e=>ft(e.dataset.field),toggleTeamSortOrder:pt,filterActivities:en,toggleActivitySort:e=>Zt(e.dataset.field),toggleActivitySortOrder:Qt,toggleSelectAllActivities:Ut,selectAllActivities:Wt,deselectAllActivities:Gt,bulkAdjustPoints:Kt,closeBulkAdjustPointsModal:qt,submitBulkAdjustPoints:Jt,bulkDeleteActivities:Yt,bulkExportActivities:Xt,editActivity:e=>tn(e.dataset.activityId),toggleActivitySelection:e=>Ht(e.dataset.activityId),updatePointConfig:rn,resetToDefaults:on,saveConfiguration:sn,exportConfig:cn,generateLeaderboardReport:vn,generateActivityReport:yn,generateSummaryReport:bn,resetMonthlyLeaderboard:xn,confirmMonthlyReset:Sn};function $(e){let t=e.target.closest(`[data-action]`);if(!t)return;let n=t.dataset.trigger;if(n&&n!==e.type)return;let r=Cn[t.dataset.action];r&&r(t,e)}document.addEventListener(`click`,$),document.addEventListener(`change`,$),document.addEventListener(`keyup`,$);function wn(){document.getElementById(`courseFiles`).addEventListener(`change`,e=>{w.course=Array.from(e.target.files),Z(`course`,w.course)}),document.getElementById(`teamsFiles`).addEventListener(`change`,e=>{w.teams=Array.from(e.target.files),Z(`teams`,w.teams)}),Ze(),setTimeout(()=>{Ft(),$t(),mt()},100)}document.readyState===`loading`?document.addEventListener(`DOMContentLoaded`,wn):wn();</script>
 </head>
 <body class="bg-gray-50 min-h-screen">
     <!-- Header -->
@@ -286,13 +161,13 @@
                         <div class="status-indicator status-warning"></div>
                         <span>No data loaded</span>
                     </div>
-                    <button onclick="showTab('import')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
+                    <button data-action="showTab" data-tab="import" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
                         📤 Import Data
                     </button>
-                    <button onclick="exportData()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
+                    <button data-action="exportData" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
                         📥 Export Data
                     </button>
-                    <button onclick="showTab('manual')" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm">
+                    <button data-action="showTab" data-tab="manual" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm">
                         📖 Readme
                     </button>
                 </div>
@@ -304,28 +179,28 @@
         <!-- Navigation Tabs -->
         <nav class="mb-8">
             <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-                <button id="dashboardTab" onclick="showTab('dashboard')" class="tab-button active">
+                <button id="dashboardTab" data-action="showTab" data-tab="dashboard" class="tab-button active">
                     📊 Dashboard
                 </button>
-                <button id="importTab" onclick="showTab('import')" class="tab-button">
+                <button id="importTab" data-action="showTab" data-tab="import" class="tab-button">
                     📁 Import Data
                 </button>
-                <button id="usersTab" onclick="showTab('users')" class="tab-button">
+                <button id="usersTab" data-action="showTab" data-tab="users" class="tab-button">
                     👥 Users
                 </button>
-                <button id="teamsTab" onclick="showTab('teams')" class="tab-button">
+                <button id="teamsTab" data-action="showTab" data-tab="teams" class="tab-button">
                     🏢 Teams
                 </button>
-                <button id="activitiesTab" onclick="showTab('activities')" class="tab-button">
+                <button id="activitiesTab" data-action="showTab" data-tab="activities" class="tab-button">
                     📚 Activities
                 </button>
-                <button id="configTab" onclick="showTab('config')" class="tab-button">
+                <button id="configTab" data-action="showTab" data-tab="config" class="tab-button">
                     ⚙️ Configuration
                 </button>
-                <button id="reportsTab" onclick="showTab('reports')" class="tab-button">
+                <button id="reportsTab" data-action="showTab" data-tab="reports" class="tab-button">
                     📈 Reports
                 </button>
-                <button id="manualTab" onclick="showTab('manual')" class="tab-button">
+                <button id="manualTab" data-action="showTab" data-tab="manual" class="tab-button">
                     📖 Manual
                 </button>
             </div>
@@ -409,7 +284,7 @@
                 <div class="bg-white rounded-xl shadow-sm p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">🏆 Top Users This Month</h3>
-                        <button onclick="resetMonthlyLeaderboard()" class="text-sm bg-red-50 text-red-600 px-3 py-1 rounded-lg hover:bg-red-100">
+                        <button data-action="resetMonthlyLeaderboard" class="text-sm bg-red-50 text-red-600 px-3 py-1 rounded-lg hover:bg-red-100">
                             Reset Month
                         </button>
                     </div>
@@ -431,7 +306,7 @@
                 <div class="bg-white rounded-xl shadow-sm p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">🏆 Top Teams This Month</h3>
-                        <button onclick="showTab('teams')" class="text-sm bg-teal-50 text-teal-600 px-3 py-1 rounded-lg hover:bg-teal-100">
+                        <button data-action="showTab" data-tab="teams" class="text-sm bg-teal-50 text-teal-600 px-3 py-1 rounded-lg hover:bg-teal-100">
                             Manage Teams
                         </button>
                     </div>
@@ -479,7 +354,7 @@
                         <div class="mb-4">
                             <span class="text-4xl">📚</span>
                         </div>
-                        <button onclick="document.getElementById('courseFiles').click()" 
+                        <button data-action="clickCourseFiles" 
                                 class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium mb-3">
                             Choose Course Activity / Classroom Training Files
                         </button>
@@ -493,7 +368,7 @@
                         <div class="mb-4">
                             <span class="text-4xl">👥</span>
                         </div>
-                        <button onclick="document.getElementById('teamsFiles').click()" 
+                        <button data-action="clickTeamsFiles" 
                                 class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium mb-3">
                             Choose Multiple Teams Meeting Files
                         </button>
@@ -504,7 +379,7 @@
                 
                 <!-- Process Button -->
                 <div class="text-center">
-                    <button id="processBtn" onclick="processAllFiles()" 
+                    <button id="processBtn" data-action="processAllFiles" 
                             class="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg font-semibold text-lg disabled:bg-gray-400 disabled:cursor-not-allowed" 
                             disabled>
                         🚀 Process All Files
@@ -531,17 +406,17 @@
                     <div class="flex items-center space-x-4 flex-wrap">
                         <div class="sort-controls">
                             <span class="text-sm text-gray-600">Sort by:</span>
-                            <button onclick="toggleUserSort('currentMonthPoints')" 
+                            <button data-action="toggleUserSort" data-field="currentMonthPoints" 
                                     class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
                                     id="sortCurrentMonth">
                                 This Month 📊
                             </button>
-                            <button onclick="toggleUserSort('totalPoints')" 
+                            <button data-action="toggleUserSort" data-field="totalPoints" 
                                     class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
                                     id="sortTotal">
                                 Total Points 🎯
                             </button>
-                            <button onclick="toggleUserSortOrder()" 
+                            <button data-action="toggleUserSortOrder" 
                                     class="px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 transition-colors"
                                     id="sortOrderUser">
                                 Most First ⬇️
@@ -549,8 +424,8 @@
                         </div>
                         <input type="text" id="userSearch" placeholder="Search users..." 
                                class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               onkeyup="filterUsers()">
-                        <button onclick="addManualPoints()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                               data-action="filterUsers" data-trigger="keyup">
+                        <button data-action="addManualPoints" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
                             ➕ Add Points
                         </button>
                     </div>
@@ -563,21 +438,21 @@
                             <span class="text-sm font-medium text-blue-900">
                                 <span id="selectedUsersCount">0</span> users selected
                             </span>
-                            <button onclick="selectAllUsers()" class="text-sm text-blue-600 hover:text-blue-800">
+                            <button data-action="selectAllUsers" class="text-sm text-blue-600 hover:text-blue-800">
                                 Select All
                             </button>
-                            <button onclick="deselectAllUsers()" class="text-sm text-blue-600 hover:text-blue-800">
+                            <button data-action="deselectAllUsers" class="text-sm text-blue-600 hover:text-blue-800">
                                 Clear Selection
                             </button>
                         </div>
                         <div class="flex items-center space-x-3">
-                            <button onclick="bulkAwardPoints()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
+                            <button data-action="bulkAwardPoints" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
                                 🎁 Award Points
                             </button>
-                            <button onclick="bulkAssignTeam()" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm">
+                            <button data-action="bulkAssignTeam" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm">
                                 🏢 Assign to Team
                             </button>
-                            <button onclick="bulkExportUsers()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm">
+                            <button data-action="bulkExportUsers" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm">
                                 📥 Export Selected
                             </button>
                         </div>
@@ -589,7 +464,7 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-4 py-3 text-left">
-                                    <input type="checkbox" id="selectAllUsersCheckbox" onclick="toggleSelectAllUsers()" class="rounded">
+                                    <input type="checkbox" id="selectAllUsersCheckbox" data-action="toggleSelectAllUsers" class="rounded">
                                 </th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">User</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Current Month</th>
@@ -613,22 +488,22 @@
                     <div class="flex items-center space-x-4 flex-wrap">
                         <div class="sort-controls">
                             <span class="text-sm text-gray-600">Sort by:</span>
-                            <button onclick="toggleTeamSort('members')" 
+                            <button data-action="toggleTeamSort" data-field="members" 
                                     class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
                                     id="sortMembers">
                                 Members 👥
                             </button>
-                            <button onclick="toggleTeamSort('currentMonthPoints')" 
+                            <button data-action="toggleTeamSort" data-field="currentMonthPoints" 
                                     class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
                                     id="sortTeamCurrentMonth">
                                 This Month 📊
                             </button>
-                            <button onclick="toggleTeamSort('totalPoints')" 
+                            <button data-action="toggleTeamSort" data-field="totalPoints" 
                                     class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
                                     id="sortTeamTotal">
                                 Total Points 🎯
                             </button>
-                            <button onclick="toggleTeamSortOrder()" 
+                            <button data-action="toggleTeamSortOrder" 
                                     class="px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 transition-colors"
                                     id="sortOrderTeam">
                                 Most First ⬇️
@@ -636,8 +511,8 @@
                         </div>
                         <input type="text" id="teamSearch" placeholder="Search teams..." 
                                class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                               onkeyup="filterTeams()">
-                        <button onclick="openCreateTeamModal()" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">
+                               data-action="filterTeams" data-trigger="keyup">
+                        <button data-action="openCreateTeamModal" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">
                             ➕ Create Team
                         </button>
                     </div>
@@ -669,23 +544,23 @@
                     <div class="flex items-center space-x-4 flex-wrap">
                         <div class="sort-controls">
                             <span class="text-sm text-gray-600">Sort by:</span>
-                            <button onclick="toggleActivitySort('pointsEarned')" 
+                            <button data-action="toggleActivitySort" data-field="pointsEarned" 
                                     class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
                                     id="sortPoints">
                                 Points 🎯
                             </button>
-                            <button onclick="toggleActivitySort('completedDate')" 
+                            <button data-action="toggleActivitySort" data-field="completedDate" 
                                     class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
                                     id="sortDate">
                                 Date 📅
                             </button>
-                            <button onclick="toggleActivitySortOrder()" 
+                            <button data-action="toggleActivitySortOrder" 
                                     class="px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 transition-colors"
                                     id="sortOrderActivity">
                                 Most/Recent First ⬇️
                             </button>
                         </div>
-                        <select id="activityFilter" class="px-4 py-2 border border-gray-300 rounded-lg" onchange="filterActivities()">
+                        <select id="activityFilter" class="px-4 py-2 border border-gray-300 rounded-lg" data-action="filterActivities" data-trigger="change">
                             <option value="all">All Activities</option>
                             <option value="current-month">Current Month</option>
                             <option value="courses">Courses Only</option>
@@ -693,7 +568,7 @@
                         </select>
                         <input type="text" id="activitySearch" placeholder="Search activities..." 
                                class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               onkeyup="filterActivities()">
+                               data-action="filterActivities" data-trigger="keyup">
                     </div>
                 </div>
                 
@@ -704,21 +579,21 @@
                             <span class="text-sm font-medium text-purple-900">
                                 <span id="selectedActivitiesCount">0</span> activities selected
                             </span>
-                            <button onclick="selectAllActivities()" class="text-sm text-purple-600 hover:text-purple-800">
+                            <button data-action="selectAllActivities" class="text-sm text-purple-600 hover:text-purple-800">
                                 Select All
                             </button>
-                            <button onclick="deselectAllActivities()" class="text-sm text-purple-600 hover:text-purple-800">
+                            <button data-action="deselectAllActivities" class="text-sm text-purple-600 hover:text-purple-800">
                                 Clear Selection
                             </button>
                         </div>
                         <div class="flex items-center space-x-3">
-                            <button onclick="bulkAdjustPoints()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm">
+                            <button data-action="bulkAdjustPoints" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm">
                                 ✏️ Adjust Points
                             </button>
-                            <button onclick="bulkDeleteActivities()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm">
+                            <button data-action="bulkDeleteActivities" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm">
                                 🗑️ Delete Selected
                             </button>
-                            <button onclick="bulkExportActivities()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm">
+                            <button data-action="bulkExportActivities" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm">
                                 📥 Export Selected
                             </button>
                         </div>
@@ -730,7 +605,7 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-4 py-3 text-left">
-                                    <input type="checkbox" id="selectAllActivitiesCheckbox" onclick="toggleSelectAllActivities()" class="rounded">
+                                    <input type="checkbox" id="selectAllActivitiesCheckbox" data-action="toggleSelectAllActivities" class="rounded">
                                 </th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">User</th>
                                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Activity</th>
@@ -768,37 +643,37 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">AWS Builder Lab</label>
                             <input type="number" id="awsBuilderLab" value="100" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">AWS Cloud Quest</label>
                             <input type="number" id="awsCloudQuest" value="75" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">AWS Jam Journey</label>
                             <input type="number" id="awsJamJourney" value="150" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">AWS Simulearn</label>
                             <input type="number" id="awsSimulearn" value="75" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Certification Exam Preparation</label>
                             <input type="number" id="certExamPrep" value="100" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Digital Course With Lab</label>
                             <input type="number" id="digitalCourseWithLab" value="100" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                     </div>
                 </div>
@@ -811,31 +686,31 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Classroom Training</label>
                             <input type="number" id="classroomTraining" value="100" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Digital Courses - Foundational</label>
                             <input type="number" id="digitalFoundational" value="50" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Digital Courses - Associate</label>
                             <input type="number" id="digitalAssociate" value="75" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Digital Courses - Professional</label>
                             <input type="number" id="digitalProfessional" value="100" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Digital Courses - Specialty</label>
                             <input type="number" id="digitalSpecialty" value="100" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                     </div>
                 </div>
@@ -849,7 +724,7 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Live Events</label>
                             <input type="number" id="liveEvents" value="25" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                     </div>
 
@@ -861,19 +736,19 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Quiz Completion</label>
                                 <input type="number" id="quizCompletion" value="20" 
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                       onchange="updatePointConfig()">
+                                       data-action="updatePointConfig" data-trigger="change">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Quiz 80%+ Score</label>
                                 <input type="number" id="quiz80Plus" value="50" 
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                       onchange="updatePointConfig()">
+                                       data-action="updatePointConfig" data-trigger="change">
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Quiz Perfect Score</label>
                                 <input type="number" id="quizPerfect" value="70" 
                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                       onchange="updatePointConfig()">
+                                       data-action="updatePointConfig" data-trigger="change">
                             </div>
                         </div>
                     </div>
@@ -887,25 +762,25 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">Participation</label>
                             <input type="number" id="hackathonParticipation" value="150" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">3rd Place</label>
                             <input type="number" id="hackathon3rd" value="250" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">2nd Place</label>
                             <input type="number" id="hackathon2nd" value="350" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">1st Place</label>
                             <input type="number" id="hackathon1st" value="450" 
                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   onchange="updatePointConfig()">
+                                   data-action="updatePointConfig" data-trigger="change">
                         </div>
                     </div>
                 </div>
@@ -918,13 +793,13 @@
                             <p class="text-sm text-gray-600">Save, reset, or export your point configuration</p>
                         </div>
                         <div class="flex space-x-3">
-                            <button onclick="resetToDefaults()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                            <button data-action="resetToDefaults" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
                                 🔄 Reset Defaults
                             </button>
-                            <button onclick="exportConfig()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                            <button data-action="exportConfig" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
                                 📥 Export Config
                             </button>
-                            <button onclick="saveConfiguration()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                            <button data-action="saveConfiguration" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
                                 💾 Save Changes
                             </button>
                         </div>
@@ -941,17 +816,17 @@
                 <div class="bg-white rounded-xl shadow-sm p-8">
                     <h2 class="text-xl font-semibold text-gray-900 mb-6">📈 Reports & Export</h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <button onclick="generateLeaderboardReport()" class="bg-purple-500 hover:bg-purple-600 text-white p-6 rounded-lg text-center">
+                        <button data-action="generateLeaderboardReport" class="bg-purple-500 hover:bg-purple-600 text-white p-6 rounded-lg text-center">
                             <div class="text-2xl mb-2">🏆</div>
                             <div class="font-medium">Leaderboard Report</div>
                             <div class="text-sm opacity-90">Current month rankings</div>
                         </button>
-                        <button onclick="generateActivityReport()" class="bg-blue-500 hover:bg-blue-600 text-white p-6 rounded-lg text-center">
+                        <button data-action="generateActivityReport" class="bg-blue-500 hover:bg-blue-600 text-white p-6 rounded-lg text-center">
                             <div class="text-2xl mb-2">📊</div>
                             <div class="font-medium">Activity Report</div>
                             <div class="text-sm opacity-90">All user activities</div>
                         </button>
-                        <button onclick="generateSummaryReport()" class="bg-green-500 hover:bg-green-600 text-white p-6 rounded-lg text-center">
+                        <button data-action="generateSummaryReport" class="bg-green-500 hover:bg-green-600 text-white p-6 rounded-lg text-center">
                             <div class="text-2xl mb-2">📋</div>
                             <div class="font-medium">Summary Report</div>
                             <div class="text-sm opacity-90">Overall statistics</div>
@@ -967,7 +842,7 @@
                             <strong>Warning:</strong> This will reset all current month points and create a backup of the current leaderboard.
                         </p>
                     </div>
-                    <button onclick="confirmMonthlyReset()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg">
+                    <button data-action="confirmMonthlyReset" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg">
                         🔄 Reset Monthly Leaderboard
                     </button>
                 </div>
@@ -987,16 +862,16 @@
                 <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
                     <h2 class="text-xl font-semibold text-gray-900 mb-4">📑 Table of Contents</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <a href="#getting-started" onclick="scrollToSection(event, 'getting-started')" class="text-blue-600 hover:text-blue-800">1. Getting Started</a>
-                        <a href="#dashboard" onclick="scrollToSection(event, 'dashboard')" class="text-blue-600 hover:text-blue-800">2. Dashboard Overview</a>
-                        <a href="#importing" onclick="scrollToSection(event, 'importing')" class="text-blue-600 hover:text-blue-800">3. Importing Data</a>
-                        <a href="#users" onclick="scrollToSection(event, 'users')" class="text-blue-600 hover:text-blue-800">4. Managing Users</a>
-                        <a href="#teams" onclick="scrollToSection(event, 'teams')" class="text-blue-600 hover:text-blue-800">5. Managing Teams</a>
-                        <a href="#activities" onclick="scrollToSection(event, 'activities')" class="text-blue-600 hover:text-blue-800">6. Managing Activities</a>
-                        <a href="#configuration" onclick="scrollToSection(event, 'configuration')" class="text-blue-600 hover:text-blue-800">7. Point Configuration</a>
-                        <a href="#reports" onclick="scrollToSection(event, 'reports')" class="text-blue-600 hover:text-blue-800">8. Reports & Exports</a>
-                        <a href="#tips" onclick="scrollToSection(event, 'tips')" class="text-blue-600 hover:text-blue-800">9. Tips & Best Practices</a>
-                        <a href="#troubleshooting" onclick="scrollToSection(event, 'troubleshooting')" class="text-blue-600 hover:text-blue-800">10. Troubleshooting</a>
+                        <a href="#getting-started" data-action="scrollToSection" data-section="getting-started" class="text-blue-600 hover:text-blue-800">1. Getting Started</a>
+                        <a href="#dashboard" data-action="scrollToSection" data-section="dashboard" class="text-blue-600 hover:text-blue-800">2. Dashboard Overview</a>
+                        <a href="#importing" data-action="scrollToSection" data-section="importing" class="text-blue-600 hover:text-blue-800">3. Importing Data</a>
+                        <a href="#users" data-action="scrollToSection" data-section="users" class="text-blue-600 hover:text-blue-800">4. Managing Users</a>
+                        <a href="#teams" data-action="scrollToSection" data-section="teams" class="text-blue-600 hover:text-blue-800">5. Managing Teams</a>
+                        <a href="#activities" data-action="scrollToSection" data-section="activities" class="text-blue-600 hover:text-blue-800">6. Managing Activities</a>
+                        <a href="#configuration" data-action="scrollToSection" data-section="configuration" class="text-blue-600 hover:text-blue-800">7. Point Configuration</a>
+                        <a href="#reports" data-action="scrollToSection" data-section="reports" class="text-blue-600 hover:text-blue-800">8. Reports & Exports</a>
+                        <a href="#tips" data-action="scrollToSection" data-section="tips" class="text-blue-600 hover:text-blue-800">9. Tips & Best Practices</a>
+                        <a href="#troubleshooting" data-action="scrollToSection" data-section="troubleshooting" class="text-blue-600 hover:text-blue-800">10. Troubleshooting</a>
                     </div>
                 </div>
 
@@ -1566,8 +1441,8 @@
                 </div>
             </div>
             <div class="flex justify-end space-x-3 mt-6">
-                <button onclick="closeImportDataModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                <button onclick="processImportData()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Import</button>
+                <button data-action="closeImportDataModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button data-action="processImportData" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Import</button>
             </div>
         </div>
     </div>
@@ -1595,8 +1470,8 @@
                 </div>
             </div>
             <div class="flex justify-end space-x-3 mt-6">
-                <button onclick="closeAddPointsModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                <button onclick="submitManualPoints()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Add Points</button>
+                <button data-action="closeAddPointsModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button data-action="submitManualPoints" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Add Points</button>
             </div>
         </div>
     </div>
@@ -1629,8 +1504,8 @@
                 </div>
             </div>
             <div class="flex justify-end space-x-3 mt-6">
-                <button onclick="closeCreateTeamModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                <button onclick="createTeam()" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">Create Team</button>
+                <button data-action="closeCreateTeamModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button data-action="createTeam" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">Create Team</button>
             </div>
         </div>
     </div>
@@ -1651,7 +1526,7 @@
                     <select id="availableUsers" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg" multiple size="5">
                         <!-- Options will be populated dynamically -->
                     </select>
-                    <button onclick="addUsersToTeam()" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">
+                    <button data-action="addUsersToTeam" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">
                         Add →
                     </button>
                 </div>
@@ -1667,7 +1542,7 @@
             </div>
             
             <div class="flex justify-end space-x-3 mt-6">
-                <button onclick="closeManageTeamMembersModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Close</button>
+                <button data-action="closeManageTeamMembersModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Close</button>
             </div>
         </div>
     </div>
@@ -1692,8 +1567,8 @@
                 </div>
             </div>
             <div class="flex justify-end space-x-3 mt-6">
-                <button onclick="closeBulkAwardPointsModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                <button onclick="submitBulkAwardPoints()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">Award Points</button>
+                <button data-action="closeBulkAwardPointsModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button data-action="submitBulkAwardPoints" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">Award Points</button>
             </div>
         </div>
     </div>
@@ -1713,8 +1588,8 @@
                 </div>
             </div>
             <div class="flex justify-end space-x-3 mt-6">
-                <button onclick="closeBulkAssignTeamModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                <button onclick="submitBulkAssignTeam()" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">Assign to Team</button>
+                <button data-action="closeBulkAssignTeamModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button data-action="submitBulkAssignTeam" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">Assign to Team</button>
             </div>
         </div>
     </div>
@@ -1744,8 +1619,8 @@
                 </div>
             </div>
             <div class="flex justify-end space-x-3 mt-6">
-                <button onclick="closeBulkAdjustPointsModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                <button onclick="submitBulkAdjustPoints()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">Adjust Points</button>
+                <button data-action="closeBulkAdjustPointsModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
+                <button data-action="submitBulkAdjustPoints" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">Adjust Points</button>
             </div>
         </div>
     </div>
