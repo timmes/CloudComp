@@ -8,6 +8,17 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="/src/styles/design-tokens.css">
+    <script>
+      // Apply the saved (or system-preferred) theme before render to avoid a flash.
+      (function () {
+        try {
+          var stored = localStorage.getItem('cc-theme');
+          var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+          var theme = stored || (prefersDark ? 'dark' : 'light');
+          if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        } catch (e) { /* localStorage unavailable — fall through to light */ }
+      })();
+    </script>
 </head>
 <body class="min-h-screen" style="background: var(--cc-bg);">
     <!-- Header -->
@@ -15,7 +26,7 @@
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <span class="cc-header-title">Cloud Comp</span>
-                <span class="text-xs text-gray-400">v1.2</span>
+                <span class="text-xs text-gray-400">v1.3</span>
                 <div id="dataStatus" class="flex items-center text-xs text-gray-500 ml-4">
                     <div class="status-indicator status-warning"></div>
                     <span>No data loaded</span>
@@ -24,6 +35,10 @@
             <div class="flex items-center gap-2">
                 <button data-action="showTab" data-tab="import" class="cc-btn cc-btn-ghost">Import</button>
                 <button data-action="showTab" data-tab="manual" class="cc-btn cc-btn-ghost">Docs</button>
+                <button id="themeToggle" data-action="toggleTheme" class="cc-theme-toggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <svg class="cc-icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    <svg class="cc-icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+                </button>
             </div>
         </div>
     </header>
@@ -976,7 +991,7 @@
 
                 <h2 id="support">Support</h2>
                 <p>For additional support or feature requests, contact your system administrator.</p>
-                <p>Version <strong>1.2</strong> &mdash; Built by <strong>Tim Huettemeister</strong>.</p>
+                <p>Version <strong>1.3</strong> &mdash; Built by <strong>Tim Huettemeister</strong>.</p>
 
             </div><!-- end .cc-docs -->
 
@@ -1006,7 +1021,7 @@
     <!-- Footer -->
     <footer style="border-top: 1px solid var(--cc-border); margin-top: 3rem; padding: 1.5rem;">
         <div class="max-w-7xl mx-auto text-center">
-            <p style="font-size: 0.8125rem; color: var(--cc-text-muted);">Cloud Comp v1.2 &mdash; Built by Tim Huettemeister</p>
+            <p style="font-size: 0.8125rem; color: var(--cc-text-muted);">Cloud Comp v1.3 &mdash; Built by Tim Huettemeister</p>
         </div>
     </footer>
 

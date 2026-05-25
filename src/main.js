@@ -7,6 +7,7 @@
 
 import './styles/design-tokens.css';
 import { scrollToSection, selectedFiles } from './views/shared.js';
+import { toggleTheme } from './views/theme.js';
 import { loadData, closeImportDataModal, processImportData, _setRefreshFns as setDataRefs } from './views/data.js';
 import {
   refreshDashboard, setDashboardSubTab, setDashboardTimePeriod,
@@ -62,6 +63,7 @@ setImportRefs({ refreshDashboard });
 const ACTIONS = {
   showTab:                    (el) => showTab(el.dataset.tab),
   scrollToSection:            (el, e) => scrollToSection(e, el.dataset.section),
+  toggleTheme,
   // Dashboard
   setDashboardSubTab:          (el) => setDashboardSubTab(el.dataset.tab),
   setDashboardTimePeriod:      (el) => setDashboardTimePeriod(el.dataset.period),

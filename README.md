@@ -14,107 +14,173 @@ Perfect for **AWS Skills Guilds**, corporate training programs, or any organizat
 
 ### ✨ Why You'll Love It
 
-- 🚀 **Zero Setup** - Just open an HTML file, no servers or databases required
-- 🏅 **Instant Gratification** - Real-time leaderboards and point tracking
-- 👥 **Team Competition** - Create teams and watch departments compete
-- 📊 **Rich Analytics** - Beautiful dashboards with insights that matter
-- 💾 **Your Data Stays Yours** - Everything stored locally in your browser
-- 📱 **Works Everywhere** - Any modern browser, any device
+- 🚀 **Zero Setup** — open a single HTML file in any modern browser
+- 🏅 **Instant Gratification** — leaderboards and point tracking update live
+- 👥 **Team Competition** — create teams and watch departments compete
+- 🎯 **Time-boxed Campaigns** — run focused learning pushes with their own leaderboards
+- 📊 **Rich Analytics** — dashboards by month, quarter, year, or all-time
+- 💾 **Your Data Stays Yours** — everything lives in your browser's localStorage
+- 📱 **Works Everywhere** — any modern browser, any device
 
-## 🎮 Features That Make Learning Fun
+## 🎮 Features
 
 ### 🏆 Gamification Core
-- **Point System** - Customizable points for different activity types
-- **Leaderboards** - Monthly and all-time rankings for users and teams
-- **Team Competition** - Create colorful teams and track collective progress
-- **Achievement Tracking** - Monitor learning milestones and celebrate wins
+- **Points** — every activity carries a points value, configurable per category
+- **Leaderboards** — user and team rankings filterable by Month, Quarter, Year, or Overall
+- **Teams** — group users into colorful, named teams; team totals roll up from members
+- **Campaigns** — time-boxed competitions with their own participant lists and leaderboard
 
 ### 📈 Smart Analytics Dashboard
-- **6 Key Metrics** at a glance (Users, Teams, Completions, Points, Monthly Progress)
-- **Visual Charts** - Course type distribution, monthly trends, completion rates
-- **Recent Activity Feed** - See what's happening in real-time
-- **Top Performer Spotlights** - Celebrate your learning champions
+- **Quick metrics** — Total Users, Teams, Completed activities, Points Awarded, plus This Month / Quarter / Year activity counts
+- **Activity Overview** — top course types and a completion-rate metric (filterable: click a course type to scope the rate)
+- **User / Team / Campaign sub-tabs** — swap the leaderboard panel between rankings
+- **Recent activity feed** — most recent completions for the selected time window
+- **Time period filter** — Month, Quarter, Year, or Overall (all-time)
 
-### 🔄 Effortless Data Import
-- **Drag & Drop Excel/CSV** files for course completions
-- **Teams Meeting Integration** - Import attendance data automatically
-- **Bulk Processing** - Handle multiple files at once
-- **Smart Duplicate Detection** - No worries about importing the same data twice
+### 🔄 Data Import
+- **Excel/CSV course files** — upload via the Import tab; SheetJS parses dates correctly via `cellDates: true`
+- **Teams meeting attendance** — extract attendees from meeting reports
+- **Multi-file processing** — queue several files; a spinner shows in the Processing Log while work is in flight
+- **Smart deduplication** — duplicate activities are detected and either skipped or upgraded (e.g. in-progress → completed)
 
-### 👥 Team Management Made Easy
-- **Visual Team Builder** - Create teams with custom colors and descriptions
-- **Drag & Drop Members** - Easy team assignment with multi-select
-- **Auto-Calculated Team Points** - Teams automatically get credit for member achievements
-- **Team Leaderboards** - Foster healthy department competition
+### 👥 Team Management
+- **Team builder** — create teams with custom colors and descriptions
+- **Member management** — add/remove members from the Teams tab
+- **Automatic point rollup** — team points are recomputed from members on every relevant change
 
-### ⚡ Powerful Bulk Operations
-- **Multi-Select Everything** - Bulk award points, assign teams, or export data
-- **Smart Adjustments** - Add, subtract, multiply, or set points across multiple activities
-- **Bulk Team Assignment** - Move multiple users to teams in one action
-- **Export Selections** - Create custom reports from selected data
+### ⚡ Bulk Operations
+- **Multi-select users or activities** with the row checkboxes
+- **Bulk award points** to selected users in a single action
+- **Bulk assign team** for selected users
+- **Bulk adjust** activity points (add / subtract / multiply / set), with reason logged
+- **Bulk delete** activities
+- **Bulk Export Selected** — download the selected rows as JSON
+
+### 🎯 Campaigns
+- Define a campaign with a name, date range, status, and a participant list (direct users + linked teams)
+- Active campaigns appear in the dashboard's **Campaigns** sub-tab with their own metrics (participants, active participants, eligible activities, points awarded) and leaderboard
+- Manage details (status: draft → active → completed → archived) from the Campaigns tab
 
 ## 🚀 Getting Started
 
-### Quick Start (30 seconds!)
+### For users — run the built app
 
-1. **Download** the `cloud_comp_app_1.1.html` file
-2. **Double-click** to open in your browser
-3. **Start importing** your learning data
-4. **Watch the magic happen!** ✨
+The production build is a single self-contained HTML file (no server, no install).
 
-That's it! No installation, no configuration, no headaches.
+1. Grab `dist/index.html` from the repository (or from a release).
+2. Double-click it in your file browser, or open it in any modern browser.
+3. Head to the **Import** tab and upload your course/meeting files.
 
-### First Steps
+That's it — your data is stored in the browser's localStorage and persists across reloads.
 
-1. **Import Your Data** 📥
-   - Upload course completion files (Excel/CSV)
-   - Import Teams meeting attendance
-   - Watch users and activities populate automatically
+### For developers — build from source
 
-2. **Create Your Teams** 👥
-   - Set up departments or project teams
-   - Choose fun colors for each team
-   - Assign members with easy multi-select
+This project uses **Vite + vite-plugin-singlefile** so the dev workflow is standard and the production build collapses into a single HTML file.
 
-3. **Configure Points** ⚙️
-   - Customize point values for different activities
-   - Set bonus points for high quiz scores
-   - Adjust hackathon placement rewards
+```bash
+git clone https://github.com/timmes/CloudComp.git
+cd CloudComp
+npm install
 
-4. **Celebrate Success** 🎉
-   - Check the leaderboards
-   - Award bonus points for special achievements
-   - Export reports to share with leadership
+npm run dev      # start the Vite dev server with HMR
+npm run build    # produce dist/index.html (single self-contained file)
+npm test         # run the Vitest suite
+```
+
+### First steps in the app
+
+1. **Import your data** — Excel/CSV course completions and/or Teams meeting CSVs
+2. **Create teams** — name them, pick a color, assign members
+3. **(Optional) Define campaigns** — for time-boxed challenges
+4. **Configure points** — adjust per-category values in the Configuration tab
+5. **Watch the dashboard** — leaderboards, recent activity, and campaign stats update live
 
 ## 🎯 Perfect For
 
-- **AWS Skills Guilds** - Track cloud learning progress
-- **Corporate Training** - Gamify professional development
-- **Bootcamps & Academies** - Engage students with competition
-- **Team Building** - Foster collaboration through learning
-- **Certification Programs** - Motivate exam preparation
+- **AWS Skills Guilds** — track cloud-learning progress across the org
+- **Corporate Training** — gamify professional development programs
+- **Bootcamps & Academies** — engage students with friendly competition
+- **Team Building** — foster collaboration through shared learning goals
+- **Certification Programs** — motivate exam preparation
 
-## 📊 Activity Types & Points
+## 📊 Activity Categories & Default Points
 
-| Activity | Base Points | Bonus Opportunities |
-|----------|-------------|-------------------|
-| 🎓 AWS Foundational Courses | 50 | - |
-| 🏗️ AWS Associate Courses | 75 | - |
-| 🚀 AWS Professional Courses | 100 | - |
-| 🎯 AWS Specialty Courses | 100 | - |
-| 📺 Live Events & Meetings | 25 | - |
-| 🧠 Quizzes | 20 | +30 for 80%+, +50 for perfect |
-| 🏆 Hackathons | 150 | +100/200/300 for 3rd/2nd/1st |
+Points are organised into five categories. All values are editable in the **Configuration** tab.
 
-*All point values are fully customizable!*
+### Self-Paced Digital
 
-## 🛠️ Technical Highlights
+| Activity | Default Points |
+|---|---:|
+| Skill Builder Course | 50 |
+| Skill Builder Learning Plan | 150 |
+| Cloud Quest Role | 100 |
+| Escape Room Challenge | 75 |
+| Foundational Training Package | 100 |
+| Quiz Completion | 25 |
 
-- **Single HTML File** - Everything in one portable file
-- **Browser Storage** - Uses localStorage for instant persistence
-- **Zero Dependencies** - Just Tailwind CSS and XLSX library from CDN
-- **Export/Import** - JSON backup system for data portability
-- **Responsive Design** - Beautiful on desktop, tablet, and mobile
+### Live Learning
+
+| Activity | Default Points |
+|---|---:|
+| Live Webinar | 25 |
+| Workshop (first hour) | 30 |
+| Workshop (full + hands-on) | 75 |
+| Office Hours Session | 20 |
+| Office Hours Question Submitted | 10 |
+| Hands-on Challenge | 50 |
+
+### Certifications
+
+| Activity | Default Points |
+|---|---:|
+| AWS Cloud Practitioner | 200 |
+| AI Practitioner | 200 |
+| Associate Certification | 300 |
+| Professional / Specialty Certification | 500 |
+| AWS Jam Challenge | 100 |
+
+### Gamified Events
+
+| Activity | Default Points |
+|---|---:|
+| Participate in Event | 50 |
+| Top 3 Bonus | +100 |
+| Participate in Hackathon | 100 |
+| Hackathon Prototype Bonus | +200 |
+
+### Community Engagement
+
+| Activity | Default Points |
+|---|---:|
+| Join Channel | 10 |
+| First Question | 10 |
+| Share Resource | 15 |
+| Champion Knowledge-sharing | 25 |
+| Survey Feedback | 10 |
+
+## 🛠️ Tech Stack
+
+- **Vanilla JS (ES modules)** with **JSDoc** type annotations — no React, no TypeScript
+- **Vite + `vite-plugin-singlefile`** — builds the whole app into one self-contained `index.html`
+- **Vitest** for the unit-test suite (416 tests at v1.3)
+- **Tailwind CSS** + **Basecoat UI** design tokens for styling
+- **SheetJS (`xlsx`)** for Excel/CSV parsing — loaded from CDN
+- **Chart.js** for the YTD charts in the Reports tab — loaded from CDN
+- **localStorage** — the only persistence layer; the app works offline after first load
+
+## 📁 Project Structure
+
+```
+src/
+  core/        # state, storage, events, pub/sub
+  models/      # pure data shapes + helpers (user, team, activity, campaign, points)
+  importers/   # course / teams CSV+XLSX parsing, dedup, course-type mapping
+  views/       # one module per UI tab (dashboard, users, teams, activities, campaigns, …)
+  styles/      # design tokens
+tests/         # mirrors src/ — vitest unit tests for core, models, importers
+index.html     # the app shell (only edited at design time)
+dist/index.html  # production build (single self-contained file)
+```
 
 ## 📱 Browser Support
 
@@ -123,47 +189,54 @@ That's it! No installation, no configuration, no headaches.
 - ✅ Safari 14+
 - ✅ Edge 90+
 
-## 🎨 What's New in v1.2
+## 🎨 What's New in v1.3
 
-- 🔄 **Bulk Operations** - Multi-select users and activities for batch actions
-- 📊 **Enhanced Team Management** - Better member assignment and point tracking
-- 🎯 **Improved Import System** - Better duplicate detection and error handling
-- 📖 **Comprehensive User Manual** - Built-in documentation with 10 detailed sections
-- 🎨 **UI Polish** - Smoother animations and better visual feedback
+### Dashboard
+- **Campaigns sub-tab** — pick a campaign and see participants, activities, points, and a per-campaign leaderboard.
+- **"Overall" time-period filter** — all-time totals alongside Month / Quarter / Year.
+- **Course-type filter scopes Completion Rate** — clicking a course type in Activity Overview now also scopes the completion-rate metric next to it, with a clear label.
 
-## 🔮 Coming Soon
+### Import
+- **Excel-date bug fixed** — `cellDates: true` plus a defensive serial-number guard so `.xlsx` files with date cells no longer collapse every activity to `1/1/1970`.
+- **Spinner in the Processing Log** — a small animated indicator runs while imports are in flight.
+- **Pre-2000 dates surface as "—"** — legacy data with bogus dates is now flagged visually instead of being misread as 1970.
 
-- 💯 **Points Lock** - No more changing points while campaigns are running
-- 🏅 **Achievement Badges** - Visual rewards for learning milestones
-- 👤 **User Detail Views** - Deep dive into individual progress
-- 🔍 **Import Preview** - See what will be imported before committing
-- ⚡ **Quick Actions** - Keyboard shortcuts and command palette
-- 📈 **Advanced Analytics** - Deeper insights into learning patterns
+### Users / Activities
+- **Last Activity is derived** — computed from each user's most recent completed activity (single source of truth), instead of a separate `user.lastActivity` field that wasn't always set.
+- **Stub Actions columns removed** — the placeholder "View" and "Edit" buttons (and their `Feature coming soon!` handlers) are gone.
+
+### Reports
+- **Global Export removed** — the header "Export" button and the Reports tab's three JSON-export buttons (Leaderboard / Activities / Summary) were unused. The per-tab **Bulk Export Selected** actions are retained.
+
+## 🔮 Roadmap
+
+- 💯 **Points lock** — prevent edits to historical points while a campaign is active
+- 🏅 **Achievement badges** — surface the `user.badges` field with visual rewards for milestones
+- 🔍 **Import preview** — see what will be imported before committing
+- ⚡ **Quick actions** — keyboard shortcuts / command palette
+- 📈 **Per-campaign team leaderboard on the dashboard** — currently only the user leaderboard is shown for the selected campaign
 
 ## 🤝 Contributing
 
-We'd love your help making CloudComp even better! Whether it's:
+We'd love your help making CloudComp even better — bug reports, feature ideas, docs improvements, UI polish, all welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) to get started.
 
-- 🐛 Bug reports and fixes
-- 💡 Feature suggestions
-- 📖 Documentation improvements
-- 🎨 UI/UX enhancements
+When sending a PR, please:
 
-Check out our [contribution guidelines](CONTRIBUTING.md) to get started.
+- Keep changes small and focused
+- Run `npm test` and `npm run build` locally first
+- Match the existing JSDoc style — no TypeScript, no React
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE).
 
 ## 🙏 Credits
 
 Created with ❤️ and powered by AI assistance:
 
-- **Tim Huettemeister** - Product vision and technical implementation
-- **Claude Sonnet** - AI development partner
+- **Tim Huettemeister** — product vision and technical implementation
+- **Claude** (Anthropic) — AI pair-programming partner
 
 ---
 
-**Ready to gamify your learning?** Download `cloud_comp_app.html` and start your learning tournament today! 🚀
-
-*Transform learning from a chore into a competition your team will love.*
+**Ready to gamify your learning?** Grab `dist/index.html`, open it in your browser, and start your learning tournament! 🚀

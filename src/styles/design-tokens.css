@@ -694,3 +694,166 @@ table.w-full tbody tr:hover {
 .cc-empty-state-text:last-child {
   margin-bottom: 0;
 }
+
+/* ──────────────────────────────────────────────────────────────────────
+ * Dark mode
+ *
+ * Activated by setting `data-theme="dark"` on <html>. The token-based
+ * components above pick up the new values automatically; the rules
+ * below remap the inline Tailwind utility classes the markup also uses
+ * (bg-gray-*, text-gray-*, bg-white, hover:bg-gray-50, bg-*-50 status
+ * pills, etc.) so dark mode looks consistent without rewriting markup.
+ * ────────────────────────────────────────────────────────────────── */
+
+html[data-theme="dark"] {
+  --cc-bg:             #0f1115;
+  --cc-card-bg:        #1a1d23;
+  --cc-border:         #2a2f3a;
+  --cc-border-light:   #23272f;
+  --cc-text:           #e5e7eb;
+  --cc-text-secondary: #9aa3b2;
+  --cc-text-muted:     #6b7280;
+  --cc-accent:         #818cf8;  /* indigo-400 — slightly lighter for contrast */
+  --cc-accent-light:   #1e1b4b;  /* indigo-950 */
+  --cc-positive:       #34d399;
+  --cc-positive-bg:    #052e21;
+  --cc-negative:       #f87171;
+  --cc-negative-bg:    #3b0d0d;
+}
+
+/* Modal backdrop: lighter overlay on dark background reads better. */
+html[data-theme="dark"] .cc-modal-backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+/* Inline hex backgrounds in components → dark equivalents. */
+html[data-theme="dark"] .cc-table tbody tr:hover,
+html[data-theme="dark"] table.w-full tbody tr:hover {
+  background: #20242c;
+}
+
+html[data-theme="dark"] .cc-btn-ghost:hover,
+html[data-theme="dark"] .cc-modal-close:hover {
+  background: #23272f;
+  color: var(--cc-text);
+}
+
+html[data-theme="dark"] .cc-empty-state-icon {
+  background: #23272f;
+}
+
+html[data-theme="dark"] .cc-docs code {
+  background: #23272f;
+  color: var(--cc-text);
+  border-color: var(--cc-border);
+}
+
+/* Focus ring tinted for the dark accent. */
+html[data-theme="dark"] .cc-input:focus,
+html[data-theme="dark"] .cc-select:focus,
+html[data-theme="dark"] .cc-textarea:focus {
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.18);
+}
+
+/* ── Tailwind utility-class overrides (inline in markup) ──────────── */
+
+html[data-theme="dark"] .bg-white,
+html[data-theme="dark"] .bg-gray-50 {
+  background-color: var(--cc-card-bg) !important;
+}
+
+html[data-theme="dark"] .bg-gray-100 {
+  background-color: #23272f !important;
+}
+
+html[data-theme="dark"] .bg-gray-500 {
+  background-color: #4b5563 !important;
+}
+
+html[data-theme="dark"] .hover\:bg-gray-50:hover {
+  background-color: #20242c !important;
+}
+
+html[data-theme="dark"] .hover\:bg-gray-600:hover {
+  background-color: #4b5563 !important;
+}
+
+html[data-theme="dark"] .text-gray-900 {
+  color: var(--cc-text) !important;
+}
+
+html[data-theme="dark"] .text-gray-800 {
+  color: #d1d5db !important;
+}
+
+html[data-theme="dark"] .text-gray-700 {
+  color: #cbd1d9 !important;
+}
+
+html[data-theme="dark"] .text-gray-600 {
+  color: var(--cc-text-secondary) !important;
+}
+
+html[data-theme="dark"] .text-gray-500 {
+  color: var(--cc-text-secondary) !important;
+}
+
+html[data-theme="dark"] .text-gray-400 {
+  color: var(--cc-text-muted) !important;
+}
+
+html[data-theme="dark"] .border-gray-200,
+html[data-theme="dark"] .border-gray-300 {
+  border-color: var(--cc-border) !important;
+}
+
+/* Pastel status backgrounds in pills — keep colored text, swap to dim tinted bg. */
+html[data-theme="dark"] .bg-blue-50    { background-color: rgba(59, 130, 246, 0.15) !important; }
+html[data-theme="dark"] .bg-blue-100   { background-color: rgba(59, 130, 246, 0.22) !important; }
+html[data-theme="dark"] .bg-indigo-50  { background-color: rgba(99, 102, 241, 0.15) !important; }
+html[data-theme="dark"] .bg-purple-50  { background-color: rgba(139, 92, 246, 0.15) !important; }
+html[data-theme="dark"] .bg-purple-100 { background-color: rgba(139, 92, 246, 0.22) !important; }
+html[data-theme="dark"] .bg-green-50   { background-color: rgba(16, 185, 129, 0.15) !important; }
+html[data-theme="dark"] .bg-green-100  { background-color: rgba(16, 185, 129, 0.22) !important; }
+html[data-theme="dark"] .bg-yellow-50  { background-color: rgba(245, 158, 11, 0.15) !important; }
+html[data-theme="dark"] .bg-yellow-100 { background-color: rgba(245, 158, 11, 0.22) !important; }
+html[data-theme="dark"] .bg-red-50     { background-color: rgba(239, 68, 68, 0.15) !important; }
+html[data-theme="dark"] .bg-red-100    { background-color: rgba(239, 68, 68, 0.22) !important; }
+
+/* Status indicator background fix for warning (uses literal hex). */
+html[data-theme="dark"] .status-warning { background-color: #fbbf24; }
+
+/* Theme toggle button */
+.cc-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--cc-radius-sm);
+  border: 1px solid var(--cc-border);
+  background: transparent;
+  color: var(--cc-text-secondary);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.cc-theme-toggle:hover {
+  color: var(--cc-text);
+  border-color: var(--cc-text-muted);
+}
+
+.cc-theme-toggle svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+html[data-theme="dark"] .cc-theme-toggle:hover {
+  background: #23272f;
+}
+
+/* Show the sun icon in dark mode, moon in light. */
+.cc-theme-toggle .cc-icon-sun { display: none; }
+.cc-theme-toggle .cc-icon-moon { display: inline-block; }
+html[data-theme="dark"] .cc-theme-toggle .cc-icon-sun { display: inline-block; }
+html[data-theme="dark"] .cc-theme-toggle .cc-icon-moon { display: none; }
