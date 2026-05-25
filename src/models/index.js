@@ -7,10 +7,7 @@
 
 export {
   DEFAULT_POINT_CONFIG,
-  calculateCoursePoints,
-  calculateQuizBonus,
-  calculateHackathonPoints,
-  calculateMeetingPoints,
+  calculateActivityPoints,
   getTotalPoints,
   getMonthPoints,
   getCampaignPoints,

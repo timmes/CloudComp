@@ -11,10 +11,8 @@
 
 import { createActivity, generateActivityId } from '../models/activity.js';
 import { createUser } from '../models/user.js';
-import {
-  calculateCoursePoints,
-  calculateQuizBonus,
-} from '../models/points.js';
+import { calculateActivityPoints } from '../models/points.js';
+import { resolveCourseMapping } from './course-type-map.js';
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -58,7 +56,10 @@ export async function importCourseFile(data, xlsx, options) {
 
   let jsonData;
   try {
-    const workbook = xlsx.read(new Uint8Array(data), { type: 'array' });
+    // cellDates: true makes SheetJS convert Excel date serial cells into JS
+    // Date objects, instead of leaving them as raw numbers (e.g. 45292) that
+    // would otherwise be misread as ms-since-epoch and collapse to 1970.
+    const workbook = xlsx.read(new Uint8Array(data), { type: 'array', cellDates: true });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     jsonData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
   } catch (err) {
@@ -176,6 +177,7 @@ function processILTRow(row, rowIndex, points, sessionName, filename) {
     courseType: 'Classroom Training',
     pointsEarned: points,
     completedDate: new Date().toISOString(),
+    status: 'completed',
     source: 'course-import',
   });
 
@@ -265,22 +267,23 @@ function processOneRecord(record, config, _filename) {
   const fields = extractRecordFields(record);
   if (fields.warning) return { warning: fields.warning };
 
-  const { type, points } = resolveTypeAndPoints(
-    fields.courseType, fields.level, record['Score'], config,
-  );
+  const isCompleted = fields.status === 'completed';
+  const { category, subCategory } = resolveCourseMapping(fields.courseType);
+  const points = calculateActivityPoints(category, subCategory, config);
 
   const activity = createActivity({
     id: generateActivityId(fields.email, fields.courseId),
     userId: fields.email,
     externalId: fields.courseId,
     title: fields.title,
-    type,
+    type: 'course',
     level: fields.level || '',
     courseType: fields.courseType || '',
-    pointsEarned: points,
+    pointsEarned: isCompleted ? points : 0,
     completedDate: fields.completedDate,
+    status: fields.status,
     source: 'course-import',
-    score: parseScore(record['Score']),
+    score: isCompleted ? parseScore(record['Score']) : null,
   });
 
   const name = buildName(record['First Name'], record['Last Name'], fields.email);
@@ -294,21 +297,27 @@ function processOneRecord(record, config, _filename) {
  * @param {Record<string,*>} record
  * @returns {{ email: string, courseId: string, title: string, level: string, courseType: string, completedDate: string, warning?: undefined } | { warning: string }}
  */
+/** @param {string} raw @returns {'completed'|'in_progress'|'enrolled'} */
+function mapStatus(raw) {
+  const s = (raw ?? '').trim().toUpperCase();
+  if (s === 'COMPLETED') return 'completed';
+  if (s === 'IN PROGRESS') return 'in_progress';
+  return 'enrolled';
+}
+
 function extractRecordFields(record) {
   const email = str(record['Email']).toLowerCase();
   const courseId = str(record['Course ID']);
   const title = str(record['Course Title']);
-  const status = str(record['Status']).toUpperCase();
+  const status = mapStatus(record['Status']);
 
   if (!email || !courseId || !title) return { warning: 'skipped, missing Email/Course ID/Title' };
-  if (status === 'IN PROGRESS') return { warning: `skipped in-progress: ${title}` };
-  if (status !== 'COMPLETED') return { warning: `skipped, status="${status}"` };
 
-  const completedDate = parseDate(record['Completed on']);
-  if (!completedDate) return { warning: 'skipped, invalid completion date' };
+  const completedDate = status === 'completed' ? parseDate(record['Completed on']) : null;
+  if (status === 'completed' && !completedDate) return { warning: 'skipped, invalid completion date' };
 
   return {
-    email, courseId, title,
+    email, courseId, title, status,
     level: str(record['Level']).toLowerCase(),
     courseType: str(record['CourseType']),
     completedDate,
@@ -317,24 +326,7 @@ function extractRecordFields(record) {
 
 // ── Shared helpers ──────────────────────────────────────────────────
 
-/**
- * @param {string} courseType
- * @param {string} level
- * @param {*} rawScore
- * @param {PointConfig} config
- * @returns {{ type: string, points: number }}
- */
-function resolveTypeAndPoints(courseType, level, rawScore, config) {
-  const ct = (courseType ?? '').toLowerCase();
-  if (ct.includes('quiz') || ct.includes('card clash')) {
-    const score = parseScore(rawScore);
-    return { type: 'quiz', points: calculateQuizBonus(score, config) };
-  }
-  return {
-    type: 'course',
-    points: calculateCoursePoints(courseType, level, config),
-  };
-}
+
 
 /** @param {*} raw @returns {number|null} */
 function parseScore(raw) {
@@ -343,9 +335,23 @@ function parseScore(raw) {
   return Number.isNaN(n) ? null : n;
 }
 
-/** @param {*} raw @returns {string|null} */
+/**
+ * Parse a date cell from an XLSX/CSV file into an ISO 8601 string.
+ * Accepts JS Date objects (when cellDates:true), date strings, and
+ * raw Excel serial numbers as a defensive fallback.
+ *
+ * @param {*} raw
+ * @returns {string|null}
+ */
 function parseDate(raw) {
-  if (!raw || raw === 'null' || raw === '') return null;
+  if (raw == null || raw === 'null' || raw === '') return null;
+  // Excel serial number guard: small positive numbers are days since 1900-01-00.
+  // Without this, new Date(45292) would be read as ms-since-epoch → 1970.
+  if (typeof raw === 'number' && raw > 1 && raw < 100000) {
+    const ms = (raw - 25569) * 86400000;
+    const d = new Date(ms);
+    return Number.isNaN(d.getTime()) ? null : d.toISOString();
+  }
   try {
     const d = new Date(raw);
     return Number.isNaN(d.getTime()) ? null : d.toISOString();

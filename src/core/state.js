@@ -41,6 +41,7 @@ import { DEFAULT_POINT_CONFIG } from '../models/points.js';
  * @typedef {Object} ActivityFilters
  * @property {string} [userId]     - lowercase email
  * @property {string} [type]       - 'course'|'meeting'|'quiz'|'hackathon'|'manual'
+ * @property {string} [status]     - 'completed'|'in_progress'|'enrolled'
  * @property {string} [fromDate]   - ISO 8601, inclusive
  * @property {string} [toDate]     - ISO 8601, inclusive
  * @property {string} [campaignId] - scopes to campaign window + participants
@@ -55,8 +56,16 @@ function defaultConfig() {
   return {
     pointConfig: { ...DEFAULT_POINT_CONFIG },
     lastReset: new Date().toISOString().slice(0, 7),
-    version: '1.2',
+    version: '2.0',
   };
+}
+
+/** Migrate old v1.x point config to v2.0 structure. */
+function migrateConfig(config) {
+  if (!config?.version || config.version < '2.0') {
+    return { ...config, pointConfig: { ...DEFAULT_POINT_CONFIG }, version: '2.0' };
+  }
+  return config;
 }
 
 // ── Internal state ──────────────────────────────────────────────────
@@ -167,6 +176,9 @@ export function getActivities(filters = {}) {
   }
   if (filters.type) {
     result = result.filter(a => a.type === filters.type);
+  }
+  if (filters.status) {
+    result = result.filter(a => (a.status || 'completed') === filters.status);
   }
   if (filters.fromDate) {
     result = result.filter(
@@ -313,6 +325,25 @@ export function addActivity(activity) {
 }
 
 /**
+ * Replace an existing activity by matching on `id`.
+ * Used for status upgrades (e.g. in_progress -> completed).
+ *
+ * @param {*} activity - must have an `id` property
+ * @returns {boolean} true if replaced, false if not found
+ */
+export function replaceActivity(activity) {
+  const idx = _state.activities.findIndex(a => a.id === activity.id);
+  if (idx === -1) return false;
+  _state.activities = [
+    ..._state.activities.slice(0, idx),
+    { ...activity },
+    ..._state.activities.slice(idx + 1),
+  ];
+  persistAndNotify();
+  return true;
+}
+
+/**
  * Create or update a campaign.  Keyed by `campaign.id`.
  * Merges with the existing campaign record if one exists.
  * Emits {@link EVENTS.CAMPAIGN_UPDATED} in addition to DATA_CHANGED.
@@ -382,6 +413,13 @@ export function updateConfig(partial) {
   persistAndNotify();
 }
 
+// ── Migration ──────────────────────────────────────────────────────
+
+/** Backfill status field on legacy activities that lack it. */
+function migrateActivities(activities) {
+  return activities.map(a => a.status ? a : { ...a, status: 'completed' });
+}
+
 // ── Lifecycle ───────────────────────────────────────────────────────
 
 /**
@@ -402,11 +440,11 @@ export function loadFromStorage() {
   _state = {
     users:      data.users      ?? {},
     teams:      data.teams      ?? {},
-    activities: data.activities  ?? [],
+    activities: migrateActivities(data.activities ?? []),
     campaigns:  data.campaigns  ?? {},
-    config:     data.config
+    config:     migrateConfig(data.config
       ? { ...defaultConfig(), ...data.config }
-      : defaultConfig(),
+      : defaultConfig()),
     metadata:   data.metadata
       ? { lastImport: null, totalRecordsProcessed: 0, sources: [], ...data.metadata }
       : { lastImport: null, totalRecordsProcessed: 0, sources: [] },
@@ -451,11 +489,11 @@ export function importJSON(json) {
   _state = {
     users:      json.users      ?? {},
     teams:      json.teams      ?? {},
-    activities: json.activities  ?? [],
+    activities: migrateActivities(json.activities ?? []),
     campaigns:  json.campaigns  ?? {},
-    config:     json.config
+    config:     migrateConfig(json.config
       ? { ...defaultConfig(), ...json.config }
-      : defaultConfig(),
+      : defaultConfig()),
     metadata:   json.metadata
       ? { lastImport: null, totalRecordsProcessed: 0, sources: [], ...json.metadata }
       : { lastImport: null, totalRecordsProcessed: 0, sources: [] },

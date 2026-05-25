@@ -11,7 +11,7 @@
 
 import { createActivity, generateActivityId } from '../models/activity.js';
 import { createUser } from '../models/user.js';
-import { calculateMeetingPoints } from '../models/points.js';
+import { calculateActivityPoints } from '../models/points.js';
 
 // ── Types ───────────────────────────────────────────────────────────
 
@@ -78,7 +78,7 @@ export async function importTeamsFile(content, options) {
 
   const activities = [];
   const usersMap = new Map();
-  const points = calculateMeetingPoints(config);
+  const points = calculateActivityPoints('liveLearning', 'Live Webinar', config);
 
   for (const meeting of meetings) {
     for (const email of meeting.emails) {

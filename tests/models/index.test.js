@@ -8,20 +8,8 @@ describe('models barrel (index.js)', () => {
     expect(typeof models.DEFAULT_POINT_CONFIG).toBe('object');
   });
 
-  it('re-exports calculateCoursePoints', () => {
-    expect(typeof models.calculateCoursePoints).toBe('function');
-  });
-
-  it('re-exports calculateQuizBonus', () => {
-    expect(typeof models.calculateQuizBonus).toBe('function');
-  });
-
-  it('re-exports calculateHackathonPoints', () => {
-    expect(typeof models.calculateHackathonPoints).toBe('function');
-  });
-
-  it('re-exports calculateMeetingPoints', () => {
-    expect(typeof models.calculateMeetingPoints).toBe('function');
+  it('re-exports calculateActivityPoints', () => {
+    expect(typeof models.calculateActivityPoints).toBe('function');
   });
 
   it('re-exports getTotalPoints', () => {
@@ -89,7 +77,7 @@ describe('models barrel (index.js)', () => {
   });
 
   // Completeness
-  it('exports exactly 20 members (8 points + 2 user + 3 team + 2 activity + 5 campaign)', () => {
-    expect(Object.keys(models)).toHaveLength(20);
+  it('exports exactly 17 members (5 points + 2 user + 3 team + 2 activity + 5 campaign)', () => {
+    expect(Object.keys(models)).toHaveLength(17);
   });
 });

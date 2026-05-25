@@ -1,77 +1,89 @@
 /**
  * @module views/config
  *
- * Point configuration UI: load, save, reset, export.
+ * Point configuration UI: load, save, reset all data.
  */
 
 import {
-  getConfig, updateConfig, log, autoSave, downloadJSON,
-  calculateCoursePoints, calculateQuizBonus,
-  calculateHackathonPoints, calculateMeetingPoints,
+  getConfig, updateConfig, importJSON, log, autoSave,
+  calculateActivityPoints,
 } from './shared.js';
+
+// ── Field mappings (element ID -> config key) ──────────────────────
+
+const FIELD_MAP = {
+  selfPacedDigital: {
+    cfgSkillBuilderCourse: 'Skill Builder Course',
+    cfgSkillBuilderPlan:   'Skill Builder Learning Plan',
+    cfgCloudQuestRole:     'Cloud Quest Role',
+    cfgEscapeRoom:         'Escape Room Challenge',
+    cfgFoundationalPkg:    'Foundational Training Pkg',
+    cfgQuizCompletion:     'Quiz Completion',
+  },
+  liveLearning: {
+    cfgLiveWebinar:        'Live Webinar',
+    cfgWorkshopFirst:      'Workshop First Hour',
+    cfgWorkshopFull:       'Workshop Full + Hands-on',
+    cfgOfficeHours:        'Office Hours Session',
+    cfgOfficeHoursQ:       'Office Hours Q Submitted',
+    cfgHandsOnChallenge:   'Hands-on Challenge',
+  },
+  certifications: {
+    cfgCloudPractitioner:  'Cloud Practitioner',
+    cfgAIPractitioner:     'AI Practitioner',
+    cfgAssociateCert:      'Associate Cert',
+    cfgProSpecCert:        'Professional/Specialty Cert',
+    cfgJamChallenge:       'AWS Jam Challenge',
+  },
+  gamifiedEvents: {
+    cfgParticipateEvent:   'Participate Event',
+    cfgTop3Bonus:          'Top 3 Bonus',
+    cfgParticipateHack:    'Participate Hackathon',
+    cfgHackPrototype:      'Hackathon Prototype Bonus',
+  },
+  communityEngagement: {
+    cfgJoinChannel:        'Join Channel',
+    cfgFirstQuestion:      'First Question',
+    cfgShareResource:      'Share Resource',
+    cfgChampionKnowledge:  'Champion Knowledge-sharing',
+    cfgSurveyFeedback:     'Survey Feedback',
+  },
+};
+
+// ── Helpers ────────────────────────────────────────────────────────
+
+function readSection(idMap) {
+  const result = {};
+  for (const [id, key] of Object.entries(idMap)) {
+    result[key] = parseInt(document.getElementById(id)?.value) || 0;
+  }
+  return result;
+}
+
+function writeSection(section, idMap) {
+  for (const [id, key] of Object.entries(idMap)) {
+    const el = document.getElementById(id);
+    if (el) el.value = section?.[key] ?? 0;
+  }
+}
+
+// ── Public API ─────────────────────────────────────────────────────
 
 export function updatePointConfig() {
   const cfg = getConfig();
-  const pc = cfg.pointConfig;
-  pc.awsCourseTypes['AWS Builder Lab'] = parseInt(document.getElementById('awsBuilderLab').value);
-  pc.awsCourseTypes['AWS Cloud Quest'] = parseInt(document.getElementById('awsCloudQuest').value);
-  pc.awsCourseTypes['AWS Jam Journey'] = parseInt(document.getElementById('awsJamJourney').value);
-  pc.awsCourseTypes['AWS Simulearn'] = parseInt(document.getElementById('awsSimulearn').value);
-  pc.awsCourseTypes['Certification Exam Preparation'] = parseInt(document.getElementById('certExamPrep').value);
-  pc.awsCourseTypes['Digital Course With Lab'] = parseInt(document.getElementById('digitalCourseWithLab').value);
-  pc.generalCourses['Classroom Training'] = parseInt(document.getElementById('classroomTraining').value);
-  pc.generalCourses['Digital Courses - Foundational'] = parseInt(document.getElementById('digitalFoundational').value);
-  pc.generalCourses['Digital Courses - Associate'] = parseInt(document.getElementById('digitalAssociate').value);
-  pc.generalCourses['Digital Courses - Professional'] = parseInt(document.getElementById('digitalProfessional').value);
-  pc.generalCourses['Digital Courses - Specialty'] = parseInt(document.getElementById('digitalSpecialty').value);
-  pc.events['Live Events'] = parseInt(document.getElementById('liveEvents').value);
-  pc.hackathons['Hackathons - Participation'] = parseInt(document.getElementById('hackathonParticipation').value);
-  pc.hackathons['Hackathons - 3rd Place'] = parseInt(document.getElementById('hackathon3rd').value);
-  pc.hackathons['Hackathons - 2nd Place'] = parseInt(document.getElementById('hackathon2nd').value);
-  pc.hackathons['Hackathons - 1st Place'] = parseInt(document.getElementById('hackathon1st').value);
-  pc.quizzes['Quiz Completion'] = parseInt(document.getElementById('quizCompletion').value);
-  pc.quizzes['Quiz 80%+ Score'] = parseInt(document.getElementById('quiz80Plus').value);
-  pc.quizzes['Quiz Perfect Score'] = parseInt(document.getElementById('quizPerfect').value);
+  const pc = {};
+  for (const [section, idMap] of Object.entries(FIELD_MAP)) {
+    pc[section] = readSection(idMap);
+  }
   updateConfig({ ...cfg, pointConfig: pc });
   log('Point configuration updated');
 }
 
 export function loadConfiguration() {
   const pc = getConfig().pointConfig;
-  document.getElementById('awsBuilderLab').value = pc.awsCourseTypes['AWS Builder Lab'];
-  document.getElementById('awsCloudQuest').value = pc.awsCourseTypes['AWS Cloud Quest'];
-  document.getElementById('awsJamJourney').value = pc.awsCourseTypes['AWS Jam Journey'];
-  document.getElementById('awsSimulearn').value = pc.awsCourseTypes['AWS Simulearn'];
-  document.getElementById('certExamPrep').value = pc.awsCourseTypes['Certification Exam Preparation'];
-  document.getElementById('digitalCourseWithLab').value = pc.awsCourseTypes['Digital Course With Lab'];
-  document.getElementById('classroomTraining').value = pc.generalCourses['Classroom Training'];
-  document.getElementById('digitalFoundational').value = pc.generalCourses['Digital Courses - Foundational'];
-  document.getElementById('digitalAssociate').value = pc.generalCourses['Digital Courses - Associate'];
-  document.getElementById('digitalProfessional').value = pc.generalCourses['Digital Courses - Professional'];
-  document.getElementById('digitalSpecialty').value = pc.generalCourses['Digital Courses - Specialty'];
-  document.getElementById('liveEvents').value = pc.events['Live Events'];
-  document.getElementById('hackathonParticipation').value = pc.hackathons['Hackathons - Participation'];
-  document.getElementById('hackathon3rd').value = pc.hackathons['Hackathons - 3rd Place'];
-  document.getElementById('hackathon2nd').value = pc.hackathons['Hackathons - 2nd Place'];
-  document.getElementById('hackathon1st').value = pc.hackathons['Hackathons - 1st Place'];
-  document.getElementById('quizCompletion').value = pc.quizzes['Quiz Completion'];
-  document.getElementById('quiz80Plus').value = pc.quizzes['Quiz 80%+ Score'];
-  document.getElementById('quizPerfect').value = pc.quizzes['Quiz Perfect Score'];
-}
-
-export function resetToDefaults() {
-  document.getElementById('awsBuilderLab').value = 100; document.getElementById('awsCloudQuest').value = 75;
-  document.getElementById('awsJamJourney').value = 150; document.getElementById('awsSimulearn').value = 75;
-  document.getElementById('certExamPrep').value = 100; document.getElementById('digitalCourseWithLab').value = 100;
-  document.getElementById('classroomTraining').value = 100; document.getElementById('digitalFoundational').value = 50;
-  document.getElementById('digitalAssociate').value = 75; document.getElementById('digitalProfessional').value = 100;
-  document.getElementById('digitalSpecialty').value = 100; document.getElementById('liveEvents').value = 25;
-  document.getElementById('hackathonParticipation').value = 150; document.getElementById('hackathon3rd').value = 250;
-  document.getElementById('hackathon2nd').value = 350; document.getElementById('hackathon1st').value = 450;
-  document.getElementById('quizCompletion').value = 20; document.getElementById('quiz80Plus').value = 50;
-  document.getElementById('quizPerfect').value = 70;
-  updatePointConfig();
-  log('Configuration reset to defaults');
+  for (const [section, idMap] of Object.entries(FIELD_MAP)) {
+    writeSection(pc[section], idMap);
+  }
 }
 
 export function saveConfiguration() {
@@ -81,12 +93,31 @@ export function saveConfiguration() {
   setTimeout(() => { status.textContent = ''; }, 3000);
 }
 
-export function exportConfig() { downloadJSON(getConfig(), 'cloud_comp_config.json'); }
+// ── Reset all data ─────────────────────────────────────────────────
 
-export function calculatePoints(courseLevel, courseType, activityType = 'course', score = null, placement = null) {
+export function openResetDataModal() {
+  document.getElementById('resetDataConfirmInput').value = '';
+  document.getElementById('resetDataModal').classList.remove('hidden');
+}
+
+export function closeResetDataModal() {
+  document.getElementById('resetDataModal').classList.add('hidden');
+}
+
+export function confirmResetAllData() {
+  const input = document.getElementById('resetDataConfirmInput').value.trim();
+  if (input !== 'confirm deletion') {
+    alert('Please type "confirm deletion" to proceed.');
+    return;
+  }
+  importJSON({ users: {}, teams: {}, activities: [], campaigns: {}, config: null, metadata: null });
+  closeResetDataModal();
+  loadConfiguration();
+  log('All data has been reset');
+  alert('All data has been deleted.');
+}
+
+export function calculatePoints(category, subCategory) {
   const pc = getConfig().pointConfig;
-  if (activityType === 'live_event') return calculateMeetingPoints(pc);
-  if (activityType === 'hackathon') return calculateHackathonPoints(placement, pc);
-  if (activityType === 'quiz') return calculateQuizBonus(score, pc);
-  return calculateCoursePoints(courseType, courseLevel, pc);
+  return calculateActivityPoints(category, subCategory, pc);
 }

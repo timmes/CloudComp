@@ -61,88 +61,68 @@ describe('importCourseFile — standard courses', () => {
     expect(result.errors).toHaveLength(0);
   });
 
-  it('sets type to "quiz" for quiz rows', async () => {
+  it('maps quiz courseType to Quiz Completion points', async () => {
     const rows = [
       COURSE_HEADERS,
       courseRow('alice@b.com', 'Q1', 'Quiz 1', 'COMPLETED', '', 'Quiz', '2026-04-01', 85),
     ];
     const result = await importCourseFile(toBuffer(), mockXlsx(rows), opts());
-    expect(result.activities[0].type).toBe('quiz');
+    expect(result.activities[0].pointsEarned).toBe(25); // selfPacedDigital Quiz Completion
   });
 
-  it('sets type to "quiz" for Card Clash courseType', async () => {
+  it('maps Card Clash to Quiz Completion points', async () => {
     const rows = [
       COURSE_HEADERS,
       courseRow('alice@b.com', 'CC1', 'Card Clash', 'COMPLETED', '', 'Card Clash', '2026-04-01', 90),
     ];
     const result = await importCourseFile(toBuffer(), mockXlsx(rows), opts());
-    expect(result.activities[0].type).toBe('quiz');
+    expect(result.activities[0].pointsEarned).toBe(25); // Quiz Completion
   });
 
-  it('applies quiz bonus for 80%+ score', async () => {
+  it('maps Cloud Quest courseType to Cloud Quest Role points', async () => {
     const rows = [
       COURSE_HEADERS,
-      courseRow('alice@b.com', 'Q1', 'Quiz', 'COMPLETED', '', 'Quiz', '2026-04-01', 85),
+      courseRow('alice@b.com', 'C1', 'Cloud Quest', 'COMPLETED', '', 'AWS Cloud Quest', '2026-04-01'),
     ];
     const result = await importCourseFile(toBuffer(), mockXlsx(rows), opts());
-    expect(result.activities[0].pointsEarned).toBe(50); // Quiz 80%+ Score
+    expect(result.activities[0].pointsEarned).toBe(100); // Cloud Quest Role
   });
 
-  it('applies quiz base points for score below 80', async () => {
-    const rows = [
-      COURSE_HEADERS,
-      courseRow('alice@b.com', 'Q1', 'Quiz', 'COMPLETED', '', 'Quiz', '2026-04-01', 60),
-    ];
-    const result = await importCourseFile(toBuffer(), mockXlsx(rows), opts());
-    expect(result.activities[0].pointsEarned).toBe(20); // Quiz Completion
-  });
-
-  it('applies perfect quiz bonus for score of 100', async () => {
-    const rows = [
-      COURSE_HEADERS,
-      courseRow('alice@b.com', 'Q1', 'Quiz', 'COMPLETED', '', 'Quiz', '2026-04-01', 100),
-    ];
-    const result = await importCourseFile(toBuffer(), mockXlsx(rows), opts());
-    expect(result.activities[0].pointsEarned).toBe(70); // Quiz Perfect Score
-  });
-
-  it('calculates course points by courseType', async () => {
-    const rows = [
-      COURSE_HEADERS,
-      courseRow('alice@b.com', 'C1', 'Lab', 'COMPLETED', '', 'AWS Builder Lab', '2026-04-01'),
-    ];
-    const result = await importCourseFile(toBuffer(), mockXlsx(rows), opts());
-    expect(result.activities[0].pointsEarned).toBe(100);
-  });
-
-  it('calculates course points by level when courseType unrecognised', async () => {
+  it('defaults unrecognised courseType to Skill Builder 2-8h', async () => {
     const rows = [
       COURSE_HEADERS,
       courseRow('alice@b.com', 'C1', 'Some Course', 'COMPLETED', 'advanced', 'Unknown Type', '2026-04-01'),
     ];
     const result = await importCourseFile(toBuffer(), mockXlsx(rows), opts());
-    expect(result.activities[0].pointsEarned).toBe(100); // Professional
+    expect(result.activities[0].pointsEarned).toBe(50); // Skill Builder 2-8h default
   });
 
-  it('skips IN PROGRESS rows with a warning', async () => {
+  it('preserves IN PROGRESS rows with status and zero points', async () => {
     const rows = [
       COURSE_HEADERS,
       courseRow('alice@b.com', 'C1', 'In Progress Course', 'IN PROGRESS', 'fundamental', '', ''),
       courseRow('bob@b.com', 'C2', 'Done Course', 'COMPLETED', 'fundamental', '', '2026-04-01'),
     ];
     const result = await importCourseFile(toBuffer(), mockXlsx(rows), opts());
-    expect(result.activities).toHaveLength(1);
-    expect(result.warnings.some(w => w.includes('in-progress'))).toBe(true);
+    expect(result.activities).toHaveLength(2);
+    const inProg = result.activities.find(a => a.status === 'in_progress');
+    expect(inProg).toBeDefined();
+    expect(inProg.pointsEarned).toBe(0);
+    expect(inProg.completedDate).toBeNull();
+    const done = result.activities.find(a => a.status === 'completed');
+    expect(done).toBeDefined();
+    expect(done.pointsEarned).toBeGreaterThan(0);
   });
 
-  it('skips rows with unrecognised status', async () => {
+  it('preserves enrolled rows with status and zero points', async () => {
     const rows = [
       COURSE_HEADERS,
-      courseRow('alice@b.com', 'C1', 'X', 'ENROLLED', '', '', '2026-04-01'),
+      courseRow('alice@b.com', 'C1', 'X', 'ENROLLED', '', '', ''),
     ];
     const result = await importCourseFile(toBuffer(), mockXlsx(rows), opts());
-    expect(result.activities).toHaveLength(0);
-    expect(result.warnings.some(w => w.includes('ENROLLED'))).toBe(true);
+    expect(result.activities).toHaveLength(1);
+    expect(result.activities[0].status).toBe('enrolled');
+    expect(result.activities[0].pointsEarned).toBe(0);
   });
 
   it('skips rows missing Email/Course ID/Title with a warning', async () => {
@@ -372,7 +352,7 @@ describe('importCourseFile — dryRun', () => {
   it('still returns warnings and errors when dryRun is true', async () => {
     const rows = [
       COURSE_HEADERS,
-      courseRow('alice@b.com', 'C1', 'X', 'IN PROGRESS', '', '', ''),
+      courseRow('', 'C1', 'X', 'COMPLETED', '', '', '2026-04-01'),
       courseRow('bob@b.com', 'C2', 'Y', 'COMPLETED', '', '', '2026-04-01'),
     ];
     const result = await importCourseFile(toBuffer(), mockXlsx(rows), opts({ dryRun: true }));

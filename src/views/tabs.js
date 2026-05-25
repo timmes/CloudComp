@@ -7,6 +7,8 @@ import { refreshDashboard } from './dashboard.js';
 import { refreshUsersTable } from './users.js';
 import { refreshActivitiesTable } from './activities.js';
 import { refreshTeamsTable, updateTeamSortButtons } from './teams.js';
+import { refreshCampaignsTable, updateCampaignSortButtons } from './campaigns.js';
+import { refreshReports } from './reports.js';
 
 export function showTab(tabName) {
   bulkSelection.users.clear();
@@ -29,6 +31,8 @@ export function showTab(tabName) {
     case 'users':      refreshUsersTable(); break;
     case 'activities': refreshActivitiesTable(); break;
     case 'teams':      refreshTeamsTable(); updateTeamSortButtons(); break;
+    case 'campaigns':  refreshCampaignsTable(); updateCampaignSortButtons(); break;
+    case 'reports':    refreshReports(); break;
     case 'manual':     window.scrollTo(0, 0); break;
   }
 }

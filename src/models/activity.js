@@ -18,6 +18,7 @@
  * @property {number}      pointsEarned
  * @property {string|null} completedDate - ISO 8601
  * @property {string}      source        - 'course-import'|'teams-import'|'manual'
+ * @property {string}      status        - 'completed'|'in_progress'|'enrolled'
  * @property {number|null} score         - 0-100 for quizzes, null otherwise
  * @property {boolean}     isDuplicate
  */
@@ -75,6 +76,7 @@ export function createActivity(fields) {
     courseType: fields.courseType ?? '',
     pointsEarned: fields.pointsEarned ?? 0,
     completedDate: fields.completedDate ?? null,
+    status: fields.status ?? 'completed',
     source: fields.source ?? 'manual',
     score: fields.score ?? null,
     isDuplicate: fields.isDuplicate ?? false,

@@ -16,9 +16,24 @@ import { updateTeamPoints } from './teams.js';
 let refreshDashboard, refreshUsersTable, refreshTeamsTable;
 export function _setRefreshFns(fns) { ({ refreshDashboard, refreshUsersTable, refreshTeamsTable } = fns); }
 
+function statusLabel(s) {
+  const labels = { completed: 'Completed', in_progress: 'In Progress', enrolled: 'Enrolled' };
+  return labels[s] || labels.completed;
+}
+
+function statusClass(s) {
+  const classes = { completed: 'bg-green-100 text-green-800', in_progress: 'bg-yellow-100 text-yellow-800', enrolled: 'bg-gray-100 text-gray-800' };
+  return classes[s] || classes.completed;
+}
+
 export function refreshActivitiesTable() {
   const tbody = document.getElementById('activitiesTableBody');
   let activities = [...getActivities()];
+
+  if (activities.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="cc-empty-state" style="padding:3rem 1rem;"><div class="cc-empty-state-icon" style="width:4rem;height:4rem;margin-bottom:1rem;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:2rem;height:2rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"/></svg></div><div class="cc-empty-state-title" style="font-size:1rem;">No activities yet</div><p class="cc-empty-state-text" style="font-size:0.8125rem;">Import learning data or add points manually to see activities here.</p></div></td></tr>`;
+    return;
+  }
 
   activities.sort((a, b) => {
     let av, bv;
@@ -37,9 +52,9 @@ export function refreshActivitiesTable() {
         <td class="px-4 py-3"><span class="text-sm text-gray-600">${esc(a.courseType)}</span></td>
         <td class="px-4 py-3"><span class="px-2 py-1 text-xs rounded-full ${a.level==='fundamental'?'bg-green-100 text-green-800':a.level==='intermediate'?'bg-blue-100 text-blue-800':a.level==='advanced'?'bg-purple-100 text-purple-800':'bg-gray-100 text-gray-800'}">${esc(a.level)}</span></td>
         <td class="px-4 py-3"><span class="font-bold text-purple-600">${a.pointsEarned}</span></td>
-        <td class="px-4 py-3"><span class="text-sm text-gray-500">${esc(formatDate(a.completedDate))}</span></td>
+        <td class="px-4 py-3"><span class="cc-pill ${statusClass(a.status)}">${esc(statusLabel(a.status))}</span></td>
+        <td class="px-4 py-3"><span class="text-sm text-gray-500">${a.completedDate ? esc(formatDate(a.completedDate)) : '-'}</span></td>
         <td class="px-4 py-3"><span class="text-xs text-gray-500">${esc(a.source)}</span></td>
-        <td class="px-4 py-3"><button data-action="editActivity" data-activity-id="${esc(a.id)}" class="text-blue-600 hover:text-blue-800 text-sm">Edit</button></td>
       </tr>`;
   }).join('');
 
@@ -177,9 +192,9 @@ export function toggleActivitySort(field) {
 export function toggleActivitySortOrder() { sortState.activities.ascending = !sortState.activities.ascending; refreshActivitiesTable(); }
 
 export function updateActivitySortButtons() {
-  ['sortPoints', 'sortDate'].forEach(id => { document.getElementById(id).className = 'px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors'; });
+  ['sortPoints', 'sortDate'].forEach(id => { document.getElementById(id).className = 'cc-sort-btn'; });
   const af = sortState.activities.field === 'pointsEarned' ? 'sortPoints' : 'sortDate';
-  document.getElementById(af).className = 'px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300';
+  document.getElementById(af).className = 'cc-sort-btn active';
   const ob = document.getElementById('sortOrderActivity');
   ob.textContent = sortState.activities.field === 'pointsEarned' ? (sortState.activities.ascending ? 'Least First ⬆️' : 'Most First ⬇️') : (sortState.activities.ascending ? 'Oldest First ⬆️' : 'Recent First ⬇️');
 }
@@ -204,5 +219,3 @@ export function filterActivities() {
     row.style.display = show ? '' : 'none';
   });
 }
-
-export function editActivity(id) { alert(`Edit activity ${id} - Feature coming soon!`); }

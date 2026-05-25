@@ -142,13 +142,13 @@ describe('createActivity', () => {
     expect(createActivity({ userId: 'a@b.com' }).title).toBe('');
   });
 
-  it('returns all 11 typedef properties', () => {
+  it('returns all 12 typedef properties', () => {
     const act = createActivity({ userId: 'a@b.com', title: 'X' });
     const keys = Object.keys(act).sort();
     expect(keys).toEqual([
       'completedDate', 'courseType', 'id', 'isDuplicate',
-      'level', 'pointsEarned', 'score', 'source', 'title',
-      'type', 'userId',
+      'level', 'pointsEarned', 'score', 'source', 'status',
+      'title', 'type', 'userId',
     ]);
   });
 
@@ -161,5 +161,34 @@ describe('createActivity', () => {
   it('handles null userId without throwing', () => {
     expect(() => createActivity({ userId: null, title: 'X' })).not.toThrow();
     expect(createActivity({ userId: null, title: 'X' }).userId).toBe('');
+  });
+});
+
+// ── createActivity - status field ───────────────────────────────────
+
+describe('createActivity - status field', () => {
+  it('defaults status to "completed" when not supplied', () => {
+    const act = createActivity({ userId: 'a@b.com', title: 'X' });
+    expect(act.status).toBe('completed');
+  });
+
+  it('preserves "in_progress" status', () => {
+    const act = createActivity({ userId: 'a@b.com', title: 'X', status: 'in_progress' });
+    expect(act.status).toBe('in_progress');
+  });
+
+  it('preserves "enrolled" status', () => {
+    const act = createActivity({ userId: 'a@b.com', title: 'X', status: 'enrolled' });
+    expect(act.status).toBe('enrolled');
+  });
+
+  it('preserves "completed" status', () => {
+    const act = createActivity({ userId: 'a@b.com', title: 'X', status: 'completed' });
+    expect(act.status).toBe('completed');
+  });
+
+  it('accepts arbitrary string status (no validation enforced)', () => {
+    const act = createActivity({ userId: 'a@b.com', title: 'X', status: 'custom_status' });
+    expect(act.status).toBe('custom_status');
   });
 });

@@ -7,7 +7,7 @@
 import {
   getUsers, getUser, getActivities, getConfig,
   getUsersWithPoints,
-  upsertUser, addActivity,
+  upsertUser, addActivity, replaceActivity,
   selectedFiles, log, getCurrentMonth,
   formatNumber, autoSave,
   importCourseFile, importTeamsFile, deduplicateBatch, esc,
@@ -33,26 +33,37 @@ export async function processAllFiles() {
 
   log('Starting multi-file processing...');
   document.getElementById('importResults').classList.remove('hidden');
+  setImportSpinner(true);
 
   let totalProcessed = 0, totalActivities = 0;
 
-  for (const file of selectedFiles.course) {
-    const r = await processCourseFile(file);
-    totalProcessed += r.processed; totalActivities += r.activities;
-  }
-  for (const file of selectedFiles.teams) {
-    const r = await processTeamsFile(file);
-    totalProcessed += r.processed; totalActivities += r.activities;
-  }
+  try {
+    for (const file of selectedFiles.course) {
+      const r = await processCourseFile(file);
+      totalProcessed += r.processed; totalActivities += r.activities;
+    }
+    for (const file of selectedFiles.teams) {
+      const r = await processTeamsFile(file);
+      totalProcessed += r.processed; totalActivities += r.activities;
+    }
 
-  log(`Multi-file processing complete! ${totalActivities} activities from ${totalProcessed} records`);
-  updateImportStats(totalProcessed, totalActivities, 0);
-  if (refreshDashboard) refreshDashboard();
-  autoSave();
+    log(`Multi-file processing complete! ${totalActivities} activities from ${totalProcessed} records`);
+    updateImportStats(totalProcessed, totalActivities, 0);
+    if (refreshDashboard) refreshDashboard();
+    autoSave();
 
-  selectedFiles.course = []; selectedFiles.teams = [];
-  updateFileList('course', []); updateFileList('teams', []);
-  document.getElementById('processBtn').disabled = true;
+    selectedFiles.course = []; selectedFiles.teams = [];
+    updateFileList('course', []); updateFileList('teams', []);
+    document.getElementById('processBtn').disabled = true;
+  } finally {
+    setImportSpinner(false);
+  }
+}
+
+function setImportSpinner(active) {
+  const el = document.getElementById('importSpinner');
+  if (!el) return;
+  el.classList.toggle('hidden', !active);
 }
 
 async function processCourseFile(file) {
@@ -84,24 +95,28 @@ async function processTeamsFile(file) {
 }
 
 function commitImportResult(result) {
-  const { accepted } = deduplicateBatch(result.activities, getActivities());
+  const { accepted, upgrades, stats } = deduplicateBatch(result.activities, getActivities());
 
   for (const activity of accepted) addActivity(activity);
+  for (const activity of upgrades) replaceActivity(activity);
 
   for (const user of result.users) {
     if (!getUser(user.email)) upsertUser(user);
   }
 
-  if (accepted.length > 0) log(`Dedup: ${accepted.length} accepted, ${result.activities.length - accepted.length} duplicates skipped`);
+  const parts = [`${stats.accepted} accepted`];
+  if (stats.upgraded > 0) parts.push(`${stats.upgraded} upgraded`);
+  if (stats.duplicatesSkipped > 0) parts.push(`${stats.duplicatesSkipped} duplicates skipped`);
+  log(`Dedup: ${parts.join(', ')}`);
 }
 
 function updateImportStats(totalProcessed, totalActivities, totalInProgress) {
   const users = getUsersWithPoints();
   document.getElementById('importStats').innerHTML = `
-    <div class="bg-blue-50 p-4 rounded-lg text-center"><div class="text-2xl font-bold text-blue-600">${formatNumber(totalProcessed)}</div><div class="text-sm text-blue-800">Records Processed</div></div>
-    <div class="bg-green-50 p-4 rounded-lg text-center"><div class="text-2xl font-bold text-green-600">${formatNumber(totalActivities)}</div><div class="text-sm text-green-800">Completed Activities</div></div>
-    <div class="bg-orange-50 p-4 rounded-lg text-center"><div class="text-2xl font-bold text-orange-600">${formatNumber(totalInProgress)}</div><div class="text-sm text-orange-800">In Progress</div></div>
-    <div class="bg-purple-50 p-4 rounded-lg text-center"><div class="text-2xl font-bold text-purple-600">${formatNumber(Object.keys(users).length)}</div><div class="text-sm text-purple-800">Total Users</div></div>
-    <div class="bg-indigo-50 p-4 rounded-lg text-center"><div class="text-2xl font-bold text-indigo-600">${formatNumber(Object.values(users).reduce((s, u) => s + (u.totalPoints || 0), 0))}</div><div class="text-sm text-indigo-800">Points Awarded</div></div>
+    <div class="cc-metric"><div class="cc-metric-label">Processed</div><div class="cc-metric-value">${formatNumber(totalProcessed)}</div></div>
+    <div class="cc-metric"><div class="cc-metric-label">Completed</div><div class="cc-metric-value">${formatNumber(totalActivities)}</div></div>
+    <div class="cc-metric"><div class="cc-metric-label">In Progress</div><div class="cc-metric-value">${formatNumber(totalInProgress)}</div></div>
+    <div class="cc-metric"><div class="cc-metric-label">Total Users</div><div class="cc-metric-value">${formatNumber(Object.keys(users).length)}</div></div>
+    <div class="cc-metric"><div class="cc-metric-label">Points Awarded</div><div class="cc-metric-value">${formatNumber(Object.values(users).reduce((s, u) => s + (u.totalPoints || 0), 0))}</div></div>
   `;
 }

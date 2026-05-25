@@ -1,10 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   DEFAULT_POINT_CONFIG,
-  calculateCoursePoints,
-  calculateQuizBonus,
-  calculateHackathonPoints,
-  calculateMeetingPoints,
+  calculateActivityPoints,
   getTotalPoints,
   getMonthPoints,
   getCampaignPoints,
@@ -12,261 +9,67 @@ import {
 
 // ── Helpers ─────────────────────────────────────────────────────────
 
-/** Shallow-clone default config with optional overrides. */
-function configWith(overrides) {
-  return {
-    awsCourseTypes:  { ...DEFAULT_POINT_CONFIG.awsCourseTypes,  ...overrides?.awsCourseTypes },
-    generalCourses:  { ...DEFAULT_POINT_CONFIG.generalCourses,  ...overrides?.generalCourses },
-    events:          { ...DEFAULT_POINT_CONFIG.events,          ...overrides?.events },
-    hackathons:      { ...DEFAULT_POINT_CONFIG.hackathons,      ...overrides?.hackathons },
-    quizzes:         { ...DEFAULT_POINT_CONFIG.quizzes,         ...overrides?.quizzes },
-  };
-}
-
-/** Minimal activity with only the fields the aggregation functions read. */
 function activity(points, completedDate = '2026-04-15T00:00:00Z', userId = 'a@b.com') {
   return { pointsEarned: points, completedDate, userId };
 }
 
 const cfg = DEFAULT_POINT_CONFIG;
 
-// ── calculateCoursePoints ───────────────────────────────────────────
+// ── calculateActivityPoints ─────────────────────────────────────────
 
-describe('calculateCoursePoints', () => {
-  // AWS course types — exact match
-  it('awards 100pts for AWS Builder Lab', () => {
-    expect(calculateCoursePoints('AWS Builder Lab', '', cfg)).toBe(100);
+describe('calculateActivityPoints', () => {
+  it('looks up selfPacedDigital values', () => {
+    expect(calculateActivityPoints('selfPacedDigital', 'Skill Builder Course', cfg)).toBe(50);
+    expect(calculateActivityPoints('selfPacedDigital', 'Skill Builder Learning Plan', cfg)).toBe(150);
+    expect(calculateActivityPoints('selfPacedDigital', 'Cloud Quest Role', cfg)).toBe(100);
+    expect(calculateActivityPoints('selfPacedDigital', 'Escape Room Challenge', cfg)).toBe(75);
+    expect(calculateActivityPoints('selfPacedDigital', 'Foundational Training Pkg', cfg)).toBe(100);
+    expect(calculateActivityPoints('selfPacedDigital', 'Quiz Completion', cfg)).toBe(25);
   });
 
-  it('awards 75pts for AWS Cloud Quest', () => {
-    expect(calculateCoursePoints('AWS Cloud Quest', '', cfg)).toBe(75);
+  it('looks up liveLearning values', () => {
+    expect(calculateActivityPoints('liveLearning', 'Live Webinar', cfg)).toBe(25);
+    expect(calculateActivityPoints('liveLearning', 'Workshop First Hour', cfg)).toBe(30);
+    expect(calculateActivityPoints('liveLearning', 'Workshop Full + Hands-on', cfg)).toBe(75);
+    expect(calculateActivityPoints('liveLearning', 'Office Hours Session', cfg)).toBe(20);
+    expect(calculateActivityPoints('liveLearning', 'Office Hours Q Submitted', cfg)).toBe(10);
+    expect(calculateActivityPoints('liveLearning', 'Hands-on Challenge', cfg)).toBe(50);
   });
 
-  it('awards 150pts for AWS Jam Journey', () => {
-    expect(calculateCoursePoints('AWS Jam Journey', '', cfg)).toBe(150);
+  it('looks up certifications values', () => {
+    expect(calculateActivityPoints('certifications', 'Cloud Practitioner', cfg)).toBe(200);
+    expect(calculateActivityPoints('certifications', 'AI Practitioner', cfg)).toBe(200);
+    expect(calculateActivityPoints('certifications', 'Associate Cert', cfg)).toBe(300);
+    expect(calculateActivityPoints('certifications', 'Professional/Specialty Cert', cfg)).toBe(500);
+    expect(calculateActivityPoints('certifications', 'AWS Jam Challenge', cfg)).toBe(100);
   });
 
-  it('awards 75pts for AWS Simulearn', () => {
-    expect(calculateCoursePoints('AWS Simulearn', '', cfg)).toBe(75);
+  it('looks up gamifiedEvents values', () => {
+    expect(calculateActivityPoints('gamifiedEvents', 'Participate Event', cfg)).toBe(50);
+    expect(calculateActivityPoints('gamifiedEvents', 'Top 3 Bonus', cfg)).toBe(100);
+    expect(calculateActivityPoints('gamifiedEvents', 'Participate Hackathon', cfg)).toBe(100);
+    expect(calculateActivityPoints('gamifiedEvents', 'Hackathon Prototype Bonus', cfg)).toBe(200);
   });
 
-  it('awards 100pts for Certification Exam Preparation', () => {
-    expect(calculateCoursePoints('Certification Exam Preparation', '', cfg)).toBe(100);
+  it('looks up communityEngagement values', () => {
+    expect(calculateActivityPoints('communityEngagement', 'Join Channel', cfg)).toBe(10);
+    expect(calculateActivityPoints('communityEngagement', 'First Question', cfg)).toBe(10);
+    expect(calculateActivityPoints('communityEngagement', 'Share Resource', cfg)).toBe(15);
+    expect(calculateActivityPoints('communityEngagement', 'Champion Knowledge-sharing', cfg)).toBe(25);
+    expect(calculateActivityPoints('communityEngagement', 'Survey Feedback', cfg)).toBe(10);
   });
 
-  it('awards 100pts for Digital Course With Lab', () => {
-    expect(calculateCoursePoints('Digital Course With Lab', '', cfg)).toBe(100);
+  it('returns 0 for unknown category', () => {
+    expect(calculateActivityPoints('nonexistent', 'anything', cfg)).toBe(0);
   });
 
-  // General categories — level-based fallback
-  it('awards 100pts for Classroom Training regardless of level', () => {
-    expect(calculateCoursePoints('Classroom Training', '', cfg)).toBe(100);
-    expect(calculateCoursePoints('Classroom Training', 'fundamental', cfg)).toBe(100);
-    expect(calculateCoursePoints('Classroom Training', 'advanced', cfg)).toBe(100);
-  });
-
-  it('awards 50pts for Foundational digital course', () => {
-    expect(calculateCoursePoints('', 'fundamental', cfg)).toBe(50);
-  });
-
-  it('awards 75pts for Associate digital course', () => {
-    expect(calculateCoursePoints('', 'intermediate', cfg)).toBe(75);
-  });
-
-  it('awards 100pts for Professional digital course', () => {
-    expect(calculateCoursePoints('', 'advanced', cfg)).toBe(100);
-  });
-
-  it('awards 100pts for Specialty digital course', () => {
-    expect(calculateCoursePoints('', 'specialty', cfg)).toBe(100);
-  });
-
-  // Default fallback
-  it('falls back to 50pts (Foundational) when courseType and level are empty', () => {
-    expect(calculateCoursePoints('', '', cfg)).toBe(50);
-  });
-
-  // Case-insensitive matching
-  it('is case-insensitive on exact courseType matching', () => {
-    expect(calculateCoursePoints('aws builder lab', '', cfg)).toBe(100);
-    expect(calculateCoursePoints('AWS BUILDER LAB', '', cfg)).toBe(100);
-    expect(calculateCoursePoints('Aws Builder Lab', '', cfg)).toBe(100);
-  });
-
-  it('is case-insensitive on keyword substring matching', () => {
-    expect(calculateCoursePoints('My Cloud Quest Course', '', cfg)).toBe(75);
-    expect(calculateCoursePoints('my CLOUD QUEST course', '', cfg)).toBe(75);
-  });
-
-  it('is case-insensitive on level matching', () => {
-    expect(calculateCoursePoints('', 'FUNDAMENTAL', cfg)).toBe(50);
-    expect(calculateCoursePoints('', 'Intermediate', cfg)).toBe(75);
-    expect(calculateCoursePoints('', 'ADVANCED', cfg)).toBe(100);
-  });
-
-  // Keyword substring matching
-  it('matches "Builder Lab" as substring in longer courseType', () => {
-    expect(calculateCoursePoints('Some Builder Lab v2', '', cfg)).toBe(100);
-  });
-
-  it('matches "With Lab" as substring', () => {
-    expect(calculateCoursePoints('Advanced Digital Course With Lab 2026', '', cfg)).toBe(100);
-  });
-
-  it('matches "Classroom" as substring', () => {
-    expect(calculateCoursePoints('Classroom Workshop', '', cfg)).toBe(100);
-  });
-
-  // Keyword priority: first match wins
-  it('prefers keyword match over level fallback', () => {
-    // courseType contains "Classroom" -> 100, even though level says fundamental (50)
-    expect(calculateCoursePoints('Classroom', 'fundamental', cfg)).toBe(100);
-  });
-
-  // Custom config
-  it('respects custom config values over defaults', () => {
-    const custom = configWith({ awsCourseTypes: { 'AWS Builder Lab': 999 } });
-    expect(calculateCoursePoints('AWS Builder Lab', '', custom)).toBe(999);
-  });
-
-  // Null/undefined inputs
-  it('handles null courseType without throwing', () => {
-    expect(calculateCoursePoints(null, '', cfg)).toBe(50);
-  });
-
-  it('handles undefined courseType without throwing', () => {
-    expect(calculateCoursePoints(undefined, '', cfg)).toBe(50);
-  });
-
-  it('handles null level without throwing', () => {
-    expect(calculateCoursePoints('', null, cfg)).toBe(50);
-  });
-
-  it('handles undefined level without throwing', () => {
-    expect(calculateCoursePoints('', undefined, cfg)).toBe(50);
-  });
-
-  it('handles both null without throwing', () => {
-    expect(calculateCoursePoints(null, null, cfg)).toBe(50);
-  });
-
-  // Whitespace-only inputs
-  it('treats whitespace-only courseType as empty', () => {
-    expect(calculateCoursePoints('   ', '', cfg)).toBe(50);
-  });
-
-  // Unrecognised courseType with no valid level
-  it('falls back to Foundational for unrecognised courseType with no level', () => {
-    expect(calculateCoursePoints('Totally Unknown Course', '', cfg)).toBe(50);
-  });
-
-  // Unrecognised courseType but valid level
-  it('falls back to level-based points for unrecognised courseType', () => {
-    expect(calculateCoursePoints('Unknown Course', 'advanced', cfg)).toBe(100);
-  });
-});
-
-// ── calculateQuizBonus ──────────────────────────────────────────────
-
-describe('calculateQuizBonus', () => {
-  it('awards 20pts base for any quiz completion (low score)', () => {
-    expect(calculateQuizBonus(42, cfg)).toBe(20);
-  });
-
-  it('awards 20pts for score of 0', () => {
-    expect(calculateQuizBonus(0, cfg)).toBe(20);
-  });
-
-  it('does NOT award 80% bonus for score of 79', () => {
-    expect(calculateQuizBonus(79, cfg)).toBe(20);
-  });
-
-  it('awards 80% bonus for score of exactly 80', () => {
-    expect(calculateQuizBonus(80, cfg)).toBe(50);
-  });
-
-  it('awards 80% bonus for score of 99', () => {
-    expect(calculateQuizBonus(99, cfg)).toBe(50);
-  });
-
-  it('awards perfect bonus for score of 100', () => {
-    expect(calculateQuizBonus(100, cfg)).toBe(70);
-  });
-
-  it('handles null score (base points only, no throw)', () => {
-    expect(calculateQuizBonus(null, cfg)).toBe(20);
-  });
-
-  it('handles undefined score (base points only, no throw)', () => {
-    expect(calculateQuizBonus(undefined, cfg)).toBe(20);
+  it('returns 0 for unknown subCategory', () => {
+    expect(calculateActivityPoints('selfPacedDigital', 'nonexistent', cfg)).toBe(0);
   });
 
   it('respects custom config values', () => {
-    const custom = configWith({ quizzes: {
-      'Quiz Completion': 10,
-      'Quiz 80%+ Score': 30,
-      'Quiz Perfect Score': 50,
-    }});
-    expect(calculateQuizBonus(100, custom)).toBe(50);
-    expect(calculateQuizBonus(85, custom)).toBe(30);
-    expect(calculateQuizBonus(50, custom)).toBe(10);
-  });
-});
-
-// ── calculateHackathonPoints ────────────────────────────────────────
-
-describe('calculateHackathonPoints', () => {
-  it('awards 450pts for 1st place', () => {
-    expect(calculateHackathonPoints(1, cfg)).toBe(450);
-  });
-
-  it('awards 350pts for 2nd place', () => {
-    expect(calculateHackathonPoints(2, cfg)).toBe(350);
-  });
-
-  it('awards 250pts for 3rd place', () => {
-    expect(calculateHackathonPoints(3, cfg)).toBe(250);
-  });
-
-  it('awards 150pts for participation (null placement)', () => {
-    expect(calculateHackathonPoints(null, cfg)).toBe(150);
-  });
-
-  it('awards 150pts for participation (undefined placement)', () => {
-    expect(calculateHackathonPoints(undefined, cfg)).toBe(150);
-  });
-
-  it('awards participation points for placement > 3', () => {
-    expect(calculateHackathonPoints(4, cfg)).toBe(150);
-    expect(calculateHackathonPoints(10, cfg)).toBe(150);
-  });
-
-  it('awards participation points for placement 0', () => {
-    expect(calculateHackathonPoints(0, cfg)).toBe(150);
-  });
-
-  it('respects config overrides', () => {
-    const custom = configWith({ hackathons: {
-      'Hackathons - Participation': 100,
-      'Hackathons - 3rd Place': 200,
-      'Hackathons - 2nd Place': 300,
-      'Hackathons - 1st Place': 500,
-    }});
-    expect(calculateHackathonPoints(1, custom)).toBe(500);
-    expect(calculateHackathonPoints(null, custom)).toBe(100);
-  });
-});
-
-// ── calculateMeetingPoints ──────────────────────────────────────────
-
-describe('calculateMeetingPoints', () => {
-  it('awards 25pts for a meeting', () => {
-    expect(calculateMeetingPoints(cfg)).toBe(25);
-  });
-
-  it('respects config overrides', () => {
-    const custom = configWith({ events: { 'Live Events': 50 } });
-    expect(calculateMeetingPoints(custom)).toBe(50);
+    const custom = { ...cfg, selfPacedDigital: { ...cfg.selfPacedDigital, 'Cloud Quest Role': 999 } };
+    expect(calculateActivityPoints('selfPacedDigital', 'Cloud Quest Role', custom)).toBe(999);
   });
 });
 
@@ -284,6 +87,14 @@ describe('getTotalPoints', () => {
 
   it('returns correct total for single activity', () => {
     expect(getTotalPoints([activity(42)], cfg)).toBe(42);
+  });
+
+  it('skips non-completed activities', () => {
+    const acts = [
+      activity(50),
+      { pointsEarned: 100, completedDate: null, userId: 'x@y.com', status: 'in_progress' },
+    ];
+    expect(getTotalPoints(acts, cfg)).toBe(50);
   });
 });
 
@@ -339,62 +150,42 @@ describe('getCampaignPoints', () => {
   ];
 
   it('counts only activities within campaign date range', () => {
-    // Only Feb and March activities
     const result = getCampaignPoints(
-      campaignActivities,
-      [alice, bob, charlie],
-      '2026-02-01T00:00:00Z',
-      '2026-03-31T23:59:59Z',
-      cfg,
+      campaignActivities, [alice, bob, charlie],
+      '2026-02-01T00:00:00Z', '2026-03-31T23:59:59Z', cfg,
     );
-    // alice 75 + bob 100 + charlie 30 = 205
     expect(result).toBe(205);
   });
 
   it('counts only activities from eligible participantIds', () => {
-    // All dates, but only alice
     const result = getCampaignPoints(
-      campaignActivities,
-      [alice],
-      '2026-01-01T00:00:00Z',
-      '2026-12-31T23:59:59Z',
-      cfg,
+      campaignActivities, [alice],
+      '2026-01-01T00:00:00Z', '2026-12-31T23:59:59Z', cfg,
     );
-    // alice: 50 + 75 + 25 = 150
     expect(result).toBe(150);
   });
 
   it('returns 0 when no activities fall within range', () => {
     const result = getCampaignPoints(
-      campaignActivities,
-      [alice, bob],
-      '2027-01-01T00:00:00Z',
-      '2027-12-31T23:59:59Z',
-      cfg,
+      campaignActivities, [alice, bob],
+      '2027-01-01T00:00:00Z', '2027-12-31T23:59:59Z', cfg,
     );
     expect(result).toBe(0);
   });
 
   it('returns 0 when participantIds is empty', () => {
     const result = getCampaignPoints(
-      campaignActivities,
-      [],
-      '2026-01-01T00:00:00Z',
-      '2026-12-31T23:59:59Z',
-      cfg,
+      campaignActivities, [],
+      '2026-01-01T00:00:00Z', '2026-12-31T23:59:59Z', cfg,
     );
     expect(result).toBe(0);
   });
 
-  it('handles open-ended campaign (null endDate) — counts all from startDate onwards', () => {
+  it('handles open-ended campaign (null endDate)', () => {
     const result = getCampaignPoints(
-      campaignActivities,
-      [alice, bob, charlie],
-      '2026-03-01T00:00:00Z',
-      null,
-      cfg,
+      campaignActivities, [alice, bob, charlie],
+      '2026-03-01T00:00:00Z', null, cfg,
     );
-    // bob 100 + alice 25 = 125
     expect(result).toBe(125);
   });
 
@@ -407,8 +198,7 @@ describe('getCampaignPoints', () => {
       activity(50, '2026-02-15T00:00:00Z', alice),
       { pointsEarned: 100, completedDate: null, userId: alice },
     ];
-    const result = getCampaignPoints(acts, [alice], '2026-01-01', null, cfg);
-    expect(result).toBe(50);
+    expect(getCampaignPoints(acts, [alice], '2026-01-01', null, cfg)).toBe(50);
   });
 
   it('uses inclusive boundaries for startDate and endDate', () => {
@@ -416,44 +206,7 @@ describe('getCampaignPoints', () => {
       activity(10, '2026-03-01T00:00:00Z', alice),
       activity(20, '2026-03-31T23:59:59Z', alice),
     ];
-    const result = getCampaignPoints(
-      acts,
-      [alice],
-      '2026-03-01T00:00:00Z',
-      '2026-03-31T23:59:59Z',
-      cfg,
-    );
-    expect(result).toBe(30);
-  });
-
-  it('excludes activity exactly before startDate', () => {
-    const acts = [
-      activity(10, '2026-02-28T23:59:59Z', alice),
-      activity(20, '2026-03-01T00:00:00Z', alice),
-    ];
-    const result = getCampaignPoints(
-      acts,
-      [alice],
-      '2026-03-01T00:00:00Z',
-      '2026-03-31T23:59:59Z',
-      cfg,
-    );
-    expect(result).toBe(20);
-  });
-
-  it('excludes activity exactly after endDate', () => {
-    const acts = [
-      activity(20, '2026-03-31T23:59:59Z', alice),
-      activity(10, '2026-04-01T00:00:00Z', alice),
-    ];
-    const result = getCampaignPoints(
-      acts,
-      [alice],
-      '2026-03-01T00:00:00Z',
-      '2026-03-31T23:59:59Z',
-      cfg,
-    );
-    expect(result).toBe(20);
+    expect(getCampaignPoints(acts, [alice], '2026-03-01T00:00:00Z', '2026-03-31T23:59:59Z', cfg)).toBe(30);
   });
 });
 
@@ -462,20 +215,19 @@ describe('getCampaignPoints', () => {
 describe('DEFAULT_POINT_CONFIG', () => {
   it('is frozen (not accidentally mutatable)', () => {
     expect(Object.isFrozen(DEFAULT_POINT_CONFIG)).toBe(true);
-    expect(Object.isFrozen(DEFAULT_POINT_CONFIG.awsCourseTypes)).toBe(true);
-    expect(Object.isFrozen(DEFAULT_POINT_CONFIG.generalCourses)).toBe(true);
-    expect(Object.isFrozen(DEFAULT_POINT_CONFIG.events)).toBe(true);
-    expect(Object.isFrozen(DEFAULT_POINT_CONFIG.hackathons)).toBe(true);
-    expect(Object.isFrozen(DEFAULT_POINT_CONFIG.quizzes)).toBe(true);
+    expect(Object.isFrozen(DEFAULT_POINT_CONFIG.selfPacedDigital)).toBe(true);
+    expect(Object.isFrozen(DEFAULT_POINT_CONFIG.liveLearning)).toBe(true);
+    expect(Object.isFrozen(DEFAULT_POINT_CONFIG.certifications)).toBe(true);
+    expect(Object.isFrozen(DEFAULT_POINT_CONFIG.gamifiedEvents)).toBe(true);
+    expect(Object.isFrozen(DEFAULT_POINT_CONFIG.communityEngagement)).toBe(true);
   });
 
-  it('has all 18 expected point values', () => {
-    const total = Object.keys(DEFAULT_POINT_CONFIG.awsCourseTypes).length
-      + Object.keys(DEFAULT_POINT_CONFIG.generalCourses).length
-      + Object.keys(DEFAULT_POINT_CONFIG.events).length
-      + Object.keys(DEFAULT_POINT_CONFIG.hackathons).length
-      + Object.keys(DEFAULT_POINT_CONFIG.quizzes).length;
-    // 6 AWS + 5 general + 1 event + 4 hackathon + 3 quiz = 19
-    expect(total).toBe(19);
+  it('has all 26 expected point values', () => {
+    const total = Object.keys(DEFAULT_POINT_CONFIG.selfPacedDigital).length
+      + Object.keys(DEFAULT_POINT_CONFIG.liveLearning).length
+      + Object.keys(DEFAULT_POINT_CONFIG.certifications).length
+      + Object.keys(DEFAULT_POINT_CONFIG.gamifiedEvents).length
+      + Object.keys(DEFAULT_POINT_CONFIG.communityEngagement).length;
+    expect(total).toBe(26);
   });
 });

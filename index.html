@@ -6,199 +6,128 @@
     <title>Cloud Comp - Learning Gamification Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <style>
-        .tab-button {
-            @apply px-4 py-2 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors;
-        }
-        .tab-button.active {
-            @apply bg-blue-500 text-white border-blue-500;
-        }
-        .scroll-table {
-            max-height: 500px;
-            overflow-y: auto;
-        }
-        .status-indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-        }
-        .status-success { background-color: #10b981; }
-        .status-warning { background-color: #f59e0b; }
-        .status-error { background-color: #ef4444; }
-        .card-hover:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s ease;
-        }
-        .sort-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-        @media (max-width: 768px) {
-            .sort-controls {
-                justify-content: center;
-                margin-bottom: 1rem;
-            }
-        }
-        /* Smooth scrolling for manual navigation */
-        html {
-            scroll-behavior: smooth;
-        }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/src/styles/design-tokens.css">
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="min-h-screen" style="background: var(--cc-bg);">
     <!-- Header -->
-    <header class="bg-white shadow-sm border-b">
-        <div class="max-w-7xl mx-auto px-6 py-4">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900">☁️ Cloud Comp <span class="text-base font-normal text-gray-500 ml-2">v1.2</span></h1>
-                    <h2 class="text-lg font-medium text-gray-700 mb-1">Learning Gamification Admin</h2>
-                    <p class="text-sm text-gray-600">Manage learning activities, points, and leaderboards</p>
+    <header class="cc-header">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="cc-header-title">Cloud Comp</span>
+                <span class="text-xs text-gray-400">v1.2</span>
+                <div id="dataStatus" class="flex items-center text-xs text-gray-500 ml-4">
+                    <div class="status-indicator status-warning"></div>
+                    <span>No data loaded</span>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <div id="dataStatus" class="flex items-center text-sm">
-                        <div class="status-indicator status-warning"></div>
-                        <span>No data loaded</span>
-                    </div>
-                    <button data-action="showTab" data-tab="import" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">
-                        📤 Import Data
-                    </button>
-                    <button data-action="exportData" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
-                        📥 Export Data
-                    </button>
-                    <button data-action="showTab" data-tab="manual" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm">
-                        📖 Readme
-                    </button>
-                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button data-action="showTab" data-tab="import" class="cc-btn cc-btn-ghost">Import</button>
+                <button data-action="showTab" data-tab="manual" class="cc-btn cc-btn-ghost">Docs</button>
             </div>
         </div>
     </header>
 
-    <div class="max-w-7xl mx-auto px-6 py-8">
+    <div class="max-w-7xl mx-auto px-6 pt-4 pb-8">
         <!-- Navigation Tabs -->
-        <nav class="mb-8">
-            <div class="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-                <button id="dashboardTab" data-action="showTab" data-tab="dashboard" class="tab-button active">
-                    📊 Dashboard
-                </button>
-                <button id="importTab" data-action="showTab" data-tab="import" class="tab-button">
-                    📁 Import Data
-                </button>
-                <button id="usersTab" data-action="showTab" data-tab="users" class="tab-button">
-                    👥 Users
-                </button>
-                <button id="teamsTab" data-action="showTab" data-tab="teams" class="tab-button">
-                    🏢 Teams
-                </button>
-                <button id="activitiesTab" data-action="showTab" data-tab="activities" class="tab-button">
-                    📚 Activities
-                </button>
-                <button id="configTab" data-action="showTab" data-tab="config" class="tab-button">
-                    ⚙️ Configuration
-                </button>
-                <button id="reportsTab" data-action="showTab" data-tab="reports" class="tab-button">
-                    📈 Reports
-                </button>
-                <button id="manualTab" data-action="showTab" data-tab="manual" class="tab-button">
-                    📖 Manual
-                </button>
-            </div>
+        <nav class="cc-tabs">
+            <button id="dashboardTab" data-action="showTab" data-tab="dashboard" class="tab-button active">Dashboard</button>
+            <button id="importTab" data-action="showTab" data-tab="import" class="tab-button">Import</button>
+            <button id="usersTab" data-action="showTab" data-tab="users" class="tab-button">Users</button>
+            <button id="teamsTab" data-action="showTab" data-tab="teams" class="tab-button">Teams</button>
+            <button id="campaignsTab" data-action="showTab" data-tab="campaigns" class="tab-button">Campaigns</button>
+            <button id="activitiesTab" data-action="showTab" data-tab="activities" class="tab-button">Activities</button>
+            <button id="configTab" data-action="showTab" data-tab="config" class="tab-button">Configuration</button>
+            <button id="reportsTab" data-action="showTab" data-tab="reports" class="tab-button">Reports</button>
+            <button id="manualTab" data-action="showTab" data-tab="manual" class="tab-button">Manual</button>
         </nav>
 
         <!-- Dashboard Tab -->
         <div id="dashboardSection" class="tab-content">
+            <!-- Empty state (shown when no data) -->
+            <div id="dashboardEmpty" class="cc-empty-state" style="min-height: 60vh;">
+                <div class="cc-empty-state-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 0 0 4.5 4.5H18a3.75 3.75 0 0 0 .75-7.425A4.502 4.502 0 0 0 14.25 7.5a4.5 4.5 0 0 0-8.486 2.108A4.501 4.501 0 0 0 2.25 15Z" />
+                    </svg>
+                </div>
+                <div class="cc-empty-state-title">Nothing to track yet</div>
+                <p class="cc-empty-state-text">Import your AWS training data to get started with leaderboards and team competitions.</p>
+                <button data-action="showTab" data-tab="import" class="cc-btn cc-btn-primary">Import Data</button>
+            </div>
+
+            <div id="dashboardContent" style="display:none;">
             <!-- Quick Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
-                <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Total Users</p>
-                            <p id="totalUsers" class="text-3xl font-bold text-blue-600">0</p>
-                        </div>
-                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <span class="text-2xl">👥</span>
-                        </div>
-                    </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div class="cc-metric">
+                    <div class="cc-metric-label">Total Users</div>
+                    <div id="totalUsers" class="cc-metric-value">0</div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Total Teams</p>
-                            <p id="totalTeams" class="text-3xl font-bold text-teal-600">0</p>
-                        </div>
-                        <div class="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center">
-                            <span class="text-2xl">🏢</span>
-                        </div>
-                    </div>
+                <div class="cc-metric">
+                    <div class="cc-metric-label">Total Teams</div>
+                    <div id="totalTeams" class="cc-metric-value">0</div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Completed</p>
-                            <p id="completedActivities" class="text-3xl font-bold text-green-600">0</p>
-                        </div>
-                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                            <span class="text-2xl">✅</span>
-                        </div>
-                    </div>
+                <div class="cc-metric">
+                    <div class="cc-metric-label">Completed</div>
+                    <div id="completedActivities" class="cc-metric-value">0</div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">In Progress</p>
-                            <p id="inProgressActivities" class="text-3xl font-bold text-orange-600">0</p>
-                        </div>
-                        <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                            <span class="text-2xl">🔄</span>
-                        </div>
-                    </div>
+                <div class="cc-metric">
+                    <div class="cc-metric-label">Points Awarded</div>
+                    <div id="totalPointsAwarded" class="cc-metric-value">0</div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">Points Awarded</p>
-                            <p id="totalPointsAwarded" class="text-3xl font-bold text-purple-600">0</p>
-                        </div>
-                        <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                            <span class="text-2xl">🎯</span>
-                        </div>
-                    </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="cc-metric">
+                    <div class="cc-metric-label">This Month</div>
+                    <div id="currentMonthActivities" class="cc-metric-value">0</div>
                 </div>
-                <div class="bg-white rounded-xl shadow-sm p-6 card-hover">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600">This Month</p>
-                            <p id="currentMonthActivities" class="text-3xl font-bold text-indigo-600">0</p>
-                        </div>
-                        <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                            <span class="text-2xl">📅</span>
-                        </div>
-                    </div>
+                <div class="cc-metric">
+                    <div class="cc-metric-label">This Quarter</div>
+                    <div id="currentQuarterActivities" class="cc-metric-value">0</div>
+                </div>
+                <div class="cc-metric">
+                    <div class="cc-metric-label">This Year</div>
+                    <div id="currentYearActivities" class="cc-metric-value">0</div>
                 </div>
             </div>
 
-            <!-- Current Month Leaderboards -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            <!-- Activity Overview -->
+            <div class="cc-card mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="cc-section-title" style="margin-bottom:0;">Activity Overview</div>
+                    <div id="dashboardFilterIndicator" style="display:none;"></div>
+                </div>
+                <div id="activityCharts" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </div>
+
+            <!-- Leaderboards + Recent -->
+            <div class="flex items-center justify-between mb-4">
+                <div id="dashboardSubTabs" class="cc-tabs" style="border-bottom:none;margin-bottom:0;">
+                    <button class="tab-button active" data-action="setDashboardSubTab" data-tab="users">Users</button>
+                    <button id="dashSubTabTeams" class="tab-button" data-action="setDashboardSubTab" data-tab="teams">Teams</button>
+                    <button id="dashSubTabCampaigns" class="tab-button" data-action="setDashboardSubTab" data-tab="campaigns">Campaigns</button>
+                </div>
+                <div id="timePeriodToggle" class="sort-controls">
+                    <button class="cc-sort-btn active" data-action="setDashboardTimePeriod" data-period="month">Month</button>
+                    <button class="cc-sort-btn" data-action="setDashboardTimePeriod" data-period="quarter">Quarter</button>
+                    <button class="cc-sort-btn" data-action="setDashboardTimePeriod" data-period="year">Year</button>
+                    <button class="cc-sort-btn" data-action="setDashboardTimePeriod" data-period="overall">Overall</button>
+                </div>
+            </div>
+
+            <div id="dashLeaderboardArea" class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
                 <!-- User Leaderboard -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900">🏆 Top Users This Month</h3>
-                        <button data-action="resetMonthlyLeaderboard" class="text-sm bg-red-50 text-red-600 px-3 py-1 rounded-lg hover:bg-red-100">
-                            Reset Month
-                        </button>
+                <div id="dashUserLeaderboard" class="cc-card-flush">
+                    <div class="px-5 py-4">
+                        <span class="cc-section-title" style="margin-bottom:0;">Top Users</span>
                     </div>
                     <div class="scroll-table">
-                        <table class="w-full">
-                            <thead class="bg-gray-50">
+                        <table class="cc-table">
+                            <thead>
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Rank</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">User</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Points</th>
+                                    <th>Rank</th>
+                                    <th>User</th>
+                                    <th>Points</th>
                                 </tr>
                             </thead>
                             <tbody id="leaderboardBody"></tbody>
@@ -207,21 +136,19 @@
                 </div>
 
                 <!-- Team Leaderboard -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900">🏆 Top Teams This Month</h3>
-                        <button data-action="showTab" data-tab="teams" class="text-sm bg-teal-50 text-teal-600 px-3 py-1 rounded-lg hover:bg-teal-100">
-                            Manage Teams
-                        </button>
+                <div id="dashTeamLeaderboard" class="cc-card-flush" style="display:none;">
+                    <div class="flex items-center justify-between px-5 py-4">
+                        <span class="cc-section-title" style="margin-bottom:0;">Top Teams</span>
+                        <button data-action="showTab" data-tab="teams" class="text-xs" style="color:var(--cc-text-muted);">Manage</button>
                     </div>
                     <div class="scroll-table">
-                        <table class="w-full">
-                            <thead class="bg-gray-50">
+                        <table class="cc-table">
+                            <thead>
                                 <tr>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Rank</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Team</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Members</th>
-                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500">Points</th>
+                                    <th>Rank</th>
+                                    <th>Team</th>
+                                    <th>Members</th>
+                                    <th>Points</th>
                                 </tr>
                             </thead>
                             <tbody id="teamLeaderboardBody"></tbody>
@@ -230,108 +157,124 @@
                 </div>
 
                 <!-- Recent Activities -->
-                <div class="bg-white rounded-xl shadow-sm p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">📈 Recent Activities</h3>
-                    <div class="scroll-table">
-                        <div id="recentActivities" class="space-y-3"></div>
+                <div class="cc-card-flush">
+                    <div class="px-5 py-4">
+                        <span class="cc-section-title" style="margin-bottom:0;">Recent Activities</span>
+                    </div>
+                    <div class="scroll-table px-5 pb-4">
+                        <div id="recentActivities" class="space-y-2"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Charts Placeholder -->
-            <div class="bg-white rounded-xl shadow-sm p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Activity Overview</h3>
-                <div id="activityCharts" class="grid grid-cols-1 md:grid-cols-3 gap-6"></div>
+            <!-- Campaign Panel (shown when Campaigns sub-tab is active) -->
+            <div id="dashCampaignPanel" class="cc-card-flush mb-6" style="display:none;">
+                <div class="flex items-center justify-between px-5 py-4 gap-4 flex-wrap">
+                    <span class="cc-section-title" style="margin-bottom:0;">Campaign</span>
+                    <select id="dashCampaignSelect" data-action="setDashboardCampaign" data-trigger="change"
+                            class="cc-select" style="min-width:14rem;"></select>
+                </div>
+                <div id="dashCampaignSummary" class="px-5 pb-3 text-sm" style="color:var(--cc-text-muted);"></div>
+                <div id="dashCampaignMetrics" class="grid grid-cols-2 md:grid-cols-4 gap-3 px-5 pb-4"></div>
+                <div class="scroll-table">
+                    <table class="cc-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>User</th>
+                                <th>Points</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashCampaignLeaderboardBody"></tbody>
+                    </table>
+                </div>
             </div>
+            </div><!-- /dashboardContent -->
         </div>
 
         <!-- Import Tab -->
         <div id="importSection" class="tab-content hidden">
-            <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
-                <h2 class="text-xl font-semibold text-gray-900 mb-6">📁 Import Learning Data</h2>
-                
-                <!-- File Upload Areas -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                    <!-- Course Activity Files -->
-                    <div class="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center bg-blue-50">
-                        <input type="file" id="courseFiles" accept=".xlsx,.csv" multiple class="hidden">
-                        <div class="mb-4">
-                            <span class="text-4xl">📚</span>
-                        </div>
-                        <button data-action="clickCourseFiles" 
-                                class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium mb-3">
-                            Choose Course Activity / Classroom Training Files
-                        </button>
-                        <p class="text-sm text-gray-600 mb-2">Upload Excel/CSV files with course completions or classroom training attendance</p>
-                        <div id="courseFileList" class="text-sm text-blue-600"></div>
+            <div class="cc-card-flush mb-6">
+                <!-- Header -->
+                <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--cc-border);">
+                    <div>
+                        <h2 class="cc-section-title" style="margin-bottom:0.125rem;">Import Learning Data</h2>
+                        <p class="text-xs" style="color:var(--cc-text-muted);">Upload course activity files and Teams meeting attendance to import.</p>
                     </div>
-                    
-                    <!-- Teams Meeting Files -->
-                    <div class="border-2 border-dashed border-green-300 rounded-lg p-8 text-center bg-green-50">
-                        <input type="file" id="teamsFiles" accept=".csv,.xlsx" multiple class="hidden">
-                        <div class="mb-4">
-                            <span class="text-4xl">👥</span>
-                        </div>
-                        <button data-action="clickTeamsFiles" 
-                                class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium mb-3">
-                            Choose Multiple Teams Meeting Files
-                        </button>
-                        <p class="text-sm text-gray-600 mb-2">Upload multiple CSV files with meeting attendance data</p>
-                        <div id="teamsFileList" class="text-sm text-green-600"></div>
-                    </div>
+                    <button id="processBtn" data-action="processAllFiles" class="cc-btn cc-btn-primary" disabled>Process All Files</button>
                 </div>
-                
-                <!-- Process Button -->
-                <div class="text-center">
-                    <button id="processBtn" data-action="processAllFiles" 
-                            class="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 rounded-lg font-semibold text-lg disabled:bg-gray-400 disabled:cursor-not-allowed" 
-                            disabled>
-                        🚀 Process All Files
-                    </button>
+
+                <div class="px-6">
+                    <input type="file" id="courseFiles" accept=".xlsx,.csv" multiple class="hidden">
+                    <input type="file" id="teamsFiles" accept=".csv,.xlsx" multiple class="hidden">
+
+                    <div class="cc-settings-row">
+                        <div class="cc-settings-label">
+                            <h4>Course Activities</h4>
+                            <p>Excel/CSV files with course completions or classroom training attendance</p>
+                            <div id="courseFileList" class="text-xs mt-1" style="color:var(--cc-accent);"></div>
+                        </div>
+                        <div class="cc-settings-control" style="width:auto;">
+                            <button data-action="clickCourseFiles" class="cc-btn cc-btn-ghost">Choose Files</button>
+                        </div>
+                    </div>
+
+                    <div class="cc-settings-row" style="border-bottom:none;">
+                        <div class="cc-settings-label">
+                            <h4>MS Teams Meetings</h4>
+                            <p>CSV files with meeting attendance data</p>
+                            <div id="teamsFileList" class="text-xs mt-1" style="color:var(--cc-accent);"></div>
+                        </div>
+                        <div class="cc-settings-control" style="width:auto;">
+                            <button data-action="clickTeamsFiles" class="cc-btn cc-btn-ghost">Choose Files</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Import Results -->
-            <div id="importResults" class="hidden bg-white rounded-xl shadow-sm p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">📊 Import Results</h3>
-                <div id="importStats" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6"></div>
-                <div class="bg-gray-100 p-4 rounded-lg">
-                    <h4 class="font-medium mb-2">Processing Log</h4>
-                    <div id="importLog" class="bg-white p-3 rounded font-mono text-sm h-64 overflow-y-auto"></div>
+            <div id="importResults" class="hidden">
+                <div id="importStats" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4"></div>
+                <div class="cc-card-flush">
+                    <div class="px-6 py-3 flex items-center gap-2" style="border-bottom:1px solid var(--cc-border);">
+                        <span class="cc-section-title" style="margin-bottom:0;">Processing Log</span>
+                        <svg id="importSpinner" class="animate-spin hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-label="Processing" style="width:1rem;height:1rem;color:var(--cc-accent);">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" opacity="0.25"></circle>
+                            <path fill="currentColor" opacity="0.85" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                    </div>
+                    <div class="px-6 py-3">
+                        <div id="importLog" style="font-family:ui-monospace,SFMono-Regular,monospace;font-size:0.75rem;color:var(--cc-text-secondary);max-height:16rem;overflow-y:auto;line-height:1.6;"></div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Users Tab -->
         <div id="usersSection" class="tab-content hidden">
-            <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="cc-card">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-semibold text-gray-900">👥 User Management</h2>
                     <div class="flex items-center space-x-4 flex-wrap">
                         <div class="sort-controls">
                             <span class="text-sm text-gray-600">Sort by:</span>
                             <button data-action="toggleUserSort" data-field="currentMonthPoints" 
-                                    class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    class="cc-sort-btn"
                                     id="sortCurrentMonth">
                                 This Month 📊
                             </button>
                             <button data-action="toggleUserSort" data-field="totalPoints" 
-                                    class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    class="cc-sort-btn"
                                     id="sortTotal">
                                 Total Points 🎯
                             </button>
                             <button data-action="toggleUserSortOrder" 
-                                    class="px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 transition-colors"
+                                    class="cc-sort-btn active"
                                     id="sortOrderUser">
                                 Most First ⬇️
                             </button>
                         </div>
-                        <input type="text" id="userSearch" placeholder="Search users..." 
-                               class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               data-action="filterUsers" data-trigger="keyup">
-                        <button data-action="addManualPoints" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
-                            ➕ Add Points
-                        </button>
+                        <input type="text" id="userSearch" placeholder="Search users..." class="cc-input" style="width:14rem;" data-action="filterUsers" data-trigger="keyup">
                     </div>
                 </div>
                 
@@ -350,13 +293,13 @@
                             </button>
                         </div>
                         <div class="flex items-center space-x-3">
-                            <button data-action="bulkAwardPoints" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm">
+                            <button data-action="bulkAwardPoints" class="cc-btn cc-btn-primary">
                                 🎁 Award Points
                             </button>
-                            <button data-action="bulkAssignTeam" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg text-sm">
+                            <button data-action="bulkAssignTeam" class="cc-btn cc-btn-primary">
                                 🏢 Assign to Team
                             </button>
-                            <button data-action="bulkExportUsers" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm">
+                            <button data-action="bulkExportUsers" class="cc-btn cc-btn-primary">
                                 📥 Export Selected
                             </button>
                         </div>
@@ -364,18 +307,17 @@
                 </div>
                 
                 <div class="scroll-table">
-                    <table class="w-full">
-                        <thead class="bg-gray-50">
+                    <table class="cc-table">
+                        <thead>
                             <tr>
                                 <th class="px-4 py-3 text-left">
                                     <input type="checkbox" id="selectAllUsersCheckbox" data-action="toggleSelectAllUsers" class="rounded">
                                 </th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">User</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Current Month</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Total Points</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Activities</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Last Activity</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
+                                <th class="px-4 py-3 text-left">User</th>
+                                <th class="px-4 py-3 text-left">Current Month</th>
+                                <th class="px-4 py-3 text-left">Total Points</th>
+                                <th class="px-4 py-3 text-left">Activities</th>
+                                <th class="px-4 py-3 text-left">Last Activity</th>
                             </tr>
                         </thead>
                         <tbody id="usersTableBody"></tbody>
@@ -386,52 +328,50 @@
 
         <!-- Teams Tab -->
         <div id="teamsSection" class="tab-content hidden">
-            <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="cc-card">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-semibold text-gray-900">🏢 Team Management</h2>
                     <div class="flex items-center space-x-4 flex-wrap">
                         <div class="sort-controls">
                             <span class="text-sm text-gray-600">Sort by:</span>
                             <button data-action="toggleTeamSort" data-field="members" 
-                                    class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    class="cc-sort-btn"
                                     id="sortMembers">
                                 Members 👥
                             </button>
                             <button data-action="toggleTeamSort" data-field="currentMonthPoints" 
-                                    class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    class="cc-sort-btn"
                                     id="sortTeamCurrentMonth">
                                 This Month 📊
                             </button>
                             <button data-action="toggleTeamSort" data-field="totalPoints" 
-                                    class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    class="cc-sort-btn"
                                     id="sortTeamTotal">
                                 Total Points 🎯
                             </button>
                             <button data-action="toggleTeamSortOrder" 
-                                    class="px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 transition-colors"
+                                    class="cc-sort-btn active"
                                     id="sortOrderTeam">
                                 Most First ⬇️
                             </button>
                         </div>
-                        <input type="text" id="teamSearch" placeholder="Search teams..." 
-                               class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                               data-action="filterTeams" data-trigger="keyup">
-                        <button data-action="openCreateTeamModal" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">
+                        <input type="text" id="teamSearch" placeholder="Search teams..." class="cc-input" style="width:14rem;" data-action="filterTeams" data-trigger="keyup">
+                        <button data-action="openCreateTeamModal" class="cc-btn cc-btn-primary">
                             ➕ Create Team
                         </button>
                     </div>
                 </div>
                 
                 <div class="scroll-table">
-                    <table class="w-full">
-                        <thead class="bg-gray-50">
+                    <table class="cc-table">
+                        <thead>
                             <tr>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Team Name</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Members</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Current Month</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Total Points</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Created</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
+                                <th class="px-4 py-3 text-left">Team Name</th>
+                                <th class="px-4 py-3 text-left">Members</th>
+                                <th class="px-4 py-3 text-left">Current Month</th>
+                                <th class="px-4 py-3 text-left">Total Points</th>
+                                <th class="px-4 py-3 text-left">Created</th>
+                                <th class="px-4 py-3 text-left">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="teamsTableBody"></tbody>
@@ -440,26 +380,132 @@
             </div>
         </div>
 
+        <!-- Campaigns Tab -->
+        <div id="campaignsSection" class="tab-content hidden">
+            <!-- Campaign List -->
+            <div id="campaignListSection">
+                <div class="cc-card">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">🏆 Campaign Management</h2>
+                        <div class="flex items-center space-x-4 flex-wrap">
+                            <div class="sort-controls">
+                                <span class="text-sm text-gray-600">Sort by:</span>
+                                <button data-action="toggleCampaignSort" data-field="startDate" id="sortCampaignStartDate"
+                                        class="cc-sort-btn">
+                                    Start Date
+                                </button>
+                                <button data-action="toggleCampaignSort" data-field="status" id="sortCampaignStatus"
+                                        class="cc-sort-btn">
+                                    Status
+                                </button>
+                                <button data-action="toggleCampaignSort" data-field="name" id="sortCampaignName"
+                                        class="cc-sort-btn">
+                                    Name
+                                </button>
+                                <button data-action="toggleCampaignSortOrder" id="sortOrderCampaign"
+                                        class="cc-sort-btn active">
+                                    Newest First
+                                </button>
+                            </div>
+                            <input type="text" id="campaignSearch" placeholder="Search campaigns..." class="cc-input" style="width:14rem;" data-action="filterCampaigns" data-trigger="keyup">
+                            <button data-action="openCreateCampaignModal" class="cc-btn cc-btn-primary">
+                                + Create Campaign
+                            </button>
+                        </div>
+                    </div>
+                    <div class="scroll-table">
+                        <table class="cc-table">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-3 text-left">Campaign</th>
+                                    <th class="px-4 py-3 text-left">Status</th>
+                                    <th class="px-4 py-3 text-left">Start Date</th>
+                                    <th class="px-4 py-3 text-left">End Date</th>
+                                    <th class="px-4 py-3 text-left">Participants</th>
+                                    <th class="px-4 py-3 text-left">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="campaignsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- Campaign Detail (hidden by default) -->
+            <div id="campaignDetailSection" class="hidden">
+                <div class="cc-card">
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <button data-action="closeCampaignDetail" class="text-indigo-600 hover:text-indigo-800 text-sm mb-2">&larr; Back to Campaigns</button>
+                            <h2 id="campaignDetailName" class="text-xl font-semibold text-gray-900"></h2>
+                            <p id="campaignDetailDescription" class="text-sm text-gray-600 mt-1"></p>
+                        </div>
+                        <div id="campaignDetailActions" class="flex items-center space-x-2"></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <span class="text-xs text-gray-500">Status</span>
+                            <div id="campaignDetailStatus" class="font-medium"></div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <span class="text-xs text-gray-500">Start Date</span>
+                            <div id="campaignDetailStartDate" class="font-medium"></div>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-3">
+                            <span class="text-xs text-gray-500">End Date</span>
+                            <div id="campaignDetailEndDate" class="font-medium"></div>
+                        </div>
+                    </div>
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Individual Leaderboard</h3>
+                        <table class="cc-table">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-3 text-left">Rank</th>
+                                    <th class="px-4 py-3 text-left">Name</th>
+                                    <th class="px-4 py-3 text-left">Points</th>
+                                </tr>
+                            </thead>
+                            <tbody id="campaignUserLeaderboardBody"></tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Team Leaderboard</h3>
+                        <table class="cc-table">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-3 text-left">Rank</th>
+                                    <th class="px-4 py-3 text-left">Team</th>
+                                    <th class="px-4 py-3 text-left">Members</th>
+                                    <th class="px-4 py-3 text-left">Points</th>
+                                </tr>
+                            </thead>
+                            <tbody id="campaignTeamLeaderboardBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Activities Tab -->
         <div id="activitiesSection" class="tab-content hidden">
-            <div class="bg-white rounded-xl shadow-sm p-6">
+            <div class="cc-card">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-xl font-semibold text-gray-900">📚 Activity Management</h2>
                     <div class="flex items-center space-x-4 flex-wrap">
                         <div class="sort-controls">
                             <span class="text-sm text-gray-600">Sort by:</span>
                             <button data-action="toggleActivitySort" data-field="pointsEarned" 
-                                    class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    class="cc-sort-btn"
                                     id="sortPoints">
                                 Points 🎯
                             </button>
                             <button data-action="toggleActivitySort" data-field="completedDate" 
-                                    class="px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+                                    class="cc-sort-btn"
                                     id="sortDate">
                                 Date 📅
                             </button>
                             <button data-action="toggleActivitySortOrder" 
-                                    class="px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300 hover:bg-blue-200 transition-colors"
+                                    class="cc-sort-btn active"
                                     id="sortOrderActivity">
                                 Most/Recent First ⬇️
                             </button>
@@ -470,9 +516,8 @@
                             <option value="courses">Courses Only</option>
                             <option value="events">Events Only</option>
                         </select>
-                        <input type="text" id="activitySearch" placeholder="Search activities..." 
-                               class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                               data-action="filterActivities" data-trigger="keyup">
+                        <input type="text" id="activitySearch" placeholder="Search activities..." class="cc-input" style="width:14rem;" data-action="filterActivities" data-trigger="keyup">
+                        <button data-action="addManualPoints" class="cc-btn cc-btn-primary">Add Points</button>
                     </div>
                 </div>
                 
@@ -497,7 +542,7 @@
                             <button data-action="bulkDeleteActivities" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm">
                                 🗑️ Delete Selected
                             </button>
-                            <button data-action="bulkExportActivities" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm">
+                            <button data-action="bulkExportActivities" class="cc-btn cc-btn-primary">
                                 📥 Export Selected
                             </button>
                         </div>
@@ -505,20 +550,20 @@
                 </div>
                 
                 <div class="scroll-table">
-                    <table class="w-full">
-                        <thead class="bg-gray-50">
+                    <table class="cc-table">
+                        <thead>
                             <tr>
                                 <th class="px-4 py-3 text-left">
                                     <input type="checkbox" id="selectAllActivitiesCheckbox" data-action="toggleSelectAllActivities" class="rounded">
                                 </th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">User</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Activity</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Type</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Level</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Points</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Date</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Source</th>
-                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
+                                <th class="px-4 py-3 text-left">User</th>
+                                <th class="px-4 py-3 text-left">Activity</th>
+                                <th class="px-4 py-3 text-left">Type</th>
+                                <th class="px-4 py-3 text-left">Level</th>
+                                <th class="px-4 py-3 text-left">Points</th>
+                                <th class="px-4 py-3 text-left">Status</th>
+                                <th class="px-4 py-3 text-left">Date</th>
+                                <th class="px-4 py-3 text-left">Source</th>
                             </tr>
                         </thead>
                         <tbody id="activitiesTableBody"></tbody>
@@ -529,873 +574,517 @@
 
         <!-- Configuration Tab -->
         <div id="configSection" class="tab-content hidden">
-            <!-- Point Configuration (same as POC but enhanced) -->
-            <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
-                <h2 class="text-xl font-semibold text-gray-900 mb-6">⚙️ Point Configuration</h2>
-                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <h4 class="font-medium text-blue-900 mb-2">💡 Configuration Guide</h4>
-                    <p class="text-sm text-blue-800">
-                        Configure points for specific course types and activities. Changes are automatically saved and applied to future imports.
-                    </p>
-                </div>
-
-                <!-- AWS Course Types -->
-                <div class="mb-8">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">🔧 AWS Course Types</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">AWS Builder Lab</label>
-                            <input type="number" id="awsBuilderLab" value="100" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">AWS Cloud Quest</label>
-                            <input type="number" id="awsCloudQuest" value="75" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">AWS Jam Journey</label>
-                            <input type="number" id="awsJamJourney" value="150" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">AWS Simulearn</label>
-                            <input type="number" id="awsSimulearn" value="75" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Certification Exam Preparation</label>
-                            <input type="number" id="certExamPrep" value="100" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Digital Course With Lab</label>
-                            <input type="number" id="digitalCourseWithLab" value="100" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- General Course Categories -->
-                <div class="mb-8">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">📚 General Course Categories</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Classroom Training</label>
-                            <input type="number" id="classroomTraining" value="100" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Digital Courses - Foundational</label>
-                            <input type="number" id="digitalFoundational" value="50" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Digital Courses - Associate</label>
-                            <input type="number" id="digitalAssociate" value="75" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Digital Courses - Professional</label>
-                            <input type="number" id="digitalProfessional" value="100" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Digital Courses - Specialty</label>
-                            <input type="number" id="digitalSpecialty" value="100" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Events and Activities -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                    <!-- Events -->
+            <div class="cc-card-flush mb-6">
+                <!-- Header -->
+                <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--cc-border);">
                     <div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">🎉 Events</h3>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Live Events</label>
-                            <input type="number" id="liveEvents" value="25" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
+                        <h2 class="cc-section-title" style="margin-bottom:0.125rem;">Point Configuration</h2>
+                        <p class="text-xs" style="color:var(--cc-text-muted);">Points awarded per activity type. Applied to future imports.</p>
                     </div>
-
-                    <!-- Quizzes -->
-                    <div>
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">🧠 Quizzes</h3>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Quiz Completion</label>
-                                <input type="number" id="quizCompletion" value="20" 
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                       data-action="updatePointConfig" data-trigger="change">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Quiz 80%+ Score</label>
-                                <input type="number" id="quiz80Plus" value="50" 
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                       data-action="updatePointConfig" data-trigger="change">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Quiz Perfect Score</label>
-                                <input type="number" id="quizPerfect" value="70" 
-                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                       data-action="updatePointConfig" data-trigger="change">
-                            </div>
-                        </div>
+                    <div class="flex items-center gap-3">
+                        <div id="configStatus" class="text-xs" style="color:var(--cc-positive);"></div>
+                        <button data-action="saveConfiguration" class="cc-btn cc-btn-primary">Save Changes</button>
                     </div>
                 </div>
 
-                <!-- Hackathons -->
-                <div class="mb-8">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">🏆 Hackathons</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Participation</label>
-                            <input type="number" id="hackathonParticipation" value="150" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">3rd Place</label>
-                            <input type="number" id="hackathon3rd" value="250" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">2nd Place</label>
-                            <input type="number" id="hackathon2nd" value="350" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">1st Place</label>
-                            <input type="number" id="hackathon1st" value="450" 
-                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" 
-                                   data-action="updatePointConfig" data-trigger="change">
-                        </div>
-                    </div>
+                <!-- Self-Paced Digital Training -->
+                <div class="px-6 py-3" style="background:var(--cc-bg);border-bottom:1px solid var(--cc-border);">
+                    <span class="text-xs font-medium" style="color:var(--cc-text-muted);text-transform:uppercase;letter-spacing:0.05em;">Self-Paced Digital Training</span>
+                </div>
+                <div class="px-6">
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Skill Builder Course</h4><p>Self-paced AWS Skill Builder course</p></div><div class="cc-settings-control"><input type="number" id="cfgSkillBuilderCourse" value="50" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Skill Builder Learning Plan</h4><p>Complete a full learning plan on Skill Builder</p></div><div class="cc-settings-control"><input type="number" id="cfgSkillBuilderPlan" value="150" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Cloud Quest Role</h4><p>Complete a Cloud Quest role (Cloud Practitioner, Solutions Architect, etc.)</p></div><div class="cc-settings-control"><input type="number" id="cfgCloudQuestRole" value="100" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Escape Room Challenge</h4><p>Complete an AWS Escape Room challenge</p></div><div class="cc-settings-control"><input type="number" id="cfgEscapeRoom" value="75" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Foundational Training Package</h4><p>Complete assigned foundational training (mandatory for immature teams)</p></div><div class="cc-settings-control"><input type="number" id="cfgFoundationalPkg" value="100" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Quiz Completion</h4><p>Complete a quiz or Card Clash challenge</p></div><div class="cc-settings-control"><input type="number" id="cfgQuizCompletion" value="25" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
                 </div>
 
-                <!-- Configuration Actions -->
-                <div class="bg-gray-50 rounded-lg p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h4 class="font-medium text-gray-900">Configuration Management</h4>
-                            <p class="text-sm text-gray-600">Save, reset, or export your point configuration</p>
+                <!-- Live Learning Sessions -->
+                <div class="px-6 py-3" style="background:var(--cc-bg);border-top:1px solid var(--cc-border);border-bottom:1px solid var(--cc-border);">
+                    <span class="text-xs font-medium" style="color:var(--cc-text-muted);text-transform:uppercase;letter-spacing:0.05em;">Live Learning Sessions</span>
+                </div>
+                <div class="px-6">
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Live Webinar</h4><p>Attend a live webinar (full session)</p></div><div class="cc-settings-control"><input type="number" id="cfgLiveWebinar" value="25" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Workshop First Hour</h4><p>Attend the theory/basics portion of a workshop</p></div><div class="cc-settings-control"><input type="number" id="cfgWorkshopFirst" value="30" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Workshop Full + Hands-on</h4><p>Attend full session including hands-on deep dive</p></div><div class="cc-settings-control"><input type="number" id="cfgWorkshopFull" value="75" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Office Hours Session</h4><p>Attend an office hours session</p></div><div class="cc-settings-control"><input type="number" id="cfgOfficeHours" value="20" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Office Hours Question</h4><p>Submit a question to office hours in advance</p></div><div class="cc-settings-control"><input type="number" id="cfgOfficeHoursQ" value="10" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Hands-on Challenge</h4><p>Complete a hands-on challenge during a workshop</p></div><div class="cc-settings-control"><input type="number" id="cfgHandsOnChallenge" value="50" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                </div>
+
+                <!-- Certifications & Exams -->
+                <div class="px-6 py-3" style="background:var(--cc-bg);border-top:1px solid var(--cc-border);border-bottom:1px solid var(--cc-border);">
+                    <span class="text-xs font-medium" style="color:var(--cc-text-muted);text-transform:uppercase;letter-spacing:0.05em;">Certifications &amp; Exams</span>
+                </div>
+                <div class="px-6">
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Cloud Practitioner</h4><p>Pass AWS Cloud Practitioner (CCP) certification</p></div><div class="cc-settings-control"><input type="number" id="cfgCloudPractitioner" value="200" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>AI Practitioner</h4><p>Pass AWS AI Practitioner certification</p></div><div class="cc-settings-control"><input type="number" id="cfgAIPractitioner" value="200" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Associate Certification</h4><p>Pass any AWS Associate-level certification</p></div><div class="cc-settings-control"><input type="number" id="cfgAssociateCert" value="300" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Professional / Specialty</h4><p>Pass any AWS Professional or Specialty certification</p></div><div class="cc-settings-control"><input type="number" id="cfgProSpecCert" value="500" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>AWS Jam Challenge</h4><p>Complete an AWS Jam challenge (individual or team)</p></div><div class="cc-settings-control"><input type="number" id="cfgJamChallenge" value="100" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                </div>
+
+                <!-- Gamified Events & Challenges -->
+                <div class="px-6 py-3" style="background:var(--cc-bg);border-top:1px solid var(--cc-border);border-bottom:1px solid var(--cc-border);">
+                    <span class="text-xs font-medium" style="color:var(--cc-text-muted);text-transform:uppercase;letter-spacing:0.05em;">Gamified Events &amp; Challenges</span>
+                </div>
+                <div class="px-6">
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Participate in Event</h4><p>Participate in a Jam, Cloud Quest group, or Escape Room event</p></div><div class="cc-settings-control"><input type="number" id="cfgParticipateEvent" value="50" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Top 3 Bonus</h4><p>Finish in the top 3 of a gamified event</p></div><div class="cc-settings-control"><input type="number" id="cfgTop3Bonus" value="100" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Hackathon Participation</h4><p>Participate in a hackathon or innovation sprint</p></div><div class="cc-settings-control"><input type="number" id="cfgParticipateHack" value="100" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Hackathon Prototype</h4><p>Submit a working prototype at a hackathon</p></div><div class="cc-settings-control"><input type="number" id="cfgHackPrototype" value="200" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                </div>
+
+                <!-- Community Engagement -->
+                <div class="px-6 py-3" style="background:var(--cc-bg);border-top:1px solid var(--cc-border);border-bottom:1px solid var(--cc-border);">
+                    <span class="text-xs font-medium" style="color:var(--cc-text-muted);text-transform:uppercase;letter-spacing:0.05em;">Community Engagement</span>
+                </div>
+                <div class="px-6">
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Join Community Channel</h4><p>Join the Cloud Incubator community channel (one-time)</p></div><div class="cc-settings-control"><input type="number" id="cfgJoinChannel" value="10" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>First Question</h4><p>Ask a question in the community channel (one-time)</p></div><div class="cc-settings-control"><input type="number" id="cfgFirstQuestion" value="10" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Share Resource</h4><p>Share a learning resource or tip in the community (max 2x/month)</p></div><div class="cc-settings-control"><input type="number" id="cfgShareResource" value="15" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row"><div class="cc-settings-label"><h4>Champion Knowledge-sharing</h4><p>Attend a champion-hosted knowledge-sharing session</p></div><div class="cc-settings-control"><input type="number" id="cfgChampionKnowledge" value="25" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                    <div class="cc-settings-row" style="border-bottom:none;"><div class="cc-settings-label"><h4>Survey Feedback</h4><p>Provide feedback via post-session survey (max 1x/session)</p></div><div class="cc-settings-control"><input type="number" id="cfgSurveyFeedback" value="10" class="cc-input" data-action="updatePointConfig" data-trigger="change"></div></div>
+                </div>
+            </div>
+
+            <!-- Reset All Data -->
+            <div class="cc-card-flush">
+                <div class="px-6">
+                    <div class="cc-settings-row" style="border-bottom:none;">
+                        <div class="cc-settings-label">
+                            <h4 style="color:var(--cc-negative);">Reset All Data</h4>
+                            <p>Permanently delete all users, teams, activities, campaigns, and configuration. This cannot be undone.</p>
                         </div>
-                        <div class="flex space-x-3">
-                            <button data-action="resetToDefaults" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
-                                🔄 Reset Defaults
-                            </button>
-                            <button data-action="exportConfig" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
-                                📥 Export Config
-                            </button>
-                            <button data-action="saveConfiguration" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
-                                💾 Save Changes
-                            </button>
+                        <div class="cc-settings-control" style="width:auto;">
+                            <button data-action="openResetDataModal" class="cc-btn cc-btn-danger">Reset</button>
                         </div>
                     </div>
-                    <div id="configStatus" class="mt-2 text-sm text-green-600"></div>
                 </div>
             </div>
         </div>
 
         <!-- Reports Tab -->
         <div id="reportsSection" class="tab-content hidden">
-            <div class="space-y-8">
-                <!-- Export Options -->
-                <div class="bg-white rounded-xl shadow-sm p-8">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-6">📈 Reports & Export</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <button data-action="generateLeaderboardReport" class="bg-purple-500 hover:bg-purple-600 text-white p-6 rounded-lg text-center">
-                            <div class="text-2xl mb-2">🏆</div>
-                            <div class="font-medium">Leaderboard Report</div>
-                            <div class="text-sm opacity-90">Current month rankings</div>
-                        </button>
-                        <button data-action="generateActivityReport" class="bg-blue-500 hover:bg-blue-600 text-white p-6 rounded-lg text-center">
-                            <div class="text-2xl mb-2">📊</div>
-                            <div class="font-medium">Activity Report</div>
-                            <div class="text-sm opacity-90">All user activities</div>
-                        </button>
-                        <button data-action="generateSummaryReport" class="bg-green-500 hover:bg-green-600 text-white p-6 rounded-lg text-center">
-                            <div class="text-2xl mb-2">📋</div>
-                            <div class="font-medium">Summary Report</div>
-                            <div class="text-sm opacity-90">Overall statistics</div>
-                        </button>
-                    </div>
+            <!-- Sub-tabs + Search -->
+            <div class="flex items-center justify-between mb-4">
+                <div id="reportsSubTabs" class="cc-tabs" style="border-bottom:none;margin-bottom:0;">
+                    <button class="tab-button active" data-action="setReportsSubTab" data-tab="users">Users</button>
+                    <button id="reportsSubTabTeams" class="tab-button" data-action="setReportsSubTab" data-tab="teams">Teams</button>
                 </div>
-
-                <!-- Monthly Reset -->
-                <div class="bg-white rounded-xl shadow-sm p-8">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">📅 Monthly Reset</h3>
-                    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-                        <p class="text-sm text-yellow-800">
-                            <strong>Warning:</strong> This will reset all current month points and create a backup of the current leaderboard.
-                        </p>
-                    </div>
-                    <button data-action="confirmMonthlyReset" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg">
-                        🔄 Reset Monthly Leaderboard
-                    </button>
+                <div class="relative">
+                    <input id="reportsSearch" class="cc-input" style="width:14rem;" placeholder="Search users..." data-action="filterReportEntities" data-trigger="keyup">
+                    <div id="reportsSearchResults" class="absolute right-0 mt-1 w-full bg-white border rounded-lg shadow-lg z-10 max-h-64 overflow-y-auto" style="display:none;border-color:var(--cc-border);"></div>
                 </div>
             </div>
+
+            <!-- Selected entity indicator -->
+            <div id="reportsFilterIndicator" style="display:none;" class="mb-4"></div>
+
+            <!-- Summary metrics -->
+            <div id="reportsSummary" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6"></div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                <div class="cc-card">
+                    <div class="cc-section-title">Monthly Performance (YTD)</div>
+                    <canvas id="ytdChart" height="250"></canvas>
+                </div>
+                <div class="cc-card">
+                    <div class="cc-section-title">Course Type Breakdown</div>
+                    <canvas id="courseChart" height="250"></canvas>
+                </div>
+            </div>
+
         </div>
 
         <!-- Manual Tab -->
         <div id="manualSection" class="tab-content hidden">
-            <div class="max-w-4xl mx-auto">
-                <!-- Manual Header -->
-                <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-4">📖 Cloud Comp User Manual</h1>
-                    <p class="text-lg text-gray-600">Complete guide to using the Learning Gamification Platform</p>
+            <div class="flex gap-8 max-w-6xl mx-auto">
+
+            <!-- Main content -->
+            <div class="cc-docs flex-1 min-w-0">
+
+                <h1>Cloud Comp User Manual</h1>
+                <p>Complete guide to the Learning Gamification Platform. This documentation covers setup, data import, user and team management, point configuration, campaigns, and reporting.</p>
+
+                <h2 id="getting-started">Getting Started</h2>
+
+                <h3>System Requirements</h3>
+                <ul>
+                    <li>Modern web browser (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)</li>
+                    <li>JavaScript enabled</li>
+                    <li>Local storage enabled (for data persistence)</li>
+                    <li>No server or installation required</li>
+                </ul>
+
+                <h3>First Time Setup</h3>
+                <ol>
+                    <li>Open <code>index.html</code> in your browser</li>
+                    <li>The application will automatically initialize with empty data</li>
+                    <li>Start by importing existing data or creating teams manually</li>
+                    <li>Data automatically saves to your browser's local storage</li>
+                </ol>
+
+                <div class="cc-callout">
+                    <p><strong>Tip:</strong> Bookmark the application for quick access. All your data persists between sessions.</p>
                 </div>
 
-                <!-- Table of Contents -->
-                <div class="bg-white rounded-xl shadow-sm p-6 mb-8">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4">📑 Table of Contents</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <a href="#getting-started" data-action="scrollToSection" data-section="getting-started" class="text-blue-600 hover:text-blue-800">1. Getting Started</a>
-                        <a href="#dashboard" data-action="scrollToSection" data-section="dashboard" class="text-blue-600 hover:text-blue-800">2. Dashboard Overview</a>
-                        <a href="#importing" data-action="scrollToSection" data-section="importing" class="text-blue-600 hover:text-blue-800">3. Importing Data</a>
-                        <a href="#users" data-action="scrollToSection" data-section="users" class="text-blue-600 hover:text-blue-800">4. Managing Users</a>
-                        <a href="#teams" data-action="scrollToSection" data-section="teams" class="text-blue-600 hover:text-blue-800">5. Managing Teams</a>
-                        <a href="#activities" data-action="scrollToSection" data-section="activities" class="text-blue-600 hover:text-blue-800">6. Managing Activities</a>
-                        <a href="#configuration" data-action="scrollToSection" data-section="configuration" class="text-blue-600 hover:text-blue-800">7. Point Configuration</a>
-                        <a href="#reports" data-action="scrollToSection" data-section="reports" class="text-blue-600 hover:text-blue-800">8. Reports & Exports</a>
-                        <a href="#tips" data-action="scrollToSection" data-section="tips" class="text-blue-600 hover:text-blue-800">9. Tips & Best Practices</a>
-                        <a href="#troubleshooting" data-action="scrollToSection" data-section="troubleshooting" class="text-blue-600 hover:text-blue-800">10. Troubleshooting</a>
-                    </div>
+                <h2 id="dashboard">Dashboard Overview</h2>
+
+                <h3>Key Metrics</h3>
+                <table class="cc-field-table">
+                    <thead><tr><th>Metric</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>Total Users</strong></td><td>Number of registered learners</td></tr>
+                        <tr><td><strong>Total Teams</strong></td><td>Number of created teams</td></tr>
+                        <tr><td><strong>Completed</strong></td><td>Total completed activities</td></tr>
+                        <tr><td><strong>Points Awarded</strong></td><td>Total points across all users</td></tr>
+                        <tr><td><strong>This Month</strong></td><td>Activities completed in the current calendar month</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>Leaderboards</h3>
+                <ul>
+                    <li><strong>User Leaderboard</strong> &mdash; Top 10 individual performers for the current month</li>
+                    <li><strong>Team Leaderboard</strong> &mdash; Top 5 teams based on combined member points</li>
+                    <li>Both leaderboards reset monthly with an archive download option</li>
+                </ul>
+
+                <h3>Recent Activities</h3>
+                <p>Shows the 10 most recent completed activities with user name, title, date, and points earned.</p>
+
+                <h2 id="importing">Importing Data</h2>
+
+                <h3>Course Activity Files</h3>
+                <p>Upload Excel (.xlsx) or CSV files with course completion data. The importer auto-detects the format.</p>
+
+                <table class="cc-field-table">
+                    <thead><tr><th>Column</th><th>Required</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>Email</code></td><td>Yes</td><td>User's email address</td></tr>
+                        <tr><td><code>Course ID</code></td><td>Yes</td><td>Unique course identifier</td></tr>
+                        <tr><td><code>Course Title</code></td><td>Yes</td><td>Name of the course</td></tr>
+                        <tr><td><code>Status</code></td><td>Yes</td><td>COMPLETED or IN PROGRESS</td></tr>
+                        <tr><td><code>Level</code></td><td>No</td><td>fundamental / intermediate / advanced / specialty</td></tr>
+                        <tr><td><code>CourseType</code></td><td>No</td><td>AWS Cloud Quest, Digital Course, etc.</td></tr>
+                        <tr><td><code>Completed on</code></td><td>Yes*</td><td>Completion date (for completed courses)</td></tr>
+                        <tr><td><code>Score</code></td><td>No</td><td>Quiz score (0&ndash;100)</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>Classroom Training (ILT) Files</h3>
+                <p>ILT files are auto-detected by their format: Name, Email, Status columns without a Course ID.</p>
+                <table class="cc-field-table">
+                    <thead><tr><th>Column</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>Name</code></td><td>Attendee's full name</td></tr>
+                        <tr><td><code>Email</code></td><td>Attendee's email address</td></tr>
+                        <tr><td><code>Status</code></td><td>Completed / Not Completed</td></tr>
+                    </tbody>
+                </table>
+                <p>Classroom training awards <strong>100 points</strong> per session.</p>
+
+                <h3>Teams Meeting Files</h3>
+                <p>CSV exports from Microsoft Teams. The parser extracts meeting titles and attendee emails. Each attendee receives <strong>25 points</strong> per meeting.</p>
+
+                <h3>Import Process</h3>
+                <ol>
+                    <li>Go to the <strong>Import</strong> tab</li>
+                    <li>Select course activity files or Teams meeting files</li>
+                    <li>Click <strong>Process All Files</strong></li>
+                    <li>Review the import log for any warnings</li>
+                    <li>Check the dashboard for updated statistics</li>
+                </ol>
+
+                <div class="cc-callout cc-callout-warn">
+                    <p><strong>Note:</strong> The system automatically skips duplicate entries based on user email + course/meeting ID.</p>
                 </div>
 
-                <!-- Getting Started -->
-                <div id="getting-started" class="bg-white rounded-xl shadow-sm p-8 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">🚀 1. Getting Started</h2>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">System Requirements</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li>Modern web browser (Chrome 90+, Firefox 88+, Safari 14+, Edge 90+)</li>
-                                <li>JavaScript enabled</li>
-                                <li>Local storage enabled (for data persistence)</li>
-                                <li>No server or installation required</li>
-                            </ul>
-                        </div>
+                <h2 id="users">Managing Users</h2>
 
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">First Time Setup</h3>
-                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                                <li>Open <code class="bg-gray-100 px-2 py-1 rounded">cloud_comp_app.html</code> in your browser</li>
-                                <li>The application will automatically initialize with empty data</li>
-                                <li>Start by importing existing data or creating teams manually</li>
-                                <li>Data automatically saves to your browser's local storage</li>
-                            </ol>
-                        </div>
+                <p>Users are automatically created when importing activity data. Each user is identified by their email address (lowercased).</p>
 
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <p class="text-sm text-blue-800">
-                                <strong>💡 Tip:</strong> Bookmark the application for quick access. All your data persists between sessions.
-                            </p>
-                        </div>
-                    </div>
+                <h3>User Properties</h3>
+                <table class="cc-field-table">
+                    <thead><tr><th>Property</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><strong>Email</strong></td><td>Primary identifier (lowercase)</td></tr>
+                        <tr><td><strong>Name</strong></td><td>From import data or derived from email</td></tr>
+                        <tr><td><strong>Total Points</strong></td><td>Derived from all activities</td></tr>
+                        <tr><td><strong>Month Points</strong></td><td>Derived from current month's activities</td></tr>
+                        <tr><td><strong>Team</strong></td><td>Optional team assignment</td></tr>
+                    </tbody>
+                </table>
+
+                <h3>Bulk Operations</h3>
+                <ol>
+                    <li>Select users via checkboxes</li>
+                    <li>Choose an action: <strong>Award Points</strong>, <strong>Assign to Team</strong>, or <strong>Export Selected</strong></li>
+                    <li>Fill in the details and confirm</li>
+                </ol>
+
+                <h3>Manual Points</h3>
+                <p>Click <strong>Add Points</strong> to award custom points for special achievements. Enter the user's email, activity title, and point value.</p>
+
+                <h2 id="teams">Managing Teams</h2>
+
+                <h3>Creating Teams</h3>
+                <ol>
+                    <li>Navigate to the <strong>Teams</strong> tab</li>
+                    <li>Click <strong>Create Team</strong></li>
+                    <li>Enter name, description, and choose a color</li>
+                </ol>
+
+                <h3>Managing Members</h3>
+                <p>Click <strong>Manage</strong> on any team to add or remove members. Team points are automatically derived from member activity totals.</p>
+
+                <div class="cc-callout">
+                    <p><strong>Tip:</strong> A user can belong to one team at a time. Assigning to a new team automatically removes them from the previous one.</p>
                 </div>
 
-                <!-- Dashboard Overview -->
-                <div id="dashboard" class="bg-white rounded-xl shadow-sm p-8 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">📊 2. Dashboard Overview</h2>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Key Metrics</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
-                                <div><strong>Total Users:</strong> Number of registered learners</div>
-                                <div><strong>Total Teams:</strong> Number of created teams</div>
-                                <div><strong>Completed:</strong> Total completed activities</div>
-                                <div><strong>In Progress:</strong> Activities currently being worked on</div>
-                                <div><strong>Points Awarded:</strong> Total points across all users</div>
-                                <div><strong>This Month:</strong> Activities completed this month</div>
-                            </div>
-                        </div>
+                <h2 id="activities">Managing Activities</h2>
 
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Leaderboards</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li><strong>User Leaderboard:</strong> Top 10 individual performers for the current month</li>
-                                <li><strong>Team Leaderboard:</strong> Top 5 teams based on combined member points</li>
-                                <li>Both leaderboards reset monthly (with archive option)</li>
-                                <li>Medals (🥇🥈🥉) displayed for top 3 positions</li>
-                            </ul>
-                        </div>
+                <h3>Activity Types</h3>
+                <table class="cc-field-table">
+                    <thead><tr><th>Type</th><th>Points</th></tr></thead>
+                    <tbody>
+                        <tr><td>Digital courses (by level)</td><td>50&ndash;100</td></tr>
+                        <tr><td>Classroom training</td><td>100</td></tr>
+                        <tr><td>AWS specialized courses</td><td>75&ndash;150</td></tr>
+                        <tr><td>MS Teams meetings / live events</td><td>25</td></tr>
+                        <tr><td>Quizzes (by score)</td><td>20&ndash;70</td></tr>
+                        <tr><td>Hackathons (by placement)</td><td>150&ndash;450</td></tr>
+                    </tbody>
+                </table>
 
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Recent Activities</h3>
-                            <p class="text-gray-700">Shows the 10 most recent completed activities with user, title, date, and points earned.</p>
-                        </div>
-                    </div>
+                <h3>Bulk Operations</h3>
+                <ul>
+                    <li><strong>Adjust Points</strong> &mdash; Add, subtract, multiply, or set values across selected activities</li>
+                    <li><strong>Delete Selected</strong> &mdash; Remove activities (points are automatically recalculated)</li>
+                    <li><strong>Export Selected</strong> &mdash; Download selected activities as JSON</li>
+                </ul>
+
+                <h2 id="configuration">Point Configuration</h2>
+
+                <p>Go to the <strong>Configuration</strong> tab to adjust point values for each activity type. Changes apply to future imports only &mdash; existing activities keep their original points.</p>
+
+                <h3>Configuration Management</h3>
+                <ul>
+                    <li><strong>Save Changes</strong> &mdash; Persist current values</li>
+                    <li><strong>Reset Defaults</strong> &mdash; Restore original point values</li>
+                    <li><strong>Export Config</strong> &mdash; Download as JSON</li>
+                </ul>
+
+                <h2 id="campaigns">Campaigns</h2>
+
+                <p>Campaigns let you track learning progress within a specific time window for a defined set of participants.</p>
+
+                <h3>Creating a Campaign</h3>
+                <ol>
+                    <li>Go to the <strong>Campaigns</strong> tab</li>
+                    <li>Click <strong>Create Campaign</strong></li>
+                    <li>Set name, dates, and link teams or individual participants</li>
+                    <li>Save as <strong>Draft</strong>, then <strong>Activate</strong> when ready</li>
+                </ol>
+
+                <h3>Participant Resolution</h3>
+                <p>Linking a team automatically includes all its members as campaign participants. Individual users can also be added directly.</p>
+
+                <h3>Leaderboards</h3>
+                <p>Each campaign has its own individual and team leaderboards, scoped to activities within the campaign's date window from eligible participants only.</p>
+
+                <h3>Status Lifecycle</h3>
+                <table class="cc-field-table">
+                    <thead><tr><th>Status</th><th>Description</th></tr></thead>
+                    <tbody>
+                        <tr><td><code>draft</code></td><td>Being configured, not yet tracking</td></tr>
+                        <tr><td><code>active</code></td><td>Tracking activities within the date window</td></tr>
+                        <tr><td><code>completed</code></td><td>End date passed, results finalized</td></tr>
+                        <tr><td><code>archived</code></td><td>Hidden from active views</td></tr>
+                    </tbody>
+                </table>
+
+                <h2 id="reports">Reports &amp; Exports</h2>
+
+                <h3>Available Reports</h3>
+                <ul>
+                    <li><strong>Leaderboard Report</strong> &mdash; Current month user rankings with points</li>
+                    <li><strong>Activity Report</strong> &mdash; Complete list of all activities</li>
+                    <li><strong>Summary Report</strong> &mdash; Overall statistics, top users, and top teams</li>
+                </ul>
+
+                <h3>Data Export</h3>
+                <p>Click <strong>Export</strong> in the header to create a complete JSON backup of all users, teams, activities, campaigns, and configuration.</p>
+
+                <h3>Monthly Reset</h3>
+                <ol>
+                    <li>Go to the <strong>Reports</strong> tab</li>
+                    <li>Click <strong>Reset Monthly Leaderboard</strong></li>
+                    <li>The system archives current standings as a JSON download</li>
+                </ol>
+
+                <div class="cc-callout">
+                    <p><strong>Tip:</strong> Export data regularly as a backup. The file is timestamped for easy organization.</p>
                 </div>
 
-                <!-- Importing Data -->
-                <div id="importing" class="bg-white rounded-xl shadow-sm p-8 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">📁 3. Importing Data</h2>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Course Activity & Classroom Training Files</h3>
-                            <div class="bg-gray-50 rounded-lg p-4 mb-3">
-                                <p class="font-medium text-gray-900 mb-2">Course Activity Required Columns:</p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
-                                    <li>Email - User's email address</li>
-                                    <li>Course ID - Unique course identifier</li>
-                                    <li>Course Title - Name of the course</li>
-                                    <li>Status - COMPLETED or IN PROGRESS</li>
-                                    <li>Level - fundamental/intermediate/advanced/specialty</li>
-                                    <li>CourseType - AWS Cloud Quest, Digital Course, etc.</li>
-                                    <li>Completed on - Completion date (for completed courses)</li>
-                                    <li>Score (optional) - For quiz scoring</li>
-                                </ul>
-                            </div>
-                            <div class="bg-gray-50 rounded-lg p-4 mb-3">
-                                <p class="font-medium text-gray-900 mb-2">Classroom Training (ILT) Format:</p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
-                                    <li>Name - Attendee's full name</li>
-                                    <li>Email - Attendee's email address</li>
-                                    <li>Status - Completed/Not Completed</li>
-                                    <li>Evaluation Status (optional)</li>
-                                </ul>
-                                <p class="text-xs text-gray-600 mt-2">🎓 Classroom training awards 100 points per day</p>
-                            </div>
-                            <p class="text-gray-700">Supports Excel (.xlsx) and CSV formats. Multiple files can be processed at once.</p>
-                        </div>
+                <h2 id="tips">Tips &amp; Best Practices</h2>
 
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Teams Meeting Files</h3>
-                            <div class="bg-gray-50 rounded-lg p-4 mb-3">
-                                <p class="font-medium text-gray-900 mb-2">Expected Format:</p>
-                                <ul class="list-disc list-inside text-sm text-gray-700 space-y-1">
-                                    <li>Meeting title or Meeting Title field</li>
-                                    <li>Attended participants count</li>
-                                    <li>Individual attendee emails (optional)</li>
-                                    <li>Each attendee receives 25 points per meeting</li>
-                                </ul>
-                            </div>
-                            <p class="text-gray-700">CSV format from Microsoft Teams exports. System creates placeholder emails if not found.</p>
-                        </div>
+                <h3>Daily</h3>
+                <ul>
+                    <li>Check the dashboard for a quick performance overview</li>
+                    <li>Award manual points for special achievements promptly</li>
+                </ul>
 
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Import Process</h3>
-                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                                <li>Go to the Import Data tab</li>
-                                <li>Click "Choose Course Activity / Classroom Training Files" or "Choose Multiple Teams Meeting Files"</li>
-                                <li>Select one or more files from your computer</li>
-                                <li>Click "🚀 Process All Files"</li>
-                                <li>Review the import log for any issues</li>
-                                <li>Check the dashboard for updated statistics</li>
-                            </ol>
-                        </div>
+                <h3>Weekly</h3>
+                <ul>
+                    <li>Import new activity data</li>
+                    <li>Keep team memberships current</li>
+                </ul>
 
-                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                            <p class="text-sm text-yellow-800">
-                                <strong>⚠️ Note:</strong> The system automatically skips duplicate entries based on email + course/meeting ID.
-                            </p>
-                        </div>
-                    </div>
+                <h3>Monthly</h3>
+                <ul>
+                    <li>Generate and share leaderboard reports</li>
+                    <li>Reset monthly points after announcing winners</li>
+                    <li>Export a full data backup</li>
+                </ul>
+
+                <h2 id="troubleshooting">Troubleshooting</h2>
+
+                <table class="cc-field-table">
+                    <thead><tr><th>Issue</th><th>Solution</th></tr></thead>
+                    <tbody>
+                        <tr><td>Data not saving</td><td>Check browser settings &rarr; Privacy &rarr; ensure localStorage is enabled</td></tr>
+                        <tr><td>Import not working</td><td>Verify file has required columns (Email, Course ID, Title, Status)</td></tr>
+                        <tr><td>Points incorrect</td><td>Check Configuration tab settings and save changes</td></tr>
+                        <tr><td>Teams not showing points</td><td>Ensure members are assigned via the Manage option</td></tr>
+                    </tbody>
+                </table>
+
+                <div class="cc-callout cc-callout-error">
+                    <p><strong>Important:</strong> Never clear browser data without exporting a backup first. Clearing site data will permanently delete all stored information.</p>
                 </div>
 
-                <!-- Managing Users -->
-                <div id="users" class="bg-white rounded-xl shadow-sm p-8 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">👥 4. Managing Users</h2>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">User Overview</h3>
-                            <p class="text-gray-700 mb-3">Users are automatically created when importing activity data. Each user has:</p>
-                            <ul class="list-disc list-inside space-y-1 text-gray-700">
-                                <li>Email (primary identifier)</li>
-                                <li>Name (from import data)</li>
-                                <li>Current month points</li>
-                                <li>Total all-time points</li>
-                                <li>Activity count</li>
-                                <li>Team assignment (if applicable)</li>
-                            </ul>
-                        </div>
+                <h3>Browser Support</h3>
+                <ul>
+                    <li>Chrome 90+</li>
+                    <li>Firefox 88+</li>
+                    <li>Safari 14+</li>
+                    <li>Edge 90+</li>
+                </ul>
 
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">User Management Features</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li><strong>Search:</strong> Find users by name or email</li>
-                                <li><strong>Sort:</strong> By current month or total points</li>
-                                <li><strong>Manual Points:</strong> Award custom points for special achievements</li>
-                                <li><strong>Bulk Operations:</strong> Select multiple users to award points, assign to teams, or export</li>
-                                <li><strong>View Details:</strong> See individual user activity history (coming soon)</li>
-                            </ul>
-                        </div>
+                <h2 id="support">Support</h2>
+                <p>For additional support or feature requests, contact your system administrator.</p>
+                <p>Version <strong>1.2</strong> &mdash; Built by <strong>Tim Huettemeister</strong>.</p>
 
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Bulk Operations</h3>
-                            <p class="text-gray-700 mb-3">Select multiple users for efficient bulk actions:</p>
-                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                                <li>Click checkboxes next to users or use "Select All"</li>
-                                <li>The bulk actions bar appears when users are selected</li>
-                                <li>Choose from: Award Points, Assign to Team, or Export Selected</li>
-                                <li>Fill in the required information in the modal</li>
-                                <li>Confirm the bulk action</li>
-                            </ol>
-                        </div>
+            </div><!-- end .cc-docs -->
 
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Adding Manual Points</h3>
-                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                                <li>Click "➕ Add Points" in the Users tab</li>
-                                <li>Enter the user's email address</li>
-                                <li>Provide an activity title</li>
-                                <li>Set the point value</li>
-                                <li>Add a description (optional)</li>
-                                <li>Click "Add Points" to award</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Managing Teams -->
-                <div id="teams" class="bg-white rounded-xl shadow-sm p-8 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">🏢 5. Managing Teams</h2>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Creating Teams</h3>
-                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                                <li>Navigate to the Teams tab</li>
-                                <li>Click "➕ Create Team"</li>
-                                <li>Enter team name and description</li>
-                                <li>Choose a team color (8 options available)</li>
-                                <li>Click "Create Team"</li>
-                            </ol>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Managing Team Members</h3>
-                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                                <li>Click "Manage" on any team</li>
-                                <li>Select users from the available list (Ctrl/Cmd for multiple)</li>
-                                <li>Click "Add →" to add members</li>
-                                <li>Click "Remove" next to any member to remove them</li>
-                                <li>Team points automatically update based on member totals</li>
-                            </ol>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Team Features</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li><strong>Color Coding:</strong> Visual identification with 8 color options</li>
-                                <li><strong>Automatic Points:</strong> Team points = sum of all member points</li>
-                                <li><strong>Sorting:</strong> Sort by members, current month points, or total points</li>
-                                <li><strong>Search:</strong> Find teams quickly by name or description</li>
-                                <li><strong>Delete:</strong> Remove teams (members remain as users)</li>
-                                <li><strong>Leaderboard:</strong> Teams compete on the dashboard</li>
-                            </ul>
-                        </div>
-
-                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-                            <p class="text-sm text-green-800">
-                                <strong>💡 Tip:</strong> Teams are great for departments, project groups, or learning cohorts.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Managing Activities -->
-                <div id="activities" class="bg-white rounded-xl shadow-sm p-8 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">📚 6. Managing Activities</h2>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Activity Types</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
-                                <div>
-                                    <strong>Courses:</strong>
-                                    <ul class="list-disc list-inside text-sm mt-1 ml-4">
-                                        <li>Digital courses (50-100 points)</li>
-                                        <li>Classroom training (100 points)</li>
-                                        <li>AWS specialized courses</li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    <strong>Events:</strong>
-                                    <ul class="list-disc list-inside text-sm mt-1 ml-4">
-                                        <li>Teams meetings (25 points)</li>
-                                        <li>Live events (25 points)</li>
-                                        <li>Hackathons (150-450 points)</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Activity Management Features</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li><strong>Sort:</strong> By points earned or completion date</li>
-                                <li><strong>Filter:</strong> Current month, courses only, or events only</li>
-                                <li><strong>Search:</strong> Find activities by user or title</li>
-                                <li><strong>Bulk Operations:</strong> Select multiple activities to adjust points, delete, or export</li>
-                                <li><strong>Edit:</strong> Modify activity details (coming soon)</li>
-                                <li><strong>Source Tracking:</strong> See which import file created each activity</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Bulk Activity Operations</h3>
-                            <p class="text-gray-700 mb-3">Manage multiple activities efficiently:</p>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li><strong>Adjust Points:</strong> Add, subtract, multiply, or set new point values</li>
-                                <li><strong>Delete Selected:</strong> Remove multiple activities at once</li>
-                                <li><strong>Export Selected:</strong> Export specific activities to JSON</li>
-                                <li><strong>Adjustment History:</strong> All point changes are tracked with reasons</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">In-Progress Activities</h3>
-                            <p class="text-gray-700">The system tracks activities with "IN PROGRESS" status separately. These:</p>
-                            <ul class="list-disc list-inside space-y-1 text-gray-700 mt-2">
-                                <li>Don't award points until completed</li>
-                                <li>Show progress percentage when available</li>
-                                <li>Automatically convert to completed when re-imported with COMPLETED status</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Point Configuration -->
-                <div id="configuration" class="bg-white rounded-xl shadow-sm p-8 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">⚙️ 7. Point Configuration</h2>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Default Point Values</h3>
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full text-sm">
-                                    <thead class="bg-gray-50">
-                                        <tr>
-                                            <th class="px-4 py-2 text-left">Activity Type</th>
-                                            <th class="px-4 py-2 text-left">Points</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-gray-200">
-                                        <tr><td class="px-4 py-2">Digital Course - Foundational</td><td class="px-4 py-2">50</td></tr>
-                                        <tr><td class="px-4 py-2">Digital Course - Associate</td><td class="px-4 py-2">75</td></tr>
-                                        <tr><td class="px-4 py-2">Digital Course - Professional</td><td class="px-4 py-2">100</td></tr>
-                                        <tr><td class="px-4 py-2">AWS Cloud Quest</td><td class="px-4 py-2">75</td></tr>
-                                        <tr><td class="px-4 py-2">AWS Builder Lab</td><td class="px-4 py-2">100</td></tr>
-                                        <tr><td class="px-4 py-2">Teams Meeting / Live Event</td><td class="px-4 py-2">25</td></tr>
-                                        <tr><td class="px-4 py-2">Hackathon Participation</td><td class="px-4 py-2">150</td></tr>
-                                        <tr><td class="px-4 py-2">Quiz (based on score)</td><td class="px-4 py-2">20-70</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Customizing Points</h3>
-                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                                <li>Go to the Configuration tab</li>
-                                <li>Adjust point values for each activity type</li>
-                                <li>Click "💾 Save Changes" to apply</li>
-                                <li>New imports will use updated values</li>
-                                <li>Existing activities keep their original points</li>
-                            </ol>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Configuration Management</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li><strong>Reset Defaults:</strong> Restore original point values</li>
-                                <li><strong>Export Config:</strong> Save configuration as JSON</li>
-                                <li><strong>Auto-save:</strong> Changes persist in browser storage</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reports & Exports -->
-                <div id="reports" class="bg-white rounded-xl shadow-sm p-8 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">📈 8. Reports & Exports</h2>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Available Reports</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li><strong>Leaderboard Report:</strong> Current month user rankings with points</li>
-                                <li><strong>Activity Report:</strong> Complete list of all activities with details</li>
-                                <li><strong>Summary Report:</strong> Overall statistics, top users, and top teams</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Data Export</h3>
-                            <p class="text-gray-700 mb-3">Click "📥 Export Data" in the header to create a complete backup including:</p>
-                            <ul class="list-disc list-inside space-y-1 text-gray-700">
-                                <li>All users and their points</li>
-                                <li>All teams and memberships</li>
-                                <li>All activities (completed and in-progress)</li>
-                                <li>Configuration settings</li>
-                                <li>Metadata and statistics</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Monthly Reset</h3>
-                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                                <li>Go to Reports tab</li>
-                                <li>Click "🔄 Reset Monthly Leaderboard"</li>
-                                <li>Confirm the action</li>
-                                <li>System creates an archive of current standings</li>
-                                <li>All current month points reset to 0</li>
-                                <li>Total points remain unchanged</li>
-                            </ol>
-                        </div>
-
-                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <p class="text-sm text-blue-800">
-                                <strong>💡 Tip:</strong> Export data regularly as a backup. Files are timestamped for easy organization.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tips & Best Practices -->
-                <div id="tips" class="bg-white rounded-xl shadow-sm p-8 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">💡 9. Tips & Best Practices</h2>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Daily Usage</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li>Import new activity data weekly or bi-weekly</li>
-                                <li>Check dashboard for quick performance overview</li>
-                                <li>Award manual points for special achievements immediately</li>
-                                <li>Keep team memberships current</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Monthly Tasks</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li>Generate and share leaderboard reports</li>
-                                <li>Reset monthly points after announcing winners</li>
-                                <li>Review and adjust point configurations if needed</li>
-                                <li>Export full data backup</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Data Management</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li>Keep source files organized by date</li>
-                                <li>Name import files descriptively</li>
-                                <li>Regular exports protect against data loss</li>
-                                <li>Browser storage persists unless manually cleared</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Team Management</h3>
-                            <ul class="list-disc list-inside space-y-2 text-gray-700">
-                                <li>Create teams before bulk user imports</li>
-                                <li>Use consistent team names</li>
-                                <li>Color-code teams by department or function</li>
-                                <li>Review team compositions quarterly</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Troubleshooting -->
-                <div id="troubleshooting" class="bg-white rounded-xl shadow-sm p-8 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">🔧 10. Troubleshooting</h2>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Common Issues</h3>
-                            
-                            <div class="space-y-4">
-                                <div class="border-l-4 border-gray-300 pl-4">
-                                    <p class="font-medium text-gray-900">Data not saving</p>
-                                    <p class="text-gray-700 text-sm">Check browser settings → Privacy → ensure localStorage is enabled</p>
-                                </div>
-                                
-                                <div class="border-l-4 border-gray-300 pl-4">
-                                    <p class="font-medium text-gray-900">Import not working</p>
-                                    <p class="text-gray-700 text-sm">Verify file has required columns (Email, Course ID, Title, Status)</p>
-                                </div>
-                                
-                                <div class="border-l-4 border-gray-300 pl-4">
-                                    <p class="font-medium text-gray-900">Points not calculating correctly</p>
-                                    <p class="text-gray-700 text-sm">Check Configuration tab settings and save changes</p>
-                                </div>
-                                
-                                <div class="border-l-4 border-gray-300 pl-4">
-                                    <p class="font-medium text-gray-900">Teams not showing points</p>
-                                    <p class="text-gray-700 text-sm">Ensure team has members assigned through Manage option</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Data Recovery</h3>
-                            <ol class="list-decimal list-inside space-y-2 text-gray-700">
-                                <li>Check browser console (F12) for error messages</li>
-                                <li>Try importing a recent backup JSON file</li>
-                                <li>localStorage persists unless manually cleared</li>
-                                <li>Browser cache clearing does NOT affect localStorage</li>
-                            </ol>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Browser Compatibility</h3>
-                            <p class="text-gray-700 mb-2">For best results use:</p>
-                            <ul class="list-disc list-inside space-y-1 text-gray-700">
-                                <li>Chrome 90 or newer (recommended)</li>
-                                <li>Firefox 88 or newer</li>
-                                <li>Safari 14 or newer</li>
-                                <li>Edge 90 or newer</li>
-                            </ul>
-                        </div>
-
-                        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-                            <p class="text-sm text-red-800">
-                                <strong>⚠️ Important:</strong> Never clear browser data without exporting a backup first. 
-                                Clearing site data will permanently delete all stored information.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Support -->
-                <div class="bg-white rounded-xl shadow-sm p-8 mb-8">
-                    <h2 class="text-2xl font-bold text-gray-900 mb-6">📞 Support & Credits</h2>
-                    
-                    <div class="space-y-6">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Getting Help</h3>
-                            <p class="text-gray-700">For additional support or feature requests, contact your system administrator or the development team.</p>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Version Information</h3>
-                            <ul class="list-disc list-inside space-y-1 text-gray-700">
-                                <li>Current Version: 1.1</li>
-                                <li>Last Updated: August 2025</li>
-                                <li>File: cloud_comp_app.html</li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900 mb-3">Credits</h3>
-                            <p class="text-gray-700">
-                                Created with love and the help of Claude Sonnet 4 by 
-                                <strong>@timhutte</strong> and <strong>@gmmarrs</strong>
-                            </p>
-                        </div>
-
-                        <div class="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                            <p class="text-sm text-purple-800">
-                                <strong>🎉 Thank you</strong> for using Cloud Comp! 
-                                Your commitment to learning and development makes our organization stronger.
-                            </p>
-                        </div>
-                    </div>
+            <!-- Sidebar TOC -->
+            <div class="hidden lg:block w-48 shrink-0">
+                <div class="cc-docs-toc">
+                    <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">On this page</div>
+                    <a href="#getting-started" data-action="scrollToSection" data-section="getting-started">Getting Started</a>
+                    <a href="#dashboard" data-action="scrollToSection" data-section="dashboard">Dashboard Overview</a>
+                    <a href="#importing" data-action="scrollToSection" data-section="importing">Importing Data</a>
+                    <a href="#users" data-action="scrollToSection" data-section="users">Managing Users</a>
+                    <a href="#teams" data-action="scrollToSection" data-section="teams">Managing Teams</a>
+                    <a href="#activities" data-action="scrollToSection" data-section="activities">Activities</a>
+                    <a href="#configuration" data-action="scrollToSection" data-section="configuration">Configuration</a>
+                    <a href="#campaigns" data-action="scrollToSection" data-section="campaigns">Campaigns</a>
+                    <a href="#reports" data-action="scrollToSection" data-section="reports">Reports &amp; Exports</a>
+                    <a href="#tips" data-action="scrollToSection" data-section="tips">Tips</a>
+                    <a href="#troubleshooting" data-action="scrollToSection" data-section="troubleshooting">Troubleshooting</a>
+                    <a href="#support" data-action="scrollToSection" data-section="support">Support</a>
                 </div>
             </div>
-        </div>
+
+            </div><!-- end .flex -->
+        </div><!-- end #manualSection -->
     </div>
 
     <!-- Footer -->
-    <footer class="bg-gray-100 border-t mt-16">
-        <div class="max-w-7xl mx-auto px-6 py-8">
-            <div class="text-center">
-                <p class="text-sm text-gray-600">
-                    Created with love and the help of Claude Sonnet 4 by 
-                    <span class="font-medium text-gray-800">@timhutte</span> and 
-                    <span class="font-medium text-gray-800">@gmmarrs</span>
-                </p>
-            </div>
+    <footer style="border-top: 1px solid var(--cc-border); margin-top: 3rem; padding: 1.5rem;">
+        <div class="max-w-7xl mx-auto text-center">
+            <p style="font-size: 0.8125rem; color: var(--cc-text-muted);">Cloud Comp v1.2 &mdash; Built by Tim Huettemeister</p>
         </div>
     </footer>
 
     <!-- Import Data Modal -->
-    <div id="importDataModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
-            <h3 class="text-lg font-semibold mb-4">📤 Import Data</h3>
-            <p class="text-sm text-gray-600 mb-4">Import a previously exported cloud_comp_data_*.json file to restore your data.</p>
-            <div class="space-y-4">
-                <div>
-                    <input type="file" id="importDataFile" accept=".json" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+    <div id="importDataModal" class="hidden cc-modal-backdrop">
+        <div class="cc-modal">
+            <div class="cc-modal-header">
+                <h3 class="cc-modal-title">Import Data</h3>
+                <button data-action="closeImportDataModal" class="cc-modal-close">&times;</button>
+            </div>
+            <div class="cc-modal-body">
+                <p class="cc-modal-subtitle">Import a previously exported cloud_comp_data_*.json file to restore your data.</p>
+                <div class="cc-field-group">
+                    <input type="file" id="importDataFile" accept=".json" class="cc-input">
                 </div>
             </div>
-            <div class="flex justify-end space-x-3 mt-6">
-                <button data-action="closeImportDataModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                <button data-action="processImportData" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Import</button>
+            <div class="cc-modal-footer">
+                <button data-action="closeImportDataModal" class="cc-btn cc-btn-ghost">Cancel</button>
+                <button data-action="processImportData" class="cc-btn cc-btn-primary">Import</button>
             </div>
         </div>
     </div>
 
     <!-- Add Points Modal -->
-    <div id="addPointsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
-            <h3 class="text-lg font-semibold mb-4">➕ Add Manual Points</h3>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">User Email</label>
-                    <input type="email" id="manualUserEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="user@example.com">
+    <div id="addPointsModal" class="hidden cc-modal-backdrop">
+        <div class="cc-modal">
+            <div class="cc-modal-header">
+                <h3 class="cc-modal-title">Add Manual Points</h3>
+                <button data-action="closeAddPointsModal" class="cc-modal-close">&times;</button>
+            </div>
+            <div class="cc-modal-body">
+                <div class="cc-field-group">
+                    <label class="cc-label">User</label>
+                    <div class="relative">
+                        <input type="text" id="manualUserSearch" class="cc-input" placeholder="Search by name or email..." autocomplete="off" data-action="filterManualPointsUsers" data-trigger="keyup">
+                        <input type="hidden" id="manualUserEmail">
+                        <div id="manualUserResults" class="absolute left-0 right-0 mt-1 bg-white border rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto" style="display:none;border-color:var(--cc-border);"></div>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Activity Title</label>
-                    <input type="text" id="manualActivityTitle" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Manual Award">
+                <div class="cc-field-group">
+                    <label class="cc-label">Activity Title</label>
+                    <input type="text" id="manualActivityTitle" class="cc-input" placeholder="Manual Award">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Points</label>
-                    <input type="number" id="manualPoints" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="100">
+                <div class="cc-field-group">
+                    <label class="cc-label">Points</label>
+                    <input type="number" id="manualPoints" class="cc-input" placeholder="100">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea id="manualDescription" class="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="3" placeholder="Reason for award..."></textarea>
+                <div class="cc-field-group">
+                    <label class="cc-label">Description</label>
+                    <textarea id="manualDescription" class="cc-textarea" rows="3" placeholder="Reason for award..."></textarea>
                 </div>
             </div>
-            <div class="flex justify-end space-x-3 mt-6">
-                <button data-action="closeAddPointsModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                <button data-action="submitManualPoints" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">Add Points</button>
+            <div class="cc-modal-footer">
+                <button data-action="closeAddPointsModal" class="cc-btn cc-btn-ghost">Cancel</button>
+                <button data-action="submitManualPoints" class="cc-btn cc-btn-primary">Add Points</button>
             </div>
         </div>
     </div>
 
     <!-- Create Team Modal -->
-    <div id="createTeamModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
-            <h3 class="text-lg font-semibold mb-4">🏢 Create New Team</h3>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Team Name</label>
-                    <input type="text" id="teamName" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Engineering Team">
+    <div id="createTeamModal" class="hidden cc-modal-backdrop">
+        <div class="cc-modal">
+            <div class="cc-modal-header">
+                <h3 class="cc-modal-title">Create New Team</h3>
+                <button data-action="closeCreateTeamModal" class="cc-modal-close">&times;</button>
+            </div>
+            <div class="cc-modal-body">
+                <div class="cc-field-group">
+                    <label class="cc-label">Team Name</label>
+                    <input type="text" id="teamName" class="cc-input" placeholder="Engineering Team">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea id="teamDescription" class="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="3" placeholder="Team description..."></textarea>
+                <div class="cc-field-group">
+                    <label class="cc-label">Description</label>
+                    <textarea id="teamDescription" class="cc-textarea" rows="3" placeholder="Team description..."></textarea>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Team Color</label>
-                    <select id="teamColor" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                <div class="cc-field-group">
+                    <label class="cc-label">Team Color</label>
+                    <select id="teamColor" class="cc-select">
                         <option value="blue">Blue</option>
                         <option value="green">Green</option>
                         <option value="purple">Purple</option>
@@ -1407,124 +1096,216 @@
                     </select>
                 </div>
             </div>
-            <div class="flex justify-end space-x-3 mt-6">
-                <button data-action="closeCreateTeamModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                <button data-action="createTeam" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">Create Team</button>
+            <div class="cc-modal-footer">
+                <button data-action="closeCreateTeamModal" class="cc-btn cc-btn-ghost">Cancel</button>
+                <button data-action="createTeam" class="cc-btn cc-btn-primary">Create Team</button>
             </div>
         </div>
     </div>
 
     <!-- Manage Team Members Modal -->
-    <div id="manageTeamMembersModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-            <h3 class="text-lg font-semibold mb-4">👥 Manage Team Members</h3>
-            <div class="mb-4">
-                <h4 id="managingTeamName" class="font-medium text-gray-900"></h4>
-                <p id="managingTeamDescription" class="text-sm text-gray-600"></p>
-            </div>
-            
-            <!-- Add Members Section -->
-            <div class="bg-gray-50 rounded-lg p-4 mb-6">
-                <h5 class="font-medium mb-3">Add Members</h5>
-                <div class="flex space-x-2">
-                    <select id="availableUsers" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg" multiple size="5">
-                        <!-- Options will be populated dynamically -->
-                    </select>
-                    <button data-action="addUsersToTeam" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">
-                        Add →
-                    </button>
+    <div id="manageTeamMembersModal" class="hidden cc-modal-backdrop">
+        <div class="cc-modal cc-modal-lg" style="max-height: 90vh; overflow-y: auto;">
+            <div class="cc-modal-header">
+                <div>
+                    <h3 class="cc-modal-title" id="managingTeamName"></h3>
+                    <p class="text-xs text-[var(--cc-text-muted)] mt-0.5" id="managingTeamDescription"></p>
                 </div>
-                <p class="text-xs text-gray-500 mt-2">Hold Ctrl/Cmd to select multiple users</p>
+                <button data-action="closeManageTeamMembersModal" class="cc-modal-close">&times;</button>
             </div>
-            
-            <!-- Current Members Section -->
-            <div class="bg-white border rounded-lg p-4">
-                <h5 class="font-medium mb-3">Current Members</h5>
-                <div id="teamMembersList" class="space-y-2 max-h-64 overflow-y-auto">
-                    <!-- Members will be listed here -->
+            <div class="cc-modal-body">
+                <!-- Add Members Section -->
+                <div class="cc-field-group">
+                    <label class="cc-label">Add Members</label>
+                    <div class="flex gap-2">
+                        <select id="availableUsers" class="cc-select flex-1" multiple size="5"></select>
+                        <button data-action="addUsersToTeam" class="cc-btn cc-btn-primary self-start">Add</button>
+                    </div>
+                    <p class="cc-field-hint">Hold Ctrl/Cmd to select multiple users</p>
+                </div>
+
+                <!-- Current Members Section -->
+                <div class="cc-field-group">
+                    <label class="cc-label">Current Members</label>
+                    <div id="teamMembersList" class="space-y-2 max-h-64 overflow-y-auto"></div>
                 </div>
             </div>
-            
-            <div class="flex justify-end space-x-3 mt-6">
-                <button data-action="closeManageTeamMembersModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Close</button>
+            <div class="cc-modal-footer">
+                <button data-action="closeManageTeamMembersModal" class="cc-btn cc-btn-ghost">Close</button>
             </div>
         </div>
     </div>
 
     <!-- Bulk Award Points Modal -->
-    <div id="bulkAwardPointsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
-            <h3 class="text-lg font-semibold mb-4">🎁 Bulk Award Points</h3>
-            <p class="text-sm text-gray-600 mb-4">Award points to <span id="bulkAwardUserCount" class="font-bold">0</span> selected users</p>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Activity Title</label>
-                    <input type="text" id="bulkActivityTitle" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Bulk Award">
+    <div id="bulkAwardPointsModal" class="hidden cc-modal-backdrop">
+        <div class="cc-modal">
+            <div class="cc-modal-header">
+                <h3 class="cc-modal-title">Bulk Award Points</h3>
+                <button data-action="closeBulkAwardPointsModal" class="cc-modal-close">&times;</button>
+            </div>
+            <div class="cc-modal-body">
+                <p class="cc-modal-subtitle">Award points to <span id="bulkAwardUserCount" class="font-semibold text-[var(--cc-text)]">0</span> selected users</p>
+                <div class="cc-field-group">
+                    <label class="cc-label">Activity Title</label>
+                    <input type="text" id="bulkActivityTitle" class="cc-input" placeholder="Bulk Award">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Points per User</label>
-                    <input type="number" id="bulkPoints" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="100">
+                <div class="cc-field-group">
+                    <label class="cc-label">Points per User</label>
+                    <input type="number" id="bulkPoints" class="cc-input" placeholder="100">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                    <textarea id="bulkDescription" class="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="3" placeholder="Reason for bulk award..."></textarea>
+                <div class="cc-field-group">
+                    <label class="cc-label">Description</label>
+                    <textarea id="bulkDescription" class="cc-textarea" rows="3" placeholder="Reason for bulk award..."></textarea>
                 </div>
             </div>
-            <div class="flex justify-end space-x-3 mt-6">
-                <button data-action="closeBulkAwardPointsModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                <button data-action="submitBulkAwardPoints" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">Award Points</button>
+            <div class="cc-modal-footer">
+                <button data-action="closeBulkAwardPointsModal" class="cc-btn cc-btn-ghost">Cancel</button>
+                <button data-action="submitBulkAwardPoints" class="cc-btn cc-btn-primary">Award Points</button>
             </div>
         </div>
     </div>
 
     <!-- Bulk Assign Team Modal -->
-    <div id="bulkAssignTeamModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
-            <h3 class="text-lg font-semibold mb-4">🏢 Bulk Assign to Team</h3>
-            <p class="text-sm text-gray-600 mb-4">Assign <span id="bulkAssignUserCount" class="font-bold">0</span> selected users to a team</p>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Select Team</label>
-                    <select id="bulkTeamSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+    <div id="bulkAssignTeamModal" class="hidden cc-modal-backdrop">
+        <div class="cc-modal">
+            <div class="cc-modal-header">
+                <h3 class="cc-modal-title">Bulk Assign to Team</h3>
+                <button data-action="closeBulkAssignTeamModal" class="cc-modal-close">&times;</button>
+            </div>
+            <div class="cc-modal-body">
+                <p class="cc-modal-subtitle">Assign <span id="bulkAssignUserCount" class="font-semibold text-[var(--cc-text)]">0</span> selected users to a team</p>
+                <div class="cc-field-group">
+                    <label class="cc-label">Select Team</label>
+                    <select id="bulkTeamSelect" class="cc-select">
                         <option value="">Choose a team...</option>
-                        <!-- Options will be populated dynamically -->
                     </select>
                 </div>
             </div>
-            <div class="flex justify-end space-x-3 mt-6">
-                <button data-action="closeBulkAssignTeamModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                <button data-action="submitBulkAssignTeam" class="bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-lg">Assign to Team</button>
+            <div class="cc-modal-footer">
+                <button data-action="closeBulkAssignTeamModal" class="cc-btn cc-btn-ghost">Cancel</button>
+                <button data-action="submitBulkAssignTeam" class="cc-btn cc-btn-primary">Assign to Team</button>
             </div>
         </div>
     </div>
 
     <!-- Bulk Adjust Points Modal -->
-    <div id="bulkAdjustPointsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-xl p-8 max-w-md w-full mx-4">
-            <h3 class="text-lg font-semibold mb-4">✏️ Bulk Adjust Points</h3>
-            <p class="text-sm text-gray-600 mb-4">Adjust points for <span id="bulkAdjustActivityCount" class="font-bold">0</span> selected activities</p>
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Adjustment Type</label>
-                    <select id="bulkAdjustType" class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+    <div id="bulkAdjustPointsModal" class="hidden cc-modal-backdrop">
+        <div class="cc-modal">
+            <div class="cc-modal-header">
+                <h3 class="cc-modal-title">Bulk Adjust Points</h3>
+                <button data-action="closeBulkAdjustPointsModal" class="cc-modal-close">&times;</button>
+            </div>
+            <div class="cc-modal-body">
+                <p class="cc-modal-subtitle">Adjust points for <span id="bulkAdjustActivityCount" class="font-semibold text-[var(--cc-text)]">0</span> selected activities</p>
+                <div class="cc-field-group">
+                    <label class="cc-label">Adjustment Type</label>
+                    <select id="bulkAdjustType" class="cc-select">
                         <option value="add">Add Points</option>
                         <option value="subtract">Subtract Points</option>
                         <option value="multiply">Multiply by Factor</option>
                         <option value="set">Set to Value</option>
                     </select>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Value</label>
-                    <input type="number" id="bulkAdjustValue" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Enter value">
+                <div class="cc-field-group">
+                    <label class="cc-label">Value</label>
+                    <input type="number" id="bulkAdjustValue" class="cc-input" placeholder="Enter value">
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Reason</label>
-                    <textarea id="bulkAdjustReason" class="w-full px-3 py-2 border border-gray-300 rounded-lg" rows="2" placeholder="Reason for adjustment..."></textarea>
+                <div class="cc-field-group">
+                    <label class="cc-label">Reason</label>
+                    <textarea id="bulkAdjustReason" class="cc-textarea" rows="2" placeholder="Reason for adjustment..."></textarea>
                 </div>
             </div>
-            <div class="flex justify-end space-x-3 mt-6">
-                <button data-action="closeBulkAdjustPointsModal" class="px-4 py-2 text-gray-600 hover:text-gray-800">Cancel</button>
-                <button data-action="submitBulkAdjustPoints" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg">Adjust Points</button>
+            <div class="cc-modal-footer">
+                <button data-action="closeBulkAdjustPointsModal" class="cc-btn cc-btn-ghost">Cancel</button>
+                <button data-action="submitBulkAdjustPoints" class="cc-btn cc-btn-primary">Adjust Points</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Campaign Create/Edit Modal -->
+    <div id="campaignModal" class="hidden cc-modal-backdrop">
+        <div class="cc-modal cc-modal-lg" style="max-height: 90vh; overflow-y: auto;">
+            <div class="cc-modal-header">
+                <h3 id="campaignModalTitle" class="cc-modal-title">Campaign</h3>
+                <button data-action="closeCampaignModal" class="cc-modal-close">&times;</button>
+            </div>
+            <div class="cc-modal-body">
+                <div class="cc-field-group">
+                    <label class="cc-label">Campaign Name *</label>
+                    <input type="text" id="campaignNameInput" class="cc-input" placeholder="Q1 Learning Sprint">
+                </div>
+                <div class="cc-field-group">
+                    <label class="cc-label">Description</label>
+                    <textarea id="campaignDescriptionInput" class="cc-textarea" rows="2" placeholder="Campaign description..."></textarea>
+                </div>
+                <div class="cc-field-row cc-field-group">
+                    <div>
+                        <label class="cc-label">Start Date *</label>
+                        <input type="date" id="campaignStartDateInput" class="cc-input">
+                    </div>
+                    <div>
+                        <label class="cc-label">End Date</label>
+                        <input type="date" id="campaignEndDateInput" class="cc-input">
+                    </div>
+                </div>
+                <div class="cc-field-row cc-field-group">
+                    <div>
+                        <label class="cc-label">Status</label>
+                        <select id="campaignStatusInput" class="cc-select">
+                            <option value="draft">Draft</option>
+                            <option value="active">Active</option>
+                            <option value="completed">Completed</option>
+                            <option value="archived">Archived</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="cc-label">Color</label>
+                        <select id="campaignColorInput" class="cc-select">
+                            <option value="blue">Blue</option>
+                            <option value="green">Green</option>
+                            <option value="purple">Purple</option>
+                            <option value="orange">Orange</option>
+                            <option value="indigo">Indigo</option>
+                            <option value="teal">Teal</option>
+                            <option value="red">Red</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="cc-field-group">
+                    <label class="cc-label">Teams</label>
+                    <select id="campaignTeams" class="cc-select" multiple size="4"></select>
+                    <p class="cc-field-hint">All team members are auto-included as participants. Hold Ctrl/Cmd to multi-select.</p>
+                </div>
+                <div class="cc-field-group">
+                    <label class="cc-label">Additional Participants</label>
+                    <select id="campaignParticipants" class="cc-select" multiple size="5"></select>
+                    <p class="cc-field-hint">Select individual users beyond linked teams. Hold Ctrl/Cmd to multi-select.</p>
+                </div>
+            </div>
+            <div class="cc-modal-footer">
+                <button data-action="closeCampaignModal" class="cc-btn cc-btn-ghost">Cancel</button>
+                <button data-action="saveCampaign" class="cc-btn cc-btn-primary">Save Campaign</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset All Data Modal -->
+    <div id="resetDataModal" class="hidden cc-modal-backdrop">
+        <div class="cc-modal">
+            <div class="cc-modal-header">
+                <h3 class="cc-modal-title" style="color:var(--cc-negative);">Reset All Data</h3>
+                <button data-action="closeResetDataModal" class="cc-modal-close">&times;</button>
+            </div>
+            <div class="cc-modal-body">
+                <p class="cc-modal-subtitle">This will permanently delete all users, teams, activities, campaigns, and configuration. This action cannot be undone.</p>
+                <div class="cc-field-group">
+                    <label class="cc-label">Type <strong style="color:var(--cc-text);">confirm deletion</strong> to proceed</label>
+                    <input type="text" id="resetDataConfirmInput" class="cc-input" placeholder="confirm deletion" autocomplete="off">
+                </div>
+            </div>
+            <div class="cc-modal-footer">
+                <button data-action="closeResetDataModal" class="cc-btn cc-btn-ghost">Cancel</button>
+                <button data-action="confirmResetAllData" class="cc-btn cc-btn-danger">Reset All Data</button>
             </div>
         </div>
     </div>

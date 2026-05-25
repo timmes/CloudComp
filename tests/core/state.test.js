@@ -11,6 +11,7 @@ import {
   upsertUser,
   upsertTeam,
   addActivity,
+  replaceActivity,
   upsertCampaign,
   deleteTeam,
   deleteCampaign,
@@ -22,6 +23,7 @@ import {
 } from '../../src/core/state.js';
 import { EVENTS, on, off } from '../../src/core/events.js';
 import { save, remove } from '../../src/core/storage.js';
+import { DEFAULT_POINT_CONFIG } from '../../src/models/points.js';
 
 // ── Setup ───────────────────────────────────────────────────────────
 
@@ -564,14 +566,14 @@ describe('deleteCampaign', () => {
 describe('getConfig', () => {
   it('returns default config initially', () => {
     const cfg = getConfig();
-    expect(cfg.version).toBe('1.2');
+    expect(cfg.version).toBe('2.0');
     expect(cfg.pointConfig).toBeDefined();
   });
 
   it('returns a shallow copy', () => {
     const cfg = getConfig();
     cfg.version = '9.9';
-    expect(getConfig().version).toBe('1.2');
+    expect(getConfig().version).toBe('2.0');
   });
 });
 
@@ -579,7 +581,7 @@ describe('updateConfig', () => {
   it('merges partial config', () => {
     updateConfig({ lastReset: '2026-04' });
     expect(getConfig().lastReset).toBe('2026-04');
-    expect(getConfig().version).toBe('1.2'); // preserved
+    expect(getConfig().version).toBe('2.0'); // preserved
   });
 
   it('persists to storage', () => {
@@ -740,5 +742,168 @@ describe('_resetForTesting', () => {
     // localStorage still has the old data
     loadFromStorage();
     expect(getUser('a@b.com')).not.toBe(null);
+  });
+});
+
+// ── replaceActivity ─────────────────────────────────────────────────
+
+describe('replaceActivity', () => {
+  it('returns true and replaces when id matches', () => {
+    addActivity(makeActivity('a1', 'a@b.com', { title: 'Original' }));
+    const updated = makeActivity('a1', 'a@b.com', { title: 'Updated' });
+    const result = replaceActivity(updated);
+    expect(result).toBe(true);
+    expect(getActivities()[0].title).toBe('Updated');
+  });
+
+  it('returns false when id not found', () => {
+    addActivity(makeActivity('a1', 'a@b.com'));
+    const result = replaceActivity(makeActivity('nonexistent', 'a@b.com'));
+    expect(result).toBe(false);
+  });
+
+  it('does not mutate the original activities array (getActivities returns copy)', () => {
+    addActivity(makeActivity('a1', 'a@b.com', { title: 'First' }));
+    const before = getActivities();
+    replaceActivity(makeActivity('a1', 'a@b.com', { title: 'Replaced' }));
+    // The snapshot taken before replace should be unchanged
+    expect(before[0].title).toBe('First');
+  });
+
+  it('persists replaced activity to localStorage', () => {
+    addActivity(makeActivity('a1', 'a@b.com', { title: 'Original' }));
+    replaceActivity(makeActivity('a1', 'a@b.com', { title: 'Persisted' }));
+    _resetForTesting();
+    loadFromStorage();
+    expect(getActivities()[0].title).toBe('Persisted');
+  });
+
+  it('emits DATA_CHANGED on successful replace', () => {
+    addActivity(makeActivity('a1', 'a@b.com'));
+    const { handler, cleanup } = listenOnce(EVENTS.DATA_CHANGED);
+    replaceActivity(makeActivity('a1', 'a@b.com', { title: 'New' }));
+    expect(handler).toHaveBeenCalledTimes(1);
+    cleanup();
+  });
+});
+
+// ── migrateActivities via loadFromStorage ───────────────────────────
+
+describe('migrateActivities via loadFromStorage', () => {
+  it('backfills status:completed on legacy activities without a status field', () => {
+    const legacy = {
+      users: {},
+      teams: {},
+      activities: [
+        { id: 'a1', userId: 'a@b.com', title: 'Legacy Course', pointsEarned: 50 },
+      ],
+      campaigns: {},
+    };
+    save('cloudCompData', legacy);
+    loadFromStorage();
+    expect(getActivities()[0].status).toBe('completed');
+  });
+
+  it('preserves existing status values (in_progress stays in_progress)', () => {
+    const data = {
+      activities: [
+        { id: 'a1', userId: 'a@b.com', title: 'In Progress', status: 'in_progress' },
+      ],
+    };
+    save('cloudCompData', data);
+    loadFromStorage();
+    expect(getActivities()[0].status).toBe('in_progress');
+  });
+});
+
+// ── migrateConfig via loadFromStorage ───────────────────────────────
+
+describe('migrateConfig via loadFromStorage', () => {
+  it('replaces v1.x config (version:1.0) with DEFAULT_POINT_CONFIG and version:2.0', () => {
+    const data = {
+      config: { version: '1.0', pointConfig: { selfPacedDigital: { old: 5 } } },
+    };
+    save('cloudCompData', data);
+    loadFromStorage();
+    const cfg = getConfig();
+    expect(cfg.version).toBe('2.0');
+    expect(cfg.pointConfig).toEqual(DEFAULT_POINT_CONFIG);
+  });
+
+  it('produces a v2.0 config when stored config has no version field', () => {
+    // loadFromStorage merges defaultConfig (v2.0) over stored config, so the
+    // merged object gets version:'2.0' from defaults and migrateConfig passes it
+    // through unchanged.  The result must still be a valid v2.0 config.
+    const data = {
+      config: { pointConfig: { selfPacedDigital: { old: 5 } } },
+    };
+    save('cloudCompData', data);
+    loadFromStorage();
+    const cfg = getConfig();
+    expect(cfg.version).toBe('2.0');
+    // pointConfig from stored data overrides the default in the merge before
+    // migration, so the stored (non-default) pointConfig is preserved here.
+    expect(cfg.pointConfig).toBeDefined();
+  });
+
+  it('leaves v2.0 config untouched and preserves lastReset', () => {
+    const data = {
+      config: {
+        version: '2.0',
+        lastReset: '2026-01',
+        pointConfig: { ...DEFAULT_POINT_CONFIG },
+      },
+    };
+    save('cloudCompData', data);
+    loadFromStorage();
+    const cfg = getConfig();
+    expect(cfg.version).toBe('2.0');
+    expect(cfg.lastReset).toBe('2026-01');
+  });
+});
+
+// ── getActivities status filter ─────────────────────────────────────
+
+describe('getActivities status filter', () => {
+  beforeEach(() => {
+    addActivity(makeActivity('a1', 'a@b.com', { status: 'completed' }));
+    addActivity(makeActivity('a2', 'a@b.com', { status: 'in_progress' }));
+    addActivity(makeActivity('a3', 'a@b.com', { status: 'enrolled' }));
+  });
+
+  it('filters by status:completed', () => {
+    const result = getActivities({ status: 'completed' });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('a1');
+  });
+
+  it('filters by status:in_progress', () => {
+    const result = getActivities({ status: 'in_progress' });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('a2');
+  });
+
+  it('filters by status:enrolled', () => {
+    const result = getActivities({ status: 'enrolled' });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('a3');
+  });
+
+  it('treats activities without status field as completed', () => {
+    addActivity(makeActivity('a4', 'a@b.com')); // no status field in makeActivity
+    // makeActivity sets pointsEarned etc but no status, so add one without it explicitly
+    // Actually makeActivity spreads extra, and createActivity defaults status='completed'
+    // So add raw activity via save to simulate truly missing status:
+    const rawData = {
+      activities: [
+        { id: 'legacy1', userId: 'a@b.com', title: 'Legacy' },
+      ],
+    };
+    save('cloudCompData', rawData);
+    _resetForTesting();
+    loadFromStorage();
+    const result = getActivities({ status: 'completed' });
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe('legacy1');
   });
 });

@@ -26,9 +26,10 @@
 
 /**
  * @typedef {Object} DeduplicateResult
- * @property {Activity[]} accepted          - activities that passed dedup
+ * @property {Activity[]} accepted          - new activities that passed dedup
+ * @property {Activity[]} upgrades          - activities that upgrade an existing record's status
  * @property {Activity[]} duplicates        - activities flagged as duplicates
- * @property {{ accepted: number, duplicatesSkipped: number }} stats
+ * @property {{ accepted: number, upgraded: number, duplicatesSkipped: number }} stats
  */
 
 /**
@@ -77,7 +78,24 @@ function dedupKey(activity) {
  */
 export function isDuplicate(activity, existingActivities) {
   const key = dedupKey(activity);
-  return existingActivities.some(a => dedupKey(a) === key);
+  const match = existingActivities.find(a => dedupKey(a) === key);
+  if (!match) return false;
+  // Status upgrade: in_progress/enrolled -> completed is not a duplicate
+  if (isStatusUpgrade(match, activity)) return false;
+  return true;
+}
+
+/**
+ * Check if incoming activity represents a status upgrade over existing.
+ * @param {*} existing
+ * @param {*} incoming
+ * @returns {boolean}
+ */
+function isStatusUpgrade(existing, incoming) {
+  const rank = { enrolled: 0, in_progress: 1, completed: 2 };
+  const oldRank = rank[existing.status] ?? 2;
+  const newRank = rank[incoming.status] ?? 2;
+  return newRank > oldRank;
 }
 
 /**
@@ -99,13 +117,20 @@ export function isDuplicate(activity, existingActivities) {
  * // stats:      { accepted: 5, duplicatesSkipped: 2 }
  */
 export function deduplicateBatch(incoming, existing) {
-  const seen = new Set(existing.map(a => dedupKey(a)));
+  const existingByKey = new Map();
+  for (const a of existing) { existingByKey.set(dedupKey(a), a); }
+  const seen = new Set(existingByKey.keys());
   const accepted = [];
+  const upgrades = [];
   const duplicates = [];
 
   for (const activity of incoming) {
     const key = dedupKey(activity);
-    if (seen.has(key)) {
+    const existingMatch = existingByKey.get(key);
+    if (existingMatch && isStatusUpgrade(existingMatch, activity)) {
+      upgrades.push(activity);
+      existingByKey.set(key, activity);
+    } else if (seen.has(key)) {
       duplicates.push(activity);
     } else {
       seen.add(key);
@@ -115,9 +140,11 @@ export function deduplicateBatch(incoming, existing) {
 
   return {
     accepted,
+    upgrades,
     duplicates,
     stats: {
       accepted: accepted.length,
+      upgraded: upgrades.length,
       duplicatesSkipped: duplicates.length,
     },
   };

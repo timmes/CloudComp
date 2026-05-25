@@ -1,13 +1,13 @@
 /**
  * @module views/data
  *
- * Data lifecycle: load, export, JSON import.
+ * Data lifecycle: load, JSON import.
  */
 
 import {
   getUsers, getActivities, getTeams,
-  loadFromStorage, exportJSON, importJSON,
-  log, updateDataStatus, downloadJSON,
+  loadFromStorage, importJSON,
+  log, updateDataStatus,
 } from './shared.js';
 
 let loadConfiguration, refreshDashboard, refreshUsersTable, refreshActivitiesTable, refreshTeamsTable;
@@ -35,18 +35,6 @@ export function loadData() {
   } catch (error) {
     updateDataStatus('error', 'Error loading data');
     log(`Error loading data: ${error.message}`);
-  }
-}
-
-export function exportData() {
-  try {
-    const dataToExport = exportJSON();
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    downloadJSON(dataToExport, `cloud_comp_data_${timestamp}.json`);
-    log('Data exported to JSON file');
-  } catch (error) {
-    log(`Error exporting data: ${error.message}`);
-    alert('Error exporting data. Please try again.');
   }
 }
 

@@ -183,6 +183,102 @@ describe('deduplicateBatch', () => {
   });
 });
 
+// ── isDuplicate - status upgrade ─────────────────────────────────────
+
+describe('isDuplicate - status upgrade', () => {
+  it('returns false for enrolled -> completed upgrade (not a duplicate)', () => {
+    const existing = [act('alice@b.com', 'C-1', { status: 'enrolled' })];
+    expect(isDuplicate(act('alice@b.com', 'C-1', { status: 'completed' }), existing)).toBe(false);
+  });
+
+  it('returns false for in_progress -> completed upgrade (not a duplicate)', () => {
+    const existing = [act('alice@b.com', 'C-1', { status: 'in_progress' })];
+    expect(isDuplicate(act('alice@b.com', 'C-1', { status: 'completed' }), existing)).toBe(false);
+  });
+
+  it('returns false for enrolled -> in_progress upgrade (not a duplicate)', () => {
+    const existing = [act('alice@b.com', 'C-1', { status: 'enrolled' })];
+    expect(isDuplicate(act('alice@b.com', 'C-1', { status: 'in_progress' }), existing)).toBe(false);
+  });
+
+  it('returns true for completed -> completed (same rank, is a duplicate)', () => {
+    const existing = [act('alice@b.com', 'C-1', { status: 'completed' })];
+    expect(isDuplicate(act('alice@b.com', 'C-1', { status: 'completed' }), existing)).toBe(true);
+  });
+
+  it('returns true for completed -> in_progress (downgrade, is a duplicate)', () => {
+    const existing = [act('alice@b.com', 'C-1', { status: 'completed' })];
+    expect(isDuplicate(act('alice@b.com', 'C-1', { status: 'in_progress' }), existing)).toBe(true);
+  });
+
+  it('returns true for completed -> enrolled (downgrade, is a duplicate)', () => {
+    const existing = [act('alice@b.com', 'C-1', { status: 'completed' })];
+    expect(isDuplicate(act('alice@b.com', 'C-1', { status: 'enrolled' }), existing)).toBe(true);
+  });
+
+  it('treats missing status as completed rank (no status -> no status = duplicate)', () => {
+    const existing = [act('alice@b.com', 'C-1')]; // no status
+    expect(isDuplicate(act('alice@b.com', 'C-1'), existing)).toBe(true);
+  });
+});
+
+// ── deduplicateBatch - status upgrades ──────────────────────────────
+
+describe('deduplicateBatch - status upgrades', () => {
+  it('places upgrade rows in result.upgrades, not accepted', () => {
+    const existing = [act('alice@b.com', 'C-1', { status: 'enrolled' })];
+    const incoming = [act('alice@b.com', 'C-1', { status: 'completed' })];
+    const result = deduplicateBatch(incoming, existing);
+    expect(result.upgrades).toHaveLength(1);
+    expect(result.accepted).toHaveLength(0);
+  });
+
+  it('counts upgrades in stats.upgraded', () => {
+    const existing = [
+      act('alice@b.com', 'C-1', { status: 'enrolled' }),
+      act('bob@b.com',   'C-2', { status: 'in_progress' }),
+    ];
+    const incoming = [
+      act('alice@b.com', 'C-1', { status: 'completed' }),
+      act('bob@b.com',   'C-2', { status: 'completed' }),
+    ];
+    const result = deduplicateBatch(incoming, existing);
+    expect(result.stats.upgraded).toBe(2);
+  });
+
+  it('handles mixed batch (accepts + upgrades + duplicates)', () => {
+    const existing = [
+      act('alice@b.com', 'C-1', { status: 'in_progress' }),
+      act('bob@b.com',   'C-2', { status: 'completed' }),
+    ];
+    const incoming = [
+      act('alice@b.com', 'C-1', { status: 'completed' }),  // upgrade
+      act('bob@b.com',   'C-2', { status: 'completed' }),  // duplicate (same rank)
+      act('charlie@b.com', 'C-3'),                          // new accepted
+    ];
+    const result = deduplicateBatch(incoming, existing);
+    expect(result.upgrades).toHaveLength(1);
+    expect(result.duplicates).toHaveLength(1);
+    expect(result.accepted).toHaveLength(1);
+    expect(result.stats.upgraded).toBe(1);
+    expect(result.stats.duplicatesSkipped).toBe(1);
+    expect(result.stats.accepted).toBe(1);
+  });
+
+  it('allows chained upgrades within same batch (enrolled->in_progress then in_progress->completed = 2 upgrades)', () => {
+    const existing = [act('alice@b.com', 'C-1', { status: 'enrolled' })];
+    const incoming = [
+      act('alice@b.com', 'C-1', { status: 'in_progress' }), // upgrade 1
+      act('alice@b.com', 'C-1', { status: 'completed' }),    // upgrade 2 (over in_progress)
+    ];
+    const result = deduplicateBatch(incoming, existing);
+    expect(result.upgrades).toHaveLength(2);
+    expect(result.stats.upgraded).toBe(2);
+    expect(result.accepted).toHaveLength(0);
+    expect(result.duplicates).toHaveLength(0);
+  });
+});
+
 // ── Regression: re-import same file ─────────────────────────────────
 
 describe('regression', () => {

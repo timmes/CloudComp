@@ -5,16 +5,22 @@
  * data-action attributes — no window globals needed.
  */
 
+import './styles/design-tokens.css';
 import { scrollToSection, selectedFiles } from './views/shared.js';
-import { loadData, exportData, closeImportDataModal, processImportData, _setRefreshFns as setDataRefs } from './views/data.js';
-import { refreshDashboard } from './views/dashboard.js';
+import { loadData, closeImportDataModal, processImportData, _setRefreshFns as setDataRefs } from './views/data.js';
+import {
+  refreshDashboard, setDashboardSubTab, setDashboardTimePeriod,
+  setDashboardCourseTypeFilter, clearDashboardCourseTypeFilter,
+  setDashboardCampaign,
+} from './views/dashboard.js';
 import { showTab } from './views/tabs.js';
 import {
   refreshUsersTable, toggleUserSelection, toggleSelectAllUsers, selectAllUsers, deselectAllUsers,
-  addManualPoints, closeAddPointsModal, submitManualPoints, filterUsers, toggleUserSort, toggleUserSortOrder,
+  addManualPoints, closeAddPointsModal, submitManualPoints, filterManualPointsUsers, selectManualPointsUser,
+  filterUsers, toggleUserSort, toggleUserSortOrder,
   bulkAwardPoints, closeBulkAwardPointsModal, submitBulkAwardPoints,
   bulkAssignTeam, closeBulkAssignTeamModal, submitBulkAssignTeam, bulkExportUsers,
-  viewUserDetails, updateUserSortButtons, _setRefreshFns as setUserRefs,
+  updateUserSortButtons, _setRefreshFns as setUserRefs,
 } from './views/users.js';
 import {
   createTeam, openCreateTeamModal, closeCreateTeamModal,
@@ -25,15 +31,21 @@ import {
 import {
   refreshActivitiesTable, toggleActivitySelection, toggleSelectAllActivities, selectAllActivities, deselectAllActivities,
   bulkAdjustPoints, closeBulkAdjustPointsModal, submitBulkAdjustPoints,
-  bulkDeleteActivities, bulkExportActivities, editActivity,
+  bulkDeleteActivities, bulkExportActivities,
   filterActivities, toggleActivitySort, toggleActivitySortOrder, updateActivitySortButtons,
   _setRefreshFns as setActivityRefs,
 } from './views/activities.js';
-import { updatePointConfig, loadConfiguration, resetToDefaults, saveConfiguration, exportConfig } from './views/config.js';
+import {
+  refreshCampaignsTable, openCreateCampaignModal, closeCampaignModal, saveCampaign,
+  openEditCampaignModal, deleteCampaignAction, viewCampaign, closeCampaignDetail,
+  setCampaignStatus, filterCampaigns, toggleCampaignSort, toggleCampaignSortOrder,
+  updateCampaignSortButtons, _setRefreshFns as setCampaignRefs,
+} from './views/campaigns.js';
+import { updatePointConfig, loadConfiguration, saveConfiguration, openResetDataModal, closeResetDataModal, confirmResetAllData } from './views/config.js';
 import { processAllFiles, updateFileList, _setRefreshFns as setImportRefs } from './views/import.js';
 import {
-  generateLeaderboardReport, generateActivityReport, generateSummaryReport,
-  resetMonthlyLeaderboard, confirmMonthlyReset, _setRefreshFns as setReportRefs,
+  setReportsSubTab, setReportEntity, clearReportEntity, filterReportEntities,
+  refreshReports,
 } from './views/reports.js';
 
 // ── Wire cross-module references ────────────────────────────────────
@@ -42,15 +54,20 @@ setDataRefs({ loadConfiguration, refreshDashboard, refreshUsersTable, refreshAct
 setUserRefs({ refreshDashboard, refreshActivitiesTable, refreshTeamsTable });
 setTeamRefs({ refreshDashboard });
 setActivityRefs({ refreshDashboard, refreshUsersTable, refreshTeamsTable });
+setCampaignRefs({ refreshDashboard });
 setImportRefs({ refreshDashboard });
-setReportRefs({ refreshDashboard, refreshUsersTable });
 
 // ── Action dispatch map ─────────────────────────────────────────────
 
 const ACTIONS = {
   showTab:                    (el) => showTab(el.dataset.tab),
   scrollToSection:            (el, e) => scrollToSection(e, el.dataset.section),
-  exportData,
+  // Dashboard
+  setDashboardSubTab:          (el) => setDashboardSubTab(el.dataset.tab),
+  setDashboardTimePeriod:      (el) => setDashboardTimePeriod(el.dataset.period),
+  setDashboardCourseTypeFilter: (el) => setDashboardCourseTypeFilter(el.dataset.courseType),
+  clearDashboardCourseTypeFilter,
+  setDashboardCampaign:        (el) => setDashboardCampaign(el.value),
   clickCourseFiles:           () => document.getElementById('courseFiles').click(),
   clickTeamsFiles:            () => document.getElementById('teamsFiles').click(),
   processAllFiles,
@@ -60,6 +77,8 @@ const ACTIONS = {
   addManualPoints,
   closeAddPointsModal,
   submitManualPoints,
+  filterManualPointsUsers,
+  selectManualPointsUser:   (el) => selectManualPointsUser(el.dataset.email, el.dataset.name),
   filterUsers,
   toggleUserSort:             (el) => toggleUserSort(el.dataset.field),
   toggleUserSortOrder,
@@ -73,7 +92,6 @@ const ACTIONS = {
   closeBulkAssignTeamModal,
   submitBulkAssignTeam,
   bulkExportUsers,
-  viewUserDetails:            (el) => viewUserDetails(el.dataset.email),
   toggleUserSelection:        (el) => toggleUserSelection(el.dataset.email),
   // Teams
   openCreateTeamModal,
@@ -87,6 +105,18 @@ const ACTIONS = {
   filterTeams,
   toggleTeamSort:             (el) => toggleTeamSort(el.dataset.field),
   toggleTeamSortOrder,
+  // Campaigns
+  openCreateCampaignModal,
+  closeCampaignModal,
+  saveCampaign,
+  openEditCampaignModal:    (el) => openEditCampaignModal(el.dataset.campaignId),
+  deleteCampaign:           (el) => deleteCampaignAction(el.dataset.campaignId),
+  viewCampaign:             (el) => viewCampaign(el.dataset.campaignId),
+  closeCampaignDetail,
+  setCampaignStatus:        (el) => setCampaignStatus(el.dataset.campaignId, el.dataset.status),
+  filterCampaigns,
+  toggleCampaignSort:       (el) => toggleCampaignSort(el.dataset.field),
+  toggleCampaignSortOrder,
   // Activities
   filterActivities,
   toggleActivitySort:         (el) => toggleActivitySort(el.dataset.field),
@@ -99,19 +129,18 @@ const ACTIONS = {
   submitBulkAdjustPoints,
   bulkDeleteActivities,
   bulkExportActivities,
-  editActivity:               (el) => editActivity(el.dataset.activityId),
   toggleActivitySelection:    (el) => toggleActivitySelection(el.dataset.activityId),
   // Config
   updatePointConfig,
-  resetToDefaults,
   saveConfiguration,
-  exportConfig,
+  openResetDataModal,
+  closeResetDataModal,
+  confirmResetAllData,
   // Reports
-  generateLeaderboardReport,
-  generateActivityReport,
-  generateSummaryReport,
-  resetMonthlyLeaderboard,
-  confirmMonthlyReset,
+  setReportsSubTab:        (el) => setReportsSubTab(el.dataset.tab),
+  setReportEntity:         (el) => setReportEntity(el.dataset.entityType, el.dataset.entityId),
+  clearReportEntity,
+  filterReportEntities,
 };
 
 // ── Delegated event listeners ───────────────────────────────────────
@@ -149,6 +178,7 @@ function initApp() {
     updateUserSortButtons();
     updateActivitySortButtons();
     updateTeamSortButtons();
+    updateCampaignSortButtons();
   }, 100);
 }
 

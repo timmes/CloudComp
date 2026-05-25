@@ -22,6 +22,11 @@ export function refreshUsersTable() {
   const tbody = document.getElementById('usersTableBody');
   let users = Object.values(getUsersWithPoints());
 
+  if (users.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="cc-empty-state" style="padding:3rem 1rem;"><div class="cc-empty-state-icon" style="width:4rem;height:4rem;margin-bottom:1rem;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width:2rem;height:2rem;"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg></div><div class="cc-empty-state-title" style="font-size:1rem;">No users yet</div><p class="cc-empty-state-text" style="font-size:0.8125rem;">Import learning data to populate users automatically.</p></div></td></tr>`;
+    return;
+  }
+
   users.sort((a, b) => {
     let av = a[sortState.users.field], bv = b[sortState.users.field];
     if (typeof av === 'string') { av = av.toLowerCase(); bv = bv.toLowerCase(); }
@@ -43,7 +48,6 @@ export function refreshUsersTable() {
       <td class="px-4 py-3"><span class="font-medium text-gray-900">${formatNumber(user.totalPoints)}</span></td>
       <td class="px-4 py-3"><span class="text-gray-600">${user.activities?.length || 0}</span></td>
       <td class="px-4 py-3"><span class="text-sm text-gray-500">${esc(formatDate(user.lastActivity))}</span></td>
-      <td class="px-4 py-3"><button data-action="viewUserDetails" data-email="${esc(user.email)}" class="text-blue-600 hover:text-blue-800 text-sm">View</button></td>
     </tr>
   `).join('');
 
@@ -202,10 +206,10 @@ export function toggleUserSortOrder() { sortState.users.ascending = !sortState.u
 
 export function updateUserSortButtons() {
   ['sortCurrentMonth', 'sortTotal'].forEach(id => {
-    document.getElementById(id).className = 'px-3 py-1 text-xs rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors';
+    document.getElementById(id).className = 'cc-sort-btn';
   });
   const af = sortState.users.field === 'currentMonthPoints' ? 'sortCurrentMonth' : 'sortTotal';
-  document.getElementById(af).className = 'px-3 py-1 text-xs rounded-lg bg-blue-100 text-blue-800 border border-blue-300';
+  document.getElementById(af).className = 'cc-sort-btn active';
   document.getElementById('sortOrderUser').textContent = sortState.users.ascending ? 'Least First ⬆️' : 'Most First ⬇️';
 }
 
@@ -216,18 +220,53 @@ export function filterUsers() {
 
 // ── Manual points + stubs ───────────────────────────────────────────
 
-export function addManualPoints() { document.getElementById('addPointsModal').classList.remove('hidden'); }
+export function addManualPoints() {
+  document.getElementById('addPointsModal').classList.remove('hidden');
+  document.getElementById('manualUserResults').style.display = 'none';
+}
 
 export function closeAddPointsModal() {
   document.getElementById('addPointsModal').classList.add('hidden');
+  document.getElementById('manualUserSearch').value = '';
   document.getElementById('manualUserEmail').value = '';
+  document.getElementById('manualUserResults').style.display = 'none';
   document.getElementById('manualActivityTitle').value = '';
   document.getElementById('manualPoints').value = '';
   document.getElementById('manualDescription').value = '';
 }
 
+export function filterManualPointsUsers() {
+  const query = (document.getElementById('manualUserSearch')?.value || '').toLowerCase();
+  const container = document.getElementById('manualUserResults');
+  if (!query || query.length < 1) { container.style.display = 'none'; return; }
+
+  const matches = Object.values(getUsers())
+    .filter(u => u.name?.toLowerCase().includes(query) || u.email?.toLowerCase().includes(query))
+    .slice(0, 6);
+
+  if (matches.length === 0) {
+    container.innerHTML = `<div class="px-3 py-2 text-sm" style="color:var(--cc-text-muted);">No users found. Email will be used as-is.</div>`;
+  } else {
+    container.innerHTML = matches.map(u => `
+      <div data-action="selectManualPointsUser" data-email="${esc(u.email)}" data-name="${esc(u.name)}"
+           class="px-3 py-2 text-sm cursor-pointer hover:bg-gray-50" style="color:var(--cc-text);">
+        <div class="font-medium">${esc(u.name)}</div>
+        <div class="text-xs" style="color:var(--cc-text-muted);">${esc(u.email)}</div>
+      </div>`).join('');
+  }
+  container.style.display = '';
+}
+
+export function selectManualPointsUser(email, name) {
+  document.getElementById('manualUserEmail').value = email;
+  document.getElementById('manualUserSearch').value = `${name} (${email})`;
+  document.getElementById('manualUserResults').style.display = 'none';
+}
+
 export function submitManualPoints() {
-  const email = document.getElementById('manualUserEmail').value.trim().toLowerCase();
+  const hidden = document.getElementById('manualUserEmail').value.trim().toLowerCase();
+  const search = document.getElementById('manualUserSearch').value.trim().toLowerCase();
+  const email = hidden || (search.includes('@') ? search : '');
   const title = document.getElementById('manualActivityTitle').value.trim();
   const points = parseInt(document.getElementById('manualPoints').value);
   const description = document.getElementById('manualDescription').value.trim();
@@ -248,5 +287,3 @@ export function submitManualPoints() {
   autoSave();
   log(`Manual points awarded: ${points} to ${email} for "${title}"`);
 }
-
-export function viewUserDetails(email) { alert(`User details for ${email} - Feature coming soon!`); }
