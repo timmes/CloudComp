@@ -196,17 +196,27 @@ dist/index.html  # production build (single self-contained file)
 - **"Overall" time-period filter** — all-time totals alongside Month / Quarter / Year.
 - **Course-type filter scopes Completion Rate** — clicking a course type in Activity Overview now also scopes the completion-rate metric next to it, with a clear label.
 
+### UI / Theme
+- **Dark mode** — sun/moon toggle in the header next to Docs. Your choice is persisted to `localStorage` and on first visit the app follows your OS `prefers-color-scheme`. An inline preload script applies the theme before paint so dark-mode users never see a flash of light content.
+
+### Backup & History
+- **Full-data export/import** — *Configuration → Backup & Restore*. **Export** downloads `cloud_comp_data_<ISO-timestamp>.json` containing every user, team, activity, campaign, the point configuration, and the history slice itself. **Import** restores from such a file in place (full-replace, with a confirmation summary). Both flows are tracked, so backups round-trip across machines or browsers.
+- **Import / Export history** — a new History card in the Configuration tab shows two live-updating tables (Recent Imports / Recent Exports). Each entry records filename, date, type, and stats (e.g. accepted / upgraded / duplicates for file imports; users / teams / activities / campaigns + file size for exports). The 50 most recent of each kind are kept.
+
 ### Import
 - **Excel-date bug fixed** — `cellDates: true` plus a defensive serial-number guard so `.xlsx` files with date cells no longer collapse every activity to `1/1/1970`.
 - **Spinner in the Processing Log** — a small animated indicator runs while imports are in flight.
 - **Pre-2000 dates surface as "—"** — legacy data with bogus dates is now flagged visually instead of being misread as 1970.
+
+### Performance
+- **Bulk-write import path** — imports now persist the whole batch in a constant number of `localStorage` writes (one each for accepted activities, upgrades, and new users) instead of one per row. The previous per-row writes were O(N²) and could freeze the browser or hit the storage quota on medium imports.
 
 ### Users / Activities
 - **Last Activity is derived** — computed from each user's most recent completed activity (single source of truth), instead of a separate `user.lastActivity` field that wasn't always set.
 - **Stub Actions columns removed** — the placeholder "View" and "Edit" buttons (and their `Feature coming soon!` handlers) are gone.
 
 ### Reports
-- **Global Export removed** — the header "Export" button and the Reports tab's three JSON-export buttons (Leaderboard / Activities / Summary) were unused. The per-tab **Bulk Export Selected** actions are retained.
+- **Obsolete report exports removed** — the Reports tab's three JSON-export buttons (Leaderboard / Activities / Summary) and the old header **Export** button were unused. Full-data export has been reimagined as part of the new **Backup & Restore** flow in Configuration; the per-tab **Bulk Export Selected** actions are still available for ad-hoc snapshots of selected rows.
 
 ## 🔮 Roadmap
 
