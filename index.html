@@ -736,15 +736,27 @@
 
                 <h3>First Time Setup</h3>
                 <ol>
-                    <li>Open <code>index.html</code> in your browser</li>
-                    <li>The application will automatically initialize with empty data</li>
-                    <li>Start by importing existing data or creating teams manually</li>
-                    <li>Data automatically saves to your browser's local storage</li>
+                    <li>Open <code>dist/index.html</code> in your browser &mdash; this is the single self-contained production build</li>
+                    <li>The application initialises with empty data</li>
+                    <li>Start by importing learning data or by creating teams and campaigns manually</li>
+                    <li>Your data is saved automatically to the browser's local storage</li>
                 </ol>
 
                 <div class="cc-callout">
-                    <p><strong>Tip:</strong> Bookmark the application for quick access. All your data persists between sessions.</p>
+                    <p><strong>Tip:</strong> Bookmark the file path for quick access. Everything persists between sessions until you clear the browser data.</p>
                 </div>
+
+                <h3>Developer Setup</h3>
+                <p>If you cloned the repository and want to work on the app, install dependencies and run the dev server:</p>
+                <ul>
+                    <li><code>npm install</code> &mdash; install dependencies</li>
+                    <li><code>npm run dev</code> &mdash; start the Vite dev server with hot reload</li>
+                    <li><code>npm run build</code> &mdash; rebuild <code>dist/index.html</code></li>
+                    <li><code>npm test</code> &mdash; run the Vitest suite</li>
+                </ul>
+
+                <h3>Light &amp; Dark Mode</h3>
+                <p>The header has a sun/moon icon next to the Docs button. Click it to switch themes. Your choice is remembered, and on first visit the app follows your OS theme preference.</p>
 
                 <h2 id="dashboard">Dashboard Overview</h2>
 
@@ -754,94 +766,113 @@
                     <tbody>
                         <tr><td><strong>Total Users</strong></td><td>Number of registered learners</td></tr>
                         <tr><td><strong>Total Teams</strong></td><td>Number of created teams</td></tr>
-                        <tr><td><strong>Completed</strong></td><td>Total completed activities</td></tr>
+                        <tr><td><strong>Completed</strong></td><td>Total completed activities (respects the active course-type filter)</td></tr>
                         <tr><td><strong>Points Awarded</strong></td><td>Total points across all users</td></tr>
                         <tr><td><strong>This Month</strong></td><td>Activities completed in the current calendar month</td></tr>
+                        <tr><td><strong>This Quarter</strong></td><td>Activities completed in the current calendar quarter</td></tr>
+                        <tr><td><strong>This Year</strong></td><td>Activities completed in the current calendar year</td></tr>
                     </tbody>
                 </table>
 
-                <h3>Leaderboards</h3>
+                <h3>Activity Overview</h3>
+                <p>Two side-by-side widgets summarise activity composition:</p>
                 <ul>
-                    <li><strong>User Leaderboard</strong> &mdash; Top 10 individual performers for the current month</li>
-                    <li><strong>Team Leaderboard</strong> &mdash; Top 5 teams based on combined member points</li>
-                    <li>Both leaderboards reset monthly with an archive download option</li>
+                    <li><strong>Course Types</strong> &mdash; the top five course types by activity count, with a horizontal bar showing share. Click a row to filter the dashboard by that course type; click again (or the &times; on the pill at the top) to clear.</li>
+                    <li><strong>Completion Rate</strong> &mdash; the share of activities with status <code>completed</code> versus in-progress/enrolled. When a course-type filter is active, the rate is scoped to that type and the label updates accordingly.</li>
                 </ul>
 
+                <h3>Leaderboards &amp; Sub-tabs</h3>
+                <p>Below the metrics, three sub-tabs swap the main panel:</p>
+                <ul>
+                    <li><strong>Users</strong> &mdash; top 10 individuals for the selected time period.</li>
+                    <li><strong>Teams</strong> &mdash; top 10 teams for the selected time period (only shown when at least one team exists).</li>
+                    <li><strong>Campaigns</strong> &mdash; a campaign selector plus per-campaign metrics (participants, active participants, eligible activities, points awarded) and a campaign leaderboard. Only shown when at least one campaign exists.</li>
+                </ul>
+
+                <h3>Time Period Filter</h3>
+                <p>The Month / Quarter / Year / Overall toggle on the right of the sub-tabs scopes the user and team leaderboards (and the Recent Activities feed). <strong>Overall</strong> shows all-time totals. The toggle is hidden on the Campaigns sub-tab, where the time window is determined by each campaign's start/end dates.</p>
+
                 <h3>Recent Activities</h3>
-                <p>Shows the 10 most recent completed activities with user name, title, date, and points earned.</p>
+                <p>Shows the 10 most recent completed activities within the selected time period, with user name, activity title, date, and points earned. Hidden on the Campaigns sub-tab.</p>
 
                 <h2 id="importing">Importing Data</h2>
 
                 <h3>Course Activity Files</h3>
-                <p>Upload Excel (.xlsx) or CSV files with course completion data. The importer auto-detects the format.</p>
+                <p>Upload Excel (.xlsx) or CSV files with course completion data. The importer auto-detects the format (standard course export vs. classroom training).</p>
 
                 <table class="cc-field-table">
                     <thead><tr><th>Column</th><th>Required</th><th>Description</th></tr></thead>
                     <tbody>
-                        <tr><td><code>Email</code></td><td>Yes</td><td>User's email address</td></tr>
-                        <tr><td><code>Course ID</code></td><td>Yes</td><td>Unique course identifier</td></tr>
+                        <tr><td><code>Email</code></td><td>Yes</td><td>User's email address (stored lowercased)</td></tr>
+                        <tr><td><code>Course ID</code></td><td>Yes</td><td>Unique course identifier (used for dedup)</td></tr>
                         <tr><td><code>Course Title</code></td><td>Yes</td><td>Name of the course</td></tr>
-                        <tr><td><code>Status</code></td><td>Yes</td><td>COMPLETED or IN PROGRESS</td></tr>
-                        <tr><td><code>Level</code></td><td>No</td><td>fundamental / intermediate / advanced / specialty</td></tr>
-                        <tr><td><code>CourseType</code></td><td>No</td><td>AWS Cloud Quest, Digital Course, etc.</td></tr>
-                        <tr><td><code>Completed on</code></td><td>Yes*</td><td>Completion date (for completed courses)</td></tr>
+                        <tr><td><code>Status</code></td><td>Yes</td><td><code>COMPLETED</code>, <code>IN PROGRESS</code>, or <code>ENROLLED</code></td></tr>
+                        <tr><td><code>Level</code></td><td>No</td><td><code>foundational</code> / <code>associate</code> / <code>professional</code> / <code>specialty</code></td></tr>
+                        <tr><td><code>CourseType</code></td><td>No</td><td>Free-text type label (e.g. <em>Skill Builder Course</em>, <em>Cloud Quest Role</em>) &mdash; mapped to a point category</td></tr>
+                        <tr><td><code>Completed on</code></td><td>Yes*</td><td>Completion date &mdash; required only for completed courses</td></tr>
                         <tr><td><code>Score</code></td><td>No</td><td>Quiz score (0&ndash;100)</td></tr>
                     </tbody>
                 </table>
 
                 <h3>Classroom Training (ILT) Files</h3>
-                <p>ILT files are auto-detected by their format: Name, Email, Status columns without a Course ID.</p>
+                <p>ILT files are auto-detected: <em>Name</em>, <em>Email</em>, <em>Status</em> columns without a Course ID.</p>
                 <table class="cc-field-table">
                     <thead><tr><th>Column</th><th>Description</th></tr></thead>
                     <tbody>
                         <tr><td><code>Name</code></td><td>Attendee's full name</td></tr>
                         <tr><td><code>Email</code></td><td>Attendee's email address</td></tr>
-                        <tr><td><code>Status</code></td><td>Completed / Not Completed</td></tr>
+                        <tr><td><code>Status</code></td><td><code>Completed</code> / <code>Not Completed</code></td></tr>
                     </tbody>
                 </table>
-                <p>Classroom training awards <strong>100 points</strong> per session.</p>
+                <p>Classroom training awards <strong>100 points</strong> per session by default.</p>
 
                 <h3>Teams Meeting Files</h3>
-                <p>CSV exports from Microsoft Teams. The parser extracts meeting titles and attendee emails. Each attendee receives <strong>25 points</strong> per meeting.</p>
+                <p>CSV exports from Microsoft Teams. The parser extracts meeting titles and attendee emails. Each attendee receives the <strong>Live Webinar</strong> point value (25 by default).</p>
 
                 <h3>Import Process</h3>
                 <ol>
                     <li>Go to the <strong>Import</strong> tab</li>
-                    <li>Select course activity files or Teams meeting files</li>
-                    <li>Click <strong>Process All Files</strong></li>
-                    <li>Review the import log for any warnings</li>
+                    <li>Select course activity files and/or Teams meeting files</li>
+                    <li>Click <strong>Process All Files</strong> &mdash; a spinner appears next to the Processing Log title while work is in flight</li>
+                    <li>Review the Processing Log for any warnings or skipped rows</li>
                     <li>Check the dashboard for updated statistics</li>
                 </ol>
 
                 <div class="cc-callout cc-callout-warn">
-                    <p><strong>Note:</strong> The system automatically skips duplicate entries based on user email + course/meeting ID.</p>
+                    <p><strong>Duplicates:</strong> the importer skips activities that match an existing one on <code>userId</code> + <code>externalId</code> (case-insensitive). An incoming <code>completed</code> row will upgrade an existing <code>in_progress</code>/<code>enrolled</code> activity instead of being skipped.</p>
+                </div>
+
+                <div class="cc-callout">
+                    <p><strong>Excel dates:</strong> .xlsx files store dates as serial numbers; the importer converts them via <code>cellDates: true</code> so they parse correctly. If you imported an .xlsx file with an older build and see <code>&mdash;</code> (or 1/1/1970) in the Last Activity column, re-import the file with this version to fix the dates.</p>
                 </div>
 
                 <h2 id="users">Managing Users</h2>
 
-                <p>Users are automatically created when importing activity data. Each user is identified by their email address (lowercased).</p>
+                <p>Users are created automatically when importing activity data, or via the <strong>Add Points</strong> dialog. Each user is identified by their lowercase email.</p>
 
                 <h3>User Properties</h3>
                 <table class="cc-field-table">
                     <thead><tr><th>Property</th><th>Description</th></tr></thead>
                     <tbody>
-                        <tr><td><strong>Email</strong></td><td>Primary identifier (lowercase)</td></tr>
-                        <tr><td><strong>Name</strong></td><td>From import data or derived from email</td></tr>
-                        <tr><td><strong>Total Points</strong></td><td>Derived from all activities</td></tr>
-                        <tr><td><strong>Month Points</strong></td><td>Derived from current month's activities</td></tr>
-                        <tr><td><strong>Team</strong></td><td>Optional team assignment</td></tr>
+                        <tr><td><strong>Email</strong></td><td>Primary identifier (always lowercase)</td></tr>
+                        <tr><td><strong>Name</strong></td><td>From import data, or derived from the email prefix</td></tr>
+                        <tr><td><strong>Total Points</strong></td><td>Derived from all the user's activities</td></tr>
+                        <tr><td><strong>Current Month</strong></td><td>Derived from the user's activities in the current calendar month</td></tr>
+                        <tr><td><strong>Activities</strong></td><td>Total activity count for the user</td></tr>
+                        <tr><td><strong>Last Activity</strong></td><td>Derived &mdash; the most recent <code>completedDate</code> across the user's activities; shows <code>&mdash;</code> if there are none</td></tr>
+                        <tr><td><strong>Team</strong></td><td>Optional team assignment (one team per user)</td></tr>
                     </tbody>
                 </table>
 
                 <h3>Bulk Operations</h3>
                 <ol>
-                    <li>Select users via checkboxes</li>
-                    <li>Choose an action: <strong>Award Points</strong>, <strong>Assign to Team</strong>, or <strong>Export Selected</strong></li>
+                    <li>Select users via the row checkboxes (or the header checkbox to select the page)</li>
+                    <li>Choose an action from the toolbar that appears: <strong>Award Points</strong>, <strong>Assign to Team</strong>, or <strong>Export Selected</strong> (downloads JSON)</li>
                     <li>Fill in the details and confirm</li>
                 </ol>
 
                 <h3>Manual Points</h3>
-                <p>Click <strong>Add Points</strong> to award custom points for special achievements. Enter the user's email, activity title, and point value.</p>
+                <p>Click <strong>Add Points</strong> to award custom points for special achievements. Start typing a name or email to auto-suggest existing users; if no match exists, the email is used as-is and a new user is created.</p>
 
                 <h2 id="teams">Managing Teams</h2>
 
@@ -861,36 +892,51 @@
 
                 <h2 id="activities">Managing Activities</h2>
 
-                <h3>Activity Types</h3>
+                <p>The Activities tab lists every imported or manually-added activity with its user, type, level, points, status, completion date, and source.</p>
+
+                <h3>Activity Categories &amp; Default Points</h3>
+                <p>Point values are organised into five categories &mdash; all editable in the <a href="#configuration" data-action="scrollToSection" data-section="configuration">Configuration</a> tab.</p>
                 <table class="cc-field-table">
-                    <thead><tr><th>Type</th><th>Points</th></tr></thead>
+                    <thead><tr><th>Category</th><th>Example sub-types</th><th>Default points</th></tr></thead>
                     <tbody>
-                        <tr><td>Digital courses (by level)</td><td>50&ndash;100</td></tr>
-                        <tr><td>Classroom training</td><td>100</td></tr>
-                        <tr><td>AWS specialized courses</td><td>75&ndash;150</td></tr>
-                        <tr><td>MS Teams meetings / live events</td><td>25</td></tr>
-                        <tr><td>Quizzes (by score)</td><td>20&ndash;70</td></tr>
-                        <tr><td>Hackathons (by placement)</td><td>150&ndash;450</td></tr>
+                        <tr><td><strong>Self-Paced Digital</strong></td><td>Skill Builder Course, Cloud Quest Role, Escape Room, Quiz Completion</td><td>25&ndash;150</td></tr>
+                        <tr><td><strong>Live Learning</strong></td><td>Live Webinar, Workshop (first hour / full), Office Hours, Hands-on Challenge</td><td>10&ndash;75</td></tr>
+                        <tr><td><strong>Certifications</strong></td><td>Cloud Practitioner, AI Practitioner, Associate, Professional/Specialty, Jam Challenge</td><td>100&ndash;500</td></tr>
+                        <tr><td><strong>Gamified Events</strong></td><td>Event participation, Top 3 bonus, Hackathon participation/prototype</td><td>50&ndash;200</td></tr>
+                        <tr><td><strong>Community Engagement</strong></td><td>Join channel, First question, Share resource, Champion knowledge-sharing, Survey feedback</td><td>10&ndash;25</td></tr>
                     </tbody>
                 </table>
 
+                <h3>Filtering &amp; Sorting</h3>
+                <p>Use the search box to filter by any text in a row. The drop-down narrows further by Current Month, Courses, or Events. Click the sort buttons to order by points or completion date.</p>
+
                 <h3>Bulk Operations</h3>
                 <ul>
-                    <li><strong>Adjust Points</strong> &mdash; Add, subtract, multiply, or set values across selected activities</li>
-                    <li><strong>Delete Selected</strong> &mdash; Remove activities (points are automatically recalculated)</li>
-                    <li><strong>Export Selected</strong> &mdash; Download selected activities as JSON</li>
+                    <li><strong>Adjust Points</strong> &mdash; add, subtract, multiply, or set values across selected activities; the adjustment history is preserved on each activity.</li>
+                    <li><strong>Delete Selected</strong> &mdash; remove activities (team and user totals are recalculated).</li>
+                    <li><strong>Export Selected</strong> &mdash; download selected activities as JSON.</li>
                 </ul>
 
                 <h2 id="configuration">Point Configuration</h2>
 
-                <p>Go to the <strong>Configuration</strong> tab to adjust point values for each activity type. Changes apply to future imports only &mdash; existing activities keep their original points.</p>
-
-                <h3>Configuration Management</h3>
+                <p>The <strong>Configuration</strong> tab lets you edit the points awarded for each activity type. Values are organised into five sections matching the categories above:</p>
                 <ul>
-                    <li><strong>Save Changes</strong> &mdash; Persist current values</li>
-                    <li><strong>Reset Defaults</strong> &mdash; Restore original point values</li>
-                    <li><strong>Export Config</strong> &mdash; Download as JSON</li>
+                    <li>Self-Paced Digital Training</li>
+                    <li>Live Learning Sessions</li>
+                    <li>Certifications &amp; Exams</li>
+                    <li>Gamified Events &amp; Challenges</li>
+                    <li>Community Engagement</li>
                 </ul>
+
+                <div class="cc-callout">
+                    <p><strong>Note:</strong> Configuration changes apply to <em>future</em> imports and future manual awards. Existing activities keep the points they were originally awarded.</p>
+                </div>
+
+                <h3>Saving Changes</h3>
+                <p>Edit the numbers inline and click <strong>Save Changes</strong> in the top right. A short confirmation appears next to the button.</p>
+
+                <h3>Reset All Data</h3>
+                <p>The danger zone card at the bottom of the Configuration tab contains a <strong>Reset</strong> button that permanently deletes all users, teams, activities, campaigns, and configuration. A confirmation modal requires you to type the confirmation phrase before the action runs.</p>
 
                 <h2 id="campaigns">Campaigns</h2>
 
@@ -905,10 +951,11 @@
                 </ol>
 
                 <h3>Participant Resolution</h3>
-                <p>Linking a team automatically includes all its members as campaign participants. Individual users can also be added directly.</p>
+                <p>Linking a team automatically includes all its members as campaign participants. Individual users can also be added directly. The union of both is deduplicated, so a user who is both directly listed and in a linked team only counts once.</p>
 
                 <h3>Leaderboards</h3>
-                <p>Each campaign has its own individual and team leaderboards, scoped to activities within the campaign's date window from eligible participants only.</p>
+                <p>Each campaign has its own user and team leaderboards on the <strong>Campaigns</strong> tab detail view, scoped to activities completed within the campaign's date window by eligible participants.</p>
+                <p>The dashboard also has a <strong>Campaigns</strong> sub-tab: pick a campaign from the dropdown to see its participant count, eligible activities, points awarded, and the per-campaign user leaderboard at a glance. (For the team leaderboard within a campaign, open the campaign detail view in the Campaigns tab.)</p>
 
                 <h3>Status Lifecycle</h3>
                 <table class="cc-field-table">
@@ -916,32 +963,35 @@
                     <tbody>
                         <tr><td><code>draft</code></td><td>Being configured, not yet tracking</td></tr>
                         <tr><td><code>active</code></td><td>Tracking activities within the date window</td></tr>
-                        <tr><td><code>completed</code></td><td>End date passed, results finalized</td></tr>
+                        <tr><td><code>completed</code></td><td>End date passed, results finalised</td></tr>
                         <tr><td><code>archived</code></td><td>Hidden from active views</td></tr>
                     </tbody>
                 </table>
 
-                <h2 id="reports">Reports &amp; Exports</h2>
+                <h2 id="reports">Reports</h2>
 
-                <h3>Available Reports</h3>
+                <p>The Reports tab focuses on visual year-to-date analytics. You can drill into a single user or team.</p>
+
+                <h3>Sub-tabs &amp; Search</h3>
                 <ul>
-                    <li><strong>Leaderboard Report</strong> &mdash; Current month user rankings with points</li>
-                    <li><strong>Activity Report</strong> &mdash; Complete list of all activities</li>
-                    <li><strong>Summary Report</strong> &mdash; Overall statistics, top users, and top teams</li>
+                    <li><strong>Users / Teams sub-tabs</strong> &mdash; choose what the search box autocompletes against.</li>
+                    <li><strong>Search box</strong> &mdash; type to filter; click a result to scope every chart and metric on the page to that user or team. A pill at the top shows the active filter; click the &times; to clear.</li>
                 </ul>
 
-                <h3>Data Export</h3>
-                <p>Click <strong>Export</strong> in the header to create a complete JSON backup of all users, teams, activities, campaigns, and configuration.</p>
+                <h3>Summary Metrics</h3>
+                <p>Four cards across the top &mdash; Activities (YTD), Points (YTD), Course Types, and Average Points per Activity &mdash; recompute when a filter is applied.</p>
 
-                <h3>Monthly Reset</h3>
-                <ol>
-                    <li>Go to the <strong>Reports</strong> tab</li>
-                    <li>Click <strong>Reset Monthly Leaderboard</strong></li>
-                    <li>The system archives current standings as a JSON download</li>
-                </ol>
+                <h3>Charts</h3>
+                <ul>
+                    <li><strong>Monthly Performance (YTD)</strong> &mdash; bar chart of points earned per month for the current year.</li>
+                    <li><strong>Course Type Breakdown</strong> &mdash; doughnut chart of points by course type (top 8).</li>
+                </ul>
 
-                <div class="cc-callout">
-                    <p><strong>Tip:</strong> Export data regularly as a backup. The file is timestamped for easy organization.</p>
+                <h3>Exporting Data</h3>
+                <p>There is no single global export button. Use <strong>Export Selected</strong> in the bulk-action toolbars of the <strong>Users</strong> and <strong>Activities</strong> tabs to download selected rows as JSON.</p>
+
+                <div class="cc-callout cc-callout-warn">
+                    <p><strong>Backups:</strong> Because the only persistence layer is your browser's local storage, regularly export the selected rows you care about or copy the <code>cloudCompData</code> entry from <em>DevTools &rarr; Application &rarr; Local Storage</em> for a full snapshot.</p>
                 </div>
 
                 <h2 id="tips">Tips &amp; Best Practices</h2>
@@ -954,15 +1004,15 @@
 
                 <h3>Weekly</h3>
                 <ul>
-                    <li>Import new activity data</li>
+                    <li>Import new activity data &mdash; the deduplicator skips rows you've already imported</li>
                     <li>Keep team memberships current</li>
                 </ul>
 
-                <h3>Monthly</h3>
+                <h3>Monthly / Quarterly</h3>
                 <ul>
-                    <li>Generate and share leaderboard reports</li>
-                    <li>Reset monthly points after announcing winners</li>
-                    <li>Export a full data backup</li>
+                    <li>Switch the dashboard time filter to <strong>Month</strong> or <strong>Quarter</strong> to share standings with the team</li>
+                    <li>Run an end-of-period campaign so historical leaderboards stay scoped to the right window even as activities accumulate</li>
+                    <li>Export selected rows from the Users tab as a snapshot of the rankings you announced</li>
                 </ul>
 
                 <h2 id="troubleshooting">Troubleshooting</h2>
@@ -970,15 +1020,17 @@
                 <table class="cc-field-table">
                     <thead><tr><th>Issue</th><th>Solution</th></tr></thead>
                     <tbody>
-                        <tr><td>Data not saving</td><td>Check browser settings &rarr; Privacy &rarr; ensure localStorage is enabled</td></tr>
-                        <tr><td>Import not working</td><td>Verify file has required columns (Email, Course ID, Title, Status)</td></tr>
-                        <tr><td>Points incorrect</td><td>Check Configuration tab settings and save changes</td></tr>
-                        <tr><td>Teams not showing points</td><td>Ensure members are assigned via the Manage option</td></tr>
+                        <tr><td>Data not saving</td><td>Check browser settings &rarr; Privacy &rarr; ensure localStorage is enabled (Safari Private Browsing blocks it)</td></tr>
+                        <tr><td>Import skips rows with warnings</td><td>Verify the file has the required columns (Email, Course ID, Course Title, Status) and a valid <em>Completed on</em> date for completed rows</td></tr>
+                        <tr><td>Last Activity shows <code>&mdash;</code> or 1/1/1970</td><td>Old data from an .xlsx import that hit the Excel-serial-date bug. Re-import the original file with this version &mdash; <code>cellDates:true</code> now parses dates correctly</td></tr>
+                        <tr><td>Points incorrect for new imports</td><td>Adjust the Configuration tab values and click Save Changes; the new values apply to future imports/manual awards only</td></tr>
+                        <tr><td>Teams not showing points</td><td>Make sure members are assigned via the team's Manage option; points are derived from member activity totals</td></tr>
+                        <tr><td>App slow after a big import</td><td>Imports persist in one batch from v1.3 on. If you upgraded from an earlier version, a one-time re-import resolves any leftover slowness from the previous schema</td></tr>
                     </tbody>
                 </table>
 
                 <div class="cc-callout cc-callout-error">
-                    <p><strong>Important:</strong> Never clear browser data without exporting a backup first. Clearing site data will permanently delete all stored information.</p>
+                    <p><strong>Important:</strong> Clearing your browser's site data permanently deletes everything CloudComp has stored. Before clearing, copy the <code>cloudCompData</code> entry from DevTools &rarr; Application &rarr; Local Storage to a safe place.</p>
                 </div>
 
                 <h3>Browser Support</h3>

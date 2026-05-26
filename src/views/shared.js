@@ -8,6 +8,7 @@
 import {
   getUsers, getUser, getTeams, getActivities, getConfig,
   upsertUser, upsertTeam, addActivity, replaceActivity,
+  addActivities, replaceActivities, upsertUsers,
   deleteTeam as stateDeleteTeam, deleteCampaign as stateDeleteCampaign,
   getCampaigns, getCampaign, upsertCampaign,
   updateConfig, loadFromStorage, exportJSON, importJSON,
@@ -21,6 +22,7 @@ import { deduplicateBatch } from '../importers/deduplication.js';
 export {
   getUsers, getUser, getTeams, getActivities, getConfig,
   upsertUser, upsertTeam, addActivity, replaceActivity, stateDeleteTeam,
+  addActivities, replaceActivities, upsertUsers,
   getCampaigns, getCampaign, upsertCampaign, stateDeleteCampaign,
   updateConfig, loadFromStorage, exportJSON, importJSON,
   calculateActivityPoints,

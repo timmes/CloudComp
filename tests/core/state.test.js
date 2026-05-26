@@ -12,6 +12,9 @@ import {
   upsertTeam,
   addActivity,
   replaceActivity,
+  addActivities,
+  replaceActivities,
+  upsertUsers,
   upsertCampaign,
   deleteTeam,
   deleteCampaign,
@@ -783,6 +786,150 @@ describe('replaceActivity', () => {
     const { handler, cleanup } = listenOnce(EVENTS.DATA_CHANGED);
     replaceActivity(makeActivity('a1', 'a@b.com', { title: 'New' }));
     expect(handler).toHaveBeenCalledTimes(1);
+    cleanup();
+  });
+});
+
+// ── Bulk writes (used by importers to avoid O(N²) persistence) ──────
+
+describe('addActivities (bulk)', () => {
+  it('appends all activities in one batch', () => {
+    addActivities([
+      makeActivity('a1', 'a@b.com'),
+      makeActivity('a2', 'a@b.com'),
+      makeActivity('a3', 'c@d.com'),
+    ]);
+    expect(getActivities()).toHaveLength(3);
+    expect(getActivities().map(a => a.id)).toEqual(['a1', 'a2', 'a3']);
+  });
+
+  it('returns the number appended', () => {
+    expect(addActivities([makeActivity('a1', 'a@b.com'), makeActivity('a2', 'a@b.com')])).toBe(2);
+  });
+
+  it('is a no-op for empty or missing input', () => {
+    expect(addActivities([])).toBe(0);
+    expect(addActivities(null)).toBe(0);
+    expect(addActivities(undefined)).toBe(0);
+    expect(getActivities()).toHaveLength(0);
+  });
+
+  it('emits DATA_CHANGED exactly once for the whole batch', () => {
+    const { handler, cleanup } = listenOnce(EVENTS.DATA_CHANGED);
+    addActivities([
+      makeActivity('a1', 'a@b.com'),
+      makeActivity('a2', 'a@b.com'),
+      makeActivity('a3', 'a@b.com'),
+    ]);
+    expect(handler).toHaveBeenCalledTimes(1);
+    cleanup();
+  });
+
+  it('does not emit DATA_CHANGED on empty input', () => {
+    const { handler, cleanup } = listenOnce(EVENTS.DATA_CHANGED);
+    addActivities([]);
+    expect(handler).not.toHaveBeenCalled();
+    cleanup();
+  });
+
+  it('stores copies — mutating an input does not affect stored state', () => {
+    const act = makeActivity('a1', 'a@b.com');
+    addActivities([act]);
+    act.title = 'mutated';
+    expect(getActivities()[0].title).toBe('Activity a1');
+  });
+});
+
+describe('replaceActivities (bulk)', () => {
+  beforeEach(() => {
+    addActivities([
+      makeActivity('a1', 'a@b.com', { status: 'in_progress' }),
+      makeActivity('a2', 'a@b.com', { status: 'in_progress' }),
+      makeActivity('a3', 'a@b.com', { status: 'completed' }),
+    ]);
+  });
+
+  it('replaces all matching activities in one batch', () => {
+    replaceActivities([
+      makeActivity('a1', 'a@b.com', { status: 'completed', title: 'A1 done' }),
+      makeActivity('a2', 'a@b.com', { status: 'completed', title: 'A2 done' }),
+    ]);
+    const acts = getActivities();
+    expect(acts.find(a => a.id === 'a1').status).toBe('completed');
+    expect(acts.find(a => a.id === 'a1').title).toBe('A1 done');
+    expect(acts.find(a => a.id === 'a2').status).toBe('completed');
+    expect(acts.find(a => a.id === 'a3').status).toBe('completed'); // untouched
+  });
+
+  it('returns the number replaced and silently ignores unknown ids', () => {
+    const n = replaceActivities([
+      makeActivity('a1', 'a@b.com'),
+      makeActivity('unknown', 'a@b.com'),
+    ]);
+    expect(n).toBe(1);
+  });
+
+  it('emits DATA_CHANGED exactly once when at least one match is replaced', () => {
+    const { handler, cleanup } = listenOnce(EVENTS.DATA_CHANGED);
+    replaceActivities([
+      makeActivity('a1', 'a@b.com'),
+      makeActivity('a2', 'a@b.com'),
+    ]);
+    expect(handler).toHaveBeenCalledTimes(1);
+    cleanup();
+  });
+
+  it('does not emit DATA_CHANGED when no ids match', () => {
+    const { handler, cleanup } = listenOnce(EVENTS.DATA_CHANGED);
+    replaceActivities([makeActivity('unknown', 'a@b.com')]);
+    expect(handler).not.toHaveBeenCalled();
+    cleanup();
+  });
+});
+
+describe('upsertUsers (bulk)', () => {
+  it('inserts new users in one batch', () => {
+    upsertUsers([
+      makeUser('a@b.com', { name: 'Alice' }),
+      makeUser('c@d.com', { name: 'Carol' }),
+    ]);
+    expect(Object.keys(getUsers())).toHaveLength(2);
+    expect(getUser('a@b.com').name).toBe('Alice');
+    expect(getUser('c@d.com').name).toBe('Carol');
+  });
+
+  it('merges with existing users on email match (lowercase key)', () => {
+    upsertUser(makeUser('a@b.com', { name: 'Old', totalPoints: 10 }));
+    upsertUsers([{ email: 'A@b.com', name: 'New' }]);
+    const u = getUser('a@b.com');
+    expect(u.name).toBe('New');
+    expect(u.totalPoints).toBe(10); // preserved by merge
+    expect(u.email).toBe('a@b.com'); // normalised
+  });
+
+  it('returns the number written and ignores entries without an email', () => {
+    const n = upsertUsers([
+      makeUser('a@b.com'),
+      { name: 'no-email' },
+      null,
+      undefined,
+      makeUser('c@d.com'),
+    ]);
+    expect(n).toBe(2);
+    expect(Object.keys(getUsers())).toHaveLength(2);
+  });
+
+  it('emits DATA_CHANGED exactly once for the whole batch', () => {
+    const { handler, cleanup } = listenOnce(EVENTS.DATA_CHANGED);
+    upsertUsers([makeUser('a@b.com'), makeUser('c@d.com'), makeUser('e@f.com')]);
+    expect(handler).toHaveBeenCalledTimes(1);
+    cleanup();
+  });
+
+  it('is a no-op for empty input', () => {
+    const { handler, cleanup } = listenOnce(EVENTS.DATA_CHANGED);
+    expect(upsertUsers([])).toBe(0);
+    expect(handler).not.toHaveBeenCalled();
     cleanup();
   });
 });

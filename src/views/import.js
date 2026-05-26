@@ -5,9 +5,9 @@
  */
 
 import {
-  getUsers, getUser, getActivities, getConfig,
+  getUsers, getActivities, getConfig,
   getUsersWithPoints,
-  upsertUser, addActivity, replaceActivity,
+  addActivities, replaceActivities, upsertUsers,
   selectedFiles, log, getCurrentMonth,
   formatNumber, autoSave,
   importCourseFile, importTeamsFile, deduplicateBatch, esc,
@@ -97,12 +97,15 @@ async function processTeamsFile(file) {
 function commitImportResult(result) {
   const { accepted, upgrades, stats } = deduplicateBatch(result.activities, getActivities());
 
-  for (const activity of accepted) addActivity(activity);
-  for (const activity of upgrades) replaceActivity(activity);
+  // Bulk writes — each call serialises and persists state exactly once,
+  // instead of once per row. Imports of N rows used to be O(N²) in
+  // localStorage I/O and would freeze the browser on medium files.
+  addActivities(accepted);
+  replaceActivities(upgrades);
 
-  for (const user of result.users) {
-    if (!getUser(user.email)) upsertUser(user);
-  }
+  const existingUsers = getUsers();
+  const newUsers = result.users.filter(u => u && u.email && !existingUsers[u.email.toLowerCase()]);
+  upsertUsers(newUsers);
 
   const parts = [`${stats.accepted} accepted`];
   if (stats.upgraded > 0) parts.push(`${stats.upgraded} upgraded`);

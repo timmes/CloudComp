@@ -344,6 +344,77 @@ export function replaceActivity(activity) {
 }
 
 /**
+ * Append many activities in one batch and persist + notify exactly once.
+ *
+ * Use this from importers instead of calling {@link addActivity} in a
+ * loop — the per-call version persists the full state to localStorage
+ * on every invocation, which is quadratic in batch size and causes
+ * the app to freeze or hit the storage quota on medium-to-large
+ * imports.
+ *
+ * @param {*[]} activities
+ * @returns {number} number of activities appended
+ */
+export function addActivities(activities) {
+  if (!activities || activities.length === 0) return 0;
+  const appended = activities.map(a => ({ ...a }));
+  _state.activities = [..._state.activities, ...appended];
+  persistAndNotify();
+  return appended.length;
+}
+
+/**
+ * Replace many activities by `id` in one batch and persist + notify
+ * exactly once. Returns the number of activities actually replaced
+ * (ids not found are silently ignored, mirroring {@link replaceActivity}).
+ *
+ * @param {*[]} activities - each must have an `id` property
+ * @returns {number}
+ */
+export function replaceActivities(activities) {
+  if (!activities || activities.length === 0) return 0;
+  const byId = new Map();
+  for (const a of activities) { byId.set(a.id, a); }
+  let replaced = 0;
+  _state.activities = _state.activities.map(existing => {
+    const incoming = byId.get(existing.id);
+    if (!incoming) return existing;
+    replaced++;
+    return { ...incoming };
+  });
+  if (replaced > 0) persistAndNotify();
+  return replaced;
+}
+
+/**
+ * Create or update many users in one batch and persist + notify
+ * exactly once. Each user is merged with any existing record under
+ * the same lowercase email, matching {@link upsertUser} semantics.
+ *
+ * @param {*[]} users - each must have an `email` property
+ * @returns {number} number of users written
+ */
+export function upsertUsers(users) {
+  if (!users || users.length === 0) return 0;
+  const next = { ..._state.users };
+  let written = 0;
+  for (const user of users) {
+    if (!user || !user.email) continue;
+    const key = user.email.toLowerCase();
+    const existing = next[key];
+    next[key] = existing
+      ? { ...existing, ...user, email: key }
+      : { ...user, email: key };
+    written++;
+  }
+  if (written > 0) {
+    _state.users = next;
+    persistAndNotify();
+  }
+  return written;
+}
+
+/**
  * Create or update a campaign.  Keyed by `campaign.id`.
  * Merges with the existing campaign record if one exists.
  * Emits {@link EVENTS.CAMPAIGN_UPDATED} in addition to DATA_CHANGED.
