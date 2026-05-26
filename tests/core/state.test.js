@@ -22,6 +22,10 @@ import {
   loadFromStorage,
   exportJSON,
   importJSON,
+  getImportHistory,
+  getExportHistory,
+  addImportHistoryEntry,
+  addExportHistoryEntry,
   _resetForTesting,
 } from '../../src/core/state.js';
 import { EVENTS, on, off } from '../../src/core/events.js';
@@ -1052,5 +1056,109 @@ describe('getActivities status filter', () => {
     const result = getActivities({ status: 'completed' });
     expect(result).toHaveLength(1);
     expect(result[0].id).toBe('legacy1');
+  });
+});
+
+// ── History (imports / exports) ─────────────────────────────────────
+
+describe('history', () => {
+  it('starts empty for a fresh state', () => {
+    expect(getImportHistory()).toEqual([]);
+    expect(getExportHistory()).toEqual([]);
+  });
+
+  it('addImportHistoryEntry appends and returns newest first', () => {
+    addImportHistoryEntry({ filename: 'a.xlsx', date: '2026-05-01T00:00:00Z' });
+    addImportHistoryEntry({ filename: 'b.xlsx', date: '2026-05-02T00:00:00Z' });
+    const list = getImportHistory();
+    expect(list).toHaveLength(2);
+    expect(list[0].filename).toBe('b.xlsx');
+    expect(list[1].filename).toBe('a.xlsx');
+  });
+
+  it('addExportHistoryEntry appends and returns newest first', () => {
+    addExportHistoryEntry({ filename: 'x1.json', date: '2026-05-01T00:00:00Z' });
+    addExportHistoryEntry({ filename: 'x2.json', date: '2026-05-02T00:00:00Z' });
+    const list = getExportHistory();
+    expect(list).toHaveLength(2);
+    expect(list[0].filename).toBe('x2.json');
+    expect(list[1].filename).toBe('x1.json');
+  });
+
+  it('caps each list at 50 entries (FIFO trim)', () => {
+    for (let i = 0; i < 60; i++) {
+      addImportHistoryEntry({ filename: `f${i}.xlsx`, date: `2026-01-${String(i + 1).padStart(2, '0')}T00:00:00Z` });
+    }
+    const list = getImportHistory();
+    expect(list).toHaveLength(50);
+    // newest first → f59
+    expect(list[0].filename).toBe('f59.xlsx');
+    // f0..f9 dropped, oldest kept is f10
+    expect(list[list.length - 1].filename).toBe('f10.xlsx');
+  });
+
+  it('ignores null/undefined entries', () => {
+    addImportHistoryEntry(null);
+    addImportHistoryEntry(undefined);
+    addExportHistoryEntry(null);
+    expect(getImportHistory()).toEqual([]);
+    expect(getExportHistory()).toEqual([]);
+  });
+
+  it('addImportHistoryEntry emits DATA_CHANGED once per call', () => {
+    const { handler, cleanup } = listenOnce(EVENTS.DATA_CHANGED);
+    addImportHistoryEntry({ filename: 'a.xlsx', date: '2026-05-01T00:00:00Z' });
+    expect(handler).toHaveBeenCalledTimes(1);
+    cleanup();
+  });
+
+  it('persists history through save/load round-trip', () => {
+    addImportHistoryEntry({ filename: 'a.xlsx', date: '2026-05-01T00:00:00Z' });
+    addExportHistoryEntry({ filename: 'x.json', date: '2026-05-02T00:00:00Z' });
+    _resetForTesting();
+    loadFromStorage();
+    expect(getImportHistory()).toHaveLength(1);
+    expect(getExportHistory()).toHaveLength(1);
+    expect(getImportHistory()[0].filename).toBe('a.xlsx');
+    expect(getExportHistory()[0].filename).toBe('x.json');
+  });
+
+  it('exportJSON includes the history slice', () => {
+    addImportHistoryEntry({ filename: 'a.xlsx', date: '2026-05-01T00:00:00Z' });
+    addExportHistoryEntry({ filename: 'x.json', date: '2026-05-02T00:00:00Z' });
+    const dump = exportJSON();
+    expect(dump.history).toBeDefined();
+    expect(dump.history.imports).toHaveLength(1);
+    expect(dump.history.exports).toHaveLength(1);
+  });
+
+  it('importJSON restores history from the payload', () => {
+    importJSON({
+      users: {},
+      activities: [],
+      history: {
+        imports: [{ filename: 'old.xlsx', date: '2026-04-01T00:00:00Z' }],
+        exports: [{ filename: 'old.json', date: '2026-04-02T00:00:00Z' }],
+      },
+    });
+    expect(getImportHistory()).toHaveLength(1);
+    expect(getImportHistory()[0].filename).toBe('old.xlsx');
+    expect(getExportHistory()).toHaveLength(1);
+    expect(getExportHistory()[0].filename).toBe('old.json');
+  });
+
+  it('importJSON without a history slice clears history (full replace semantics)', () => {
+    addImportHistoryEntry({ filename: 'a.xlsx', date: '2026-05-01T00:00:00Z' });
+    importJSON({ users: {}, activities: [] });
+    expect(getImportHistory()).toEqual([]);
+    expect(getExportHistory()).toEqual([]);
+  });
+
+  it('loadFromStorage migrates payloads with no history slice', () => {
+    save('cloudCompData', { users: {}, activities: [] });
+    _resetForTesting();
+    loadFromStorage();
+    expect(getImportHistory()).toEqual([]);
+    expect(getExportHistory()).toEqual([]);
   });
 });

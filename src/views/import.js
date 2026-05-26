@@ -8,13 +8,14 @@ import {
   getUsers, getActivities, getConfig,
   getUsersWithPoints,
   addActivities, replaceActivities, upsertUsers,
+  addImportHistoryEntry,
   selectedFiles, log, getCurrentMonth,
   formatNumber, autoSave,
   importCourseFile, importTeamsFile, deduplicateBatch, esc,
 } from './shared.js';
 
-let refreshDashboard;
-export function _setRefreshFns(fns) { ({ refreshDashboard } = fns); }
+let refreshDashboard, refreshHistoryTables;
+export function _setRefreshFns(fns) { ({ refreshDashboard, refreshHistoryTables } = fns); }
 
 export function updateFileList(type, files) {
   const el = document.getElementById(type + 'FileList');
@@ -73,9 +74,13 @@ async function processCourseFile(file) {
     const result = await importCourseFile(buffer, window.XLSX, { config: getConfig().pointConfig, filename: file.name });
     result.warnings.forEach(w => log(`${file.name}: ${w}`));
     result.errors.forEach(e => log(`${file.name}: ${e}`));
-    if (result.errors.length > 0) return { processed: 0, activities: 0 };
-    commitImportResult(result);
+    if (result.errors.length > 0) {
+      recordImportHistory(file.name, 'course', result, null);
+      return { processed: 0, activities: 0 };
+    }
+    const dedupStats = commitImportResult(result);
     log(`${file.name}: ${result.activities.length} activities, ${result.users.length} users`);
+    recordImportHistory(file.name, 'course', result, dedupStats);
     return { processed: result.activities.length + result.warnings.length, activities: result.activities.length };
   } catch (error) { log(`Error processing ${file.name}: ${error.message}`); return { processed: 0, activities: 0 }; }
 }
@@ -87,9 +92,13 @@ async function processTeamsFile(file) {
     const result = await importTeamsFile(text, { config: getConfig().pointConfig, filename: file.name });
     result.warnings.forEach(w => log(`${file.name}: ${w}`));
     result.errors.forEach(e => log(`${file.name}: ${e}`));
-    if (result.errors.length > 0) return { processed: 0, activities: 0 };
-    commitImportResult(result);
+    if (result.errors.length > 0) {
+      recordImportHistory(file.name, 'teams', result, null);
+      return { processed: 0, activities: 0 };
+    }
+    const dedupStats = commitImportResult(result);
     log(`${file.name}: ${result.activities.length} meeting attendance activities`);
+    recordImportHistory(file.name, 'teams', result, dedupStats);
     return { processed: result.activities.length + result.warnings.length, activities: result.activities.length };
   } catch (error) { log(`Error processing Teams file ${file.name}: ${error.message}`); return { processed: 0, activities: 0 }; }
 }
@@ -111,6 +120,25 @@ function commitImportResult(result) {
   if (stats.upgraded > 0) parts.push(`${stats.upgraded} upgraded`);
   if (stats.duplicatesSkipped > 0) parts.push(`${stats.duplicatesSkipped} duplicates skipped`);
   log(`Dedup: ${parts.join(', ')}`);
+
+  return stats;
+}
+
+function recordImportHistory(filename, type, result, dedupStats) {
+  addImportHistoryEntry({
+    filename,
+    date: new Date().toISOString(),
+    type,
+    stats: {
+      accepted: dedupStats?.accepted ?? 0,
+      upgraded: dedupStats?.upgraded ?? 0,
+      duplicatesSkipped: dedupStats?.duplicatesSkipped ?? 0,
+      warnings: result?.warnings?.length ?? 0,
+      errors: result?.errors?.length ?? 0,
+      users: result?.users?.length ?? 0,
+    },
+  });
+  if (refreshHistoryTables) refreshHistoryTables();
 }
 
 function updateImportStats(totalProcessed, totalActivities, totalInProgress) {

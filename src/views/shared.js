@@ -12,6 +12,8 @@ import {
   deleteTeam as stateDeleteTeam, deleteCampaign as stateDeleteCampaign,
   getCampaigns, getCampaign, upsertCampaign,
   updateConfig, loadFromStorage, exportJSON, importJSON,
+  getImportHistory, getExportHistory,
+  addImportHistoryEntry, addExportHistoryEntry,
 } from '../core/state.js';
 import { calculateActivityPoints } from '../models/points.js';
 import { importCourseFile } from '../importers/course-importer.js';
@@ -25,6 +27,8 @@ export {
   addActivities, replaceActivities, upsertUsers,
   getCampaigns, getCampaign, upsertCampaign, stateDeleteCampaign,
   updateConfig, loadFromStorage, exportJSON, importJSON,
+  getImportHistory, getExportHistory,
+  addImportHistoryEntry, addExportHistoryEntry,
   calculateActivityPoints,
   importCourseFile, importTeamsFile, deduplicateBatch,
 };

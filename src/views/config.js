@@ -7,6 +7,8 @@
 import {
   getConfig, updateConfig, importJSON, log, autoSave,
   calculateActivityPoints,
+  getImportHistory, getExportHistory,
+  formatNumber, esc,
 } from './shared.js';
 
 // ── Field mappings (element ID -> config key) ──────────────────────
@@ -84,6 +86,7 @@ export function loadConfiguration() {
   for (const [section, idMap] of Object.entries(FIELD_MAP)) {
     writeSection(pc[section], idMap);
   }
+  refreshHistoryTables();
 }
 
 export function saveConfiguration() {
@@ -120,4 +123,103 @@ export function confirmResetAllData() {
 export function calculatePoints(category, subCategory) {
   const pc = getConfig().pointConfig;
   return calculateActivityPoints(category, subCategory, pc);
+}
+
+// ── History rendering ──────────────────────────────────────────────
+
+const IMPORT_TYPE_LABEL = {
+  course: 'Course file',
+  teams: 'Teams CSV',
+  'data-restore': 'Data restore',
+};
+
+/**
+ * Render the two history tables in the Configuration tab. Safe to call
+ * even when the tab isn't mounted yet (no-ops if the tbodies are absent).
+ */
+export function refreshHistoryTables() {
+  renderImportsTable();
+  renderExportsTable();
+}
+
+function renderImportsTable() {
+  const tbody = document.getElementById('historyImportsBody');
+  if (!tbody) return;
+  const rows = getImportHistory();
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-6 text-center text-sm" style="color:var(--cc-text-muted);">No imports yet</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const s = r.stats || {};
+    const parts = r.type === 'data-restore'
+      ? buildRestoreStats(s)
+      : buildFileImportStats(s);
+    return `
+      <tr>
+        <td><span class="text-sm text-gray-900" style="word-break:break-all;">${esc(r.filename || '—')}</span></td>
+        <td><span class="cc-pill bg-gray-100 text-gray-700">${esc(IMPORT_TYPE_LABEL[r.type] || r.type || 'import')}</span></td>
+        <td><span class="text-sm text-gray-500">${esc(formatDateTime(r.date))}</span></td>
+        <td><span class="text-sm text-gray-600">${parts.length ? esc(parts.join(', ')) : '—'}</span></td>
+      </tr>`;
+  }).join('');
+}
+
+function renderExportsTable() {
+  const tbody = document.getElementById('historyExportsBody');
+  if (!tbody) return;
+  const rows = getExportHistory();
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" class="px-4 py-6 text-center text-sm" style="color:var(--cc-text-muted);">No exports yet</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map(r => {
+    const s = r.stats || {};
+    const parts = [];
+    if (s.users != null) parts.push(`${formatNumber(s.users)} users`);
+    if (s.teams != null) parts.push(`${formatNumber(s.teams)} teams`);
+    if (s.activities != null) parts.push(`${formatNumber(s.activities)} activities`);
+    if (s.campaigns != null) parts.push(`${formatNumber(s.campaigns)} campaigns`);
+    if (s.sizeBytes != null) parts.push(`${formatBytes(s.sizeBytes)}`);
+    return `
+      <tr>
+        <td><span class="text-sm text-gray-900" style="word-break:break-all;">${esc(r.filename || '—')}</span></td>
+        <td><span class="text-sm text-gray-500">${esc(formatDateTime(r.date))}</span></td>
+        <td><span class="text-sm text-gray-600">${parts.length ? esc(parts.join(', ')) : '—'}</span></td>
+      </tr>`;
+  }).join('');
+}
+
+function buildFileImportStats(s) {
+  const parts = [];
+  if (s.accepted) parts.push(`${formatNumber(s.accepted)} accepted`);
+  if (s.upgraded) parts.push(`${formatNumber(s.upgraded)} upgraded`);
+  if (s.duplicatesSkipped) parts.push(`${formatNumber(s.duplicatesSkipped)} duplicates`);
+  if (s.warnings) parts.push(`${formatNumber(s.warnings)} warnings`);
+  if (s.errors) parts.push(`${formatNumber(s.errors)} errors`);
+  return parts;
+}
+
+function buildRestoreStats(s) {
+  const parts = [];
+  if (s.users != null) parts.push(`${formatNumber(s.users)} users`);
+  if (s.teams != null) parts.push(`${formatNumber(s.teams)} teams`);
+  if (s.activities != null) parts.push(`${formatNumber(s.activities)} activities`);
+  if (s.campaigns != null) parts.push(`${formatNumber(s.campaigns)} campaigns`);
+  return parts;
+}
+
+function formatDateTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '—';
+  // Pre-2000 dates have come up as bogus elsewhere; consistent treatment.
+  if (d.getFullYear() < 2000) return '—';
+  return `${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+}
+
+function formatBytes(n) {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+  return `${(n / (1024 * 1024)).toFixed(2)} MB`;
 }

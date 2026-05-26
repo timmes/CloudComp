@@ -8,7 +8,11 @@
 import './styles/design-tokens.css';
 import { scrollToSection, selectedFiles } from './views/shared.js';
 import { toggleTheme } from './views/theme.js';
-import { loadData, closeImportDataModal, processImportData, _setRefreshFns as setDataRefs } from './views/data.js';
+import {
+  loadData, closeImportDataModal, processImportData, openImportDataModal,
+  openExportDataModal, closeExportDataModal, confirmExportData,
+  _setRefreshFns as setDataRefs,
+} from './views/data.js';
 import {
   refreshDashboard, setDashboardSubTab, setDashboardTimePeriod,
   setDashboardCourseTypeFilter, clearDashboardCourseTypeFilter,
@@ -42,7 +46,7 @@ import {
   setCampaignStatus, filterCampaigns, toggleCampaignSort, toggleCampaignSortOrder,
   updateCampaignSortButtons, _setRefreshFns as setCampaignRefs,
 } from './views/campaigns.js';
-import { updatePointConfig, loadConfiguration, saveConfiguration, openResetDataModal, closeResetDataModal, confirmResetAllData } from './views/config.js';
+import { updatePointConfig, loadConfiguration, saveConfiguration, openResetDataModal, closeResetDataModal, confirmResetAllData, refreshHistoryTables } from './views/config.js';
 import { processAllFiles, updateFileList, _setRefreshFns as setImportRefs } from './views/import.js';
 import {
   setReportsSubTab, setReportEntity, clearReportEntity, filterReportEntities,
@@ -51,12 +55,12 @@ import {
 
 // ── Wire cross-module references ────────────────────────────────────
 
-setDataRefs({ loadConfiguration, refreshDashboard, refreshUsersTable, refreshActivitiesTable, refreshTeamsTable });
+setDataRefs({ loadConfiguration, refreshDashboard, refreshUsersTable, refreshActivitiesTable, refreshTeamsTable, refreshHistoryTables });
 setUserRefs({ refreshDashboard, refreshActivitiesTable, refreshTeamsTable });
 setTeamRefs({ refreshDashboard });
 setActivityRefs({ refreshDashboard, refreshUsersTable, refreshTeamsTable });
 setCampaignRefs({ refreshDashboard });
-setImportRefs({ refreshDashboard });
+setImportRefs({ refreshDashboard, refreshHistoryTables });
 
 // ── Action dispatch map ─────────────────────────────────────────────
 
@@ -75,6 +79,10 @@ const ACTIONS = {
   processAllFiles,
   processImportData,
   closeImportDataModal,
+  openImportDataModal,
+  openExportDataModal,
+  closeExportDataModal,
+  confirmExportData,
   // Users
   addManualPoints,
   closeAddPointsModal,

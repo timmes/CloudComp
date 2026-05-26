@@ -86,7 +86,29 @@ function emptyState() {
       totalRecordsProcessed: 0,
       sources: [],
     },
+    history: {
+      imports: [],
+      exports: [],
+    },
   };
+}
+
+/** Maximum entries kept per history list — older entries are dropped FIFO. */
+const HISTORY_LIMIT = 50;
+
+/**
+ * Coerce a stored history object into the expected shape with arrays
+ * trimmed to the configured limit. Used by load/import to migrate
+ * older payloads that may lack the slice entirely.
+ *
+ * @param {*} h
+ * @returns {{ imports: *[], exports: *[] }}
+ */
+function migrateHistory(h) {
+  if (!h || typeof h !== 'object') return { imports: [], exports: [] };
+  const imports = Array.isArray(h.imports) ? h.imports.slice(-HISTORY_LIMIT) : [];
+  const exports = Array.isArray(h.exports) ? h.exports.slice(-HISTORY_LIMIT) : [];
+  return { imports, exports };
 }
 
 // ── Persistence helpers ─────────────────────────────────────────────
@@ -484,6 +506,68 @@ export function updateConfig(partial) {
   persistAndNotify();
 }
 
+// ── History ─────────────────────────────────────────────────────────
+
+/**
+ * Return the recorded import history, newest first.
+ * Each entry is a free-form object the writer chose to record (typically
+ * `{ filename, date, type, stats }`).
+ *
+ * @returns {*[]}
+ */
+export function getImportHistory() {
+  const list = _state.history?.imports ?? [];
+  return [...list].reverse();
+}
+
+/**
+ * Return the recorded export history, newest first.
+ * Each entry is a free-form object the writer chose to record (typically
+ * `{ filename, date, stats }`).
+ *
+ * @returns {*[]}
+ */
+export function getExportHistory() {
+  const list = _state.history?.exports ?? [];
+  return [...list].reverse();
+}
+
+/**
+ * Append an import history entry and persist. Older entries beyond
+ * {@link HISTORY_LIMIT} are dropped (FIFO).
+ *
+ * @param {*} entry - free-form; typically `{ filename, date, type, stats }`
+ * @returns {void}
+ */
+export function addImportHistoryEntry(entry) {
+  if (!entry) return;
+  const current = _state.history?.imports ?? [];
+  const next = [...current, entry].slice(-HISTORY_LIMIT);
+  _state.history = {
+    imports: next,
+    exports: _state.history?.exports ?? [],
+  };
+  persistAndNotify();
+}
+
+/**
+ * Append an export history entry and persist. Older entries beyond
+ * {@link HISTORY_LIMIT} are dropped (FIFO).
+ *
+ * @param {*} entry - free-form; typically `{ filename, date, stats }`
+ * @returns {void}
+ */
+export function addExportHistoryEntry(entry) {
+  if (!entry) return;
+  const current = _state.history?.exports ?? [];
+  const next = [...current, entry].slice(-HISTORY_LIMIT);
+  _state.history = {
+    imports: _state.history?.imports ?? [],
+    exports: next,
+  };
+  persistAndNotify();
+}
+
 // ── Migration ──────────────────────────────────────────────────────
 
 /** Backfill status field on legacy activities that lack it. */
@@ -519,6 +603,7 @@ export function loadFromStorage() {
     metadata:   data.metadata
       ? { lastImport: null, totalRecordsProcessed: 0, sources: [], ...data.metadata }
       : { lastImport: null, totalRecordsProcessed: 0, sources: [] },
+    history:    migrateHistory(data.history),
   };
 }
 
@@ -542,6 +627,10 @@ export function exportJSON() {
     metadata: {
       ..._state.metadata,
       exportedDate: new Date().toISOString(),
+    },
+    history: {
+      imports: [...(_state.history?.imports ?? [])],
+      exports: [...(_state.history?.exports ?? [])],
     },
   };
 }
@@ -568,6 +657,7 @@ export function importJSON(json) {
     metadata:   json.metadata
       ? { lastImport: null, totalRecordsProcessed: 0, sources: [], ...json.metadata }
       : { lastImport: null, totalRecordsProcessed: 0, sources: [] },
+    history:    migrateHistory(json.history),
   };
   persistAndNotify();
 }

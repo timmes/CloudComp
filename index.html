@@ -664,6 +664,73 @@
                 </div>
             </div>
 
+            <!-- Backup & Restore -->
+            <div class="cc-card-flush mb-6">
+                <div class="px-6 py-4" style="border-bottom:1px solid var(--cc-border);">
+                    <h2 class="cc-section-title" style="margin-bottom:0.125rem;">Backup &amp; Restore</h2>
+                    <p class="text-xs" style="color:var(--cc-text-muted);">Download a full JSON snapshot or restore from one to move data between browsers.</p>
+                </div>
+                <div class="px-6">
+                    <div class="cc-settings-row">
+                        <div class="cc-settings-label">
+                            <h4>Export All Data</h4>
+                            <p>Download every user, team, activity, campaign, the point configuration, and history as a single JSON file.</p>
+                        </div>
+                        <div class="cc-settings-control" style="width:auto;">
+                            <button data-action="openExportDataModal" class="cc-btn cc-btn-primary">Export</button>
+                        </div>
+                    </div>
+                    <div class="cc-settings-row" style="border-bottom:none;">
+                        <div class="cc-settings-label">
+                            <h4>Import All Data</h4>
+                            <p>Restore from a <code>cloud_comp_data_*.json</code> file. This <strong>replaces</strong> all current data.</p>
+                        </div>
+                        <div class="cc-settings-control" style="width:auto;">
+                            <button data-action="openImportDataModal" class="cc-btn cc-btn-ghost">Import</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History -->
+            <div class="cc-card-flush mb-6">
+                <div class="px-6 py-4" style="border-bottom:1px solid var(--cc-border);">
+                    <h2 class="cc-section-title" style="margin-bottom:0.125rem;">History</h2>
+                    <p class="text-xs" style="color:var(--cc-text-muted);">Recent file imports and full-data exports. The 50 most recent of each are kept.</p>
+                </div>
+                <div class="px-6 py-4">
+                    <div class="text-xs font-medium uppercase tracking-wider mb-2" style="color:var(--cc-text-muted);">Recent Imports</div>
+                    <div class="scroll-table" style="max-height:14rem;">
+                        <table class="cc-table">
+                            <thead>
+                                <tr>
+                                    <th>File</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>Stats</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyImportsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="px-6 pb-4">
+                    <div class="text-xs font-medium uppercase tracking-wider mb-2" style="color:var(--cc-text-muted);">Recent Exports</div>
+                    <div class="scroll-table" style="max-height:14rem;">
+                        <table class="cc-table">
+                            <thead>
+                                <tr>
+                                    <th>File</th>
+                                    <th>Date</th>
+                                    <th>Stats</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyExportsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- Reset All Data -->
             <div class="cc-card-flush">
                 <div class="px-6">
@@ -1081,11 +1148,11 @@
     <div id="importDataModal" class="hidden cc-modal-backdrop">
         <div class="cc-modal">
             <div class="cc-modal-header">
-                <h3 class="cc-modal-title">Import Data</h3>
+                <h3 class="cc-modal-title">Import All Data</h3>
                 <button data-action="closeImportDataModal" class="cc-modal-close">&times;</button>
             </div>
             <div class="cc-modal-body">
-                <p class="cc-modal-subtitle">Import a previously exported cloud_comp_data_*.json file to restore your data.</p>
+                <p class="cc-modal-subtitle">Choose a previously exported <code>cloud_comp_data_*.json</code> file. This will <strong>replace</strong> all current data.</p>
                 <div class="cc-field-group">
                     <input type="file" id="importDataFile" accept=".json" class="cc-input">
                 </div>
@@ -1093,6 +1160,31 @@
             <div class="cc-modal-footer">
                 <button data-action="closeImportDataModal" class="cc-btn cc-btn-ghost">Cancel</button>
                 <button data-action="processImportData" class="cc-btn cc-btn-primary">Import</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Data Modal -->
+    <div id="exportDataModal" class="hidden cc-modal-backdrop">
+        <div class="cc-modal">
+            <div class="cc-modal-header">
+                <h3 class="cc-modal-title">Export All Data</h3>
+                <button data-action="closeExportDataModal" class="cc-modal-close">&times;</button>
+            </div>
+            <div class="cc-modal-body">
+                <p class="cc-modal-subtitle">A single JSON file containing everything below will be downloaded. Keep it safe — it can be re-imported via <strong>Import All Data</strong>.</p>
+                <table class="cc-field-table" style="margin-bottom:0;">
+                    <tbody>
+                        <tr><td>Users</td><td><strong id="exportDataUsers">0</strong></td></tr>
+                        <tr><td>Teams</td><td><strong id="exportDataTeams">0</strong></td></tr>
+                        <tr><td>Activities</td><td><strong id="exportDataActivities">0</strong></td></tr>
+                        <tr><td>Campaigns</td><td><strong id="exportDataCampaigns">0</strong></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="cc-modal-footer">
+                <button data-action="closeExportDataModal" class="cc-btn cc-btn-ghost">Cancel</button>
+                <button data-action="confirmExportData" class="cc-btn cc-btn-primary">Download JSON</button>
             </div>
         </div>
     </div>
