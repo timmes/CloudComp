@@ -2,7 +2,7 @@
 
 > Transform your organization's learning culture with points, leaderboards, and friendly competition!
 
-[![Version](https://img.shields.io/badge/version-1.3-blue.svg)](https://github.com/timmes/cloudcomp)
+[![Version](https://img.shields.io/badge/version-1.4-blue.svg)](https://github.com/timmes/cloudcomp)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![No Server Required](https://img.shields.io/badge/deployment-local%20files-orange.svg)](#getting-started)
 
@@ -162,7 +162,7 @@ Points are organised into five categories. All values are editable in the **Conf
 
 - **Vanilla JS (ES modules)** with **JSDoc** type annotations — no React, no TypeScript
 - **Vite + `vite-plugin-singlefile`** — builds the whole app into one self-contained `index.html`
-- **Vitest** for the unit-test suite (416 tests at v1.3)
+- **Vitest** for the unit-test suite (456 tests at v1.4)
 - **Tailwind CSS** + **Basecoat UI** design tokens for styling
 - **SheetJS (`xlsx`)** for Excel/CSV parsing — loaded from CDN
 - **Chart.js** for the YTD charts in the Reports tab — loaded from CDN

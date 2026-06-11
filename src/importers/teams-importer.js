@@ -44,28 +44,46 @@ import { calculateActivityPoints } from '../models/points.js';
 // ── Public API ──────────────────────────────────────────────────────
 
 /**
- * Import Teams meeting attendance data from a CSV string.
+ * Import Teams meeting attendance data from a CSV string or XLSX ArrayBuffer.
  *
- * @param {string} content   - raw CSV text
- * @param {ImportOptions} options
+ * @param {string|ArrayBuffer} content   - raw CSV text or XLSX ArrayBuffer
+ * @param {ImportOptions & {xlsx?: *}} options
  * @returns {Promise<ImportResult>}
  *
  * @example
  * const result = await importTeamsFile(csvText, { config, filename: 'meeting.csv' });
+ * const result = await importTeamsFile(buffer, { config, filename: 'report.xlsx', xlsx: XLSX });
  */
 export async function importTeamsFile(content, options) {
-  const { config, filename = 'unknown', dryRun = false } = options;
+  const { config, filename = 'unknown', dryRun = false, xlsx } = options;
   const warnings = [];
   const errors = [];
 
-  if (!content || !content.trim()) {
+  let textContent;
+  if (content instanceof ArrayBuffer || content instanceof Uint8Array) {
+    // XLSX binary — convert to tab-separated text lines
+    if (!xlsx) {
+      errors.push(`File ${filename} is XLSX but no XLSX library provided`);
+      return { activities: [], users: [], warnings, errors };
+    }
+    try {
+      textContent = xlsxToText(content, xlsx);
+    } catch (err) {
+      errors.push(`Failed to parse XLSX ${filename}: ${err.message}`);
+      return { activities: [], users: [], warnings, errors };
+    }
+  } else {
+    textContent = content;
+  }
+
+  if (!textContent || !textContent.trim()) {
     errors.push(`File ${filename} is empty`);
     return { activities: [], users: [], warnings, errors };
   }
 
   let meetings;
   try {
-    meetings = parseMeetings(content, filename, warnings);
+    meetings = parseMeetings(textContent, filename, warnings);
   } catch (err) {
     errors.push(`Failed to parse ${filename}: ${err.message}`);
     return { activities: [], users: [], warnings, errors };
@@ -248,4 +266,26 @@ function extractDateFromFilename(filename) {
     if (!Number.isNaN(d.getTime())) return d.toISOString();
   }
   return new Date().toISOString();
+}
+
+/**
+ * Convert an XLSX ArrayBuffer into a plain text string.
+ * Teams attendance XLSX files store tab-separated data within single
+ * cells per row; we join cells with tabs and rows with newlines.
+ *
+ * @param {ArrayBuffer|Uint8Array} data
+ * @param {*} xlsx - XLSX library instance
+ * @returns {string}
+ */
+function xlsxToText(data, xlsx) {
+  const workbook = xlsx.read(new Uint8Array(data), { type: 'array', cellDates: true });
+  const lines = [];
+  for (const name of workbook.SheetNames) {
+    const sheet = workbook.Sheets[name];
+    const rows = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+    for (const row of rows) {
+      lines.push(row.join('\t'));
+    }
+  }
+  return lines.join('\n');
 }

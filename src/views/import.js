@@ -88,8 +88,9 @@ async function processCourseFile(file) {
 async function processTeamsFile(file) {
   log(`Processing Teams file: ${file.name}`);
   try {
-    const text = await file.text();
-    const result = await importTeamsFile(text, { config: getConfig().pointConfig, filename: file.name });
+    const isXlsx = /\.xlsx?$/i.test(file.name);
+    const content = isXlsx ? await file.arrayBuffer() : await file.text();
+    const result = await importTeamsFile(content, { config: getConfig().pointConfig, filename: file.name, xlsx: isXlsx ? window.XLSX : undefined });
     result.warnings.forEach(w => log(`${file.name}: ${w}`));
     result.errors.forEach(e => log(`${file.name}: ${e}`));
     if (result.errors.length > 0) {

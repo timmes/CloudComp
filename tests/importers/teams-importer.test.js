@@ -245,3 +245,53 @@ describe('importTeamsFile — result shape', () => {
     expect(Array.isArray(result.errors)).toBe(true);
   });
 });
+
+// ── XLSX support ────────────────────────────────────────────────────
+
+describe('importTeamsFile — XLSX support', () => {
+  function mockXlsx(rows) {
+    return {
+      read: () => ({
+        SheetNames: ['Sheet1'],
+        Sheets: { Sheet1: '__mock__' },
+      }),
+      utils: {
+        sheet_to_json: () => rows,
+      },
+    };
+  }
+
+  it('parses XLSX ArrayBuffer by converting to text lines', async () => {
+    const rows = [
+      ['Meeting title\tStandup'],
+      ['Attended participants\t2'],
+      [],
+      ['Name\tEmail'],
+      ['Alice\talice@b.com\tAttendee'],
+      ['Bob\tbob@b.com\tAttendee'],
+    ];
+    const buf = new ArrayBuffer(0);
+    const result = await importTeamsFile(buf, opts({ filename: 'report.xlsx', xlsx: mockXlsx(rows) }));
+    expect(result.activities).toHaveLength(2);
+    expect(result.activities[0].title).toBe('Standup');
+  });
+
+  it('returns error when XLSX provided without xlsx library', async () => {
+    const buf = new ArrayBuffer(0);
+    const result = await importTeamsFile(buf, opts({ filename: 'report.xlsx' }));
+    expect(result.errors.some(e => e.includes('XLSX'))).toBe(true);
+  });
+
+  it('extracts emails from tab-separated XLSX rows', async () => {
+    const rows = [
+      ['Meeting title\tWeekly Sync'],
+      ['Attended participants\t1'],
+      [],
+      ['Alice Smith (ZA)\t5/14/26\t10:00 AM\t5/14/26\t11:00 AM\t1h\talice@b.com\talice@b.com\tAttendee'],
+    ];
+    const buf = new ArrayBuffer(0);
+    const result = await importTeamsFile(buf, opts({ filename: 'teams.xlsx', xlsx: mockXlsx(rows) }));
+    expect(result.activities).toHaveLength(1);
+    expect(result.activities[0].userId).toBe('alice@b.com');
+  });
+});

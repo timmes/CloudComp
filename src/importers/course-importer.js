@@ -54,18 +54,28 @@ export async function importCourseFile(data, xlsx, options) {
   const warnings = [];
   const errors = [];
 
-  let jsonData;
+  let workbook;
   try {
     // cellDates: true makes SheetJS convert Excel date serial cells into JS
     // Date objects, instead of leaving them as raw numbers (e.g. 45292) that
     // would otherwise be misread as ms-since-epoch and collapse to 1970.
-    const workbook = xlsx.read(new Uint8Array(data), { type: 'array', cellDates: true });
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    jsonData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+    workbook = xlsx.read(new Uint8Array(data), { type: 'array', cellDates: true });
   } catch (err) {
     errors.push(`Failed to parse file ${filename}: ${err.message}`);
     return { activities: [], users: [], warnings, errors };
   }
+
+  // Check for cohort dashboard format (multi-sheet with "Individual leaderboard")
+  if (workbook.SheetNames.includes('Individual leaderboard')) {
+    const sheet = workbook.Sheets['Individual leaderboard'];
+    const jsonData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+    const result = processCohortLeaderboard(jsonData, config, filename, warnings, errors);
+    if (dryRun) return { ...result, activities: [], users: [] };
+    return result;
+  }
+
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const jsonData = xlsx.utils.sheet_to_json(sheet, { header: 1 });
 
   if (!jsonData || jsonData.length === 0) {
     errors.push(`File ${filename} is empty`);
@@ -88,7 +98,7 @@ export async function importCourseFile(data, xlsx, options) {
 /**
  * Heuristic: ILT files have email in col[1] and "completed" in
  * col[2] within the first 10 rows, but no course-ID-shaped value
- * in col[0].
+ * in col[0].  Also detects header-based ILT with "Attendance Status" column.
  *
  * @param {*[][]} jsonData
  * @returns {boolean}
@@ -97,6 +107,14 @@ function detectClassroomFormat(jsonData) {
   for (let i = 0; i < Math.min(10, jsonData.length); i++) {
     const row = jsonData[i];
     if (!row || row.length < 3) continue;
+
+    // Header-based ILT: row contains both "Class Title" and "Attendance Status"
+    const rowStrs = row.map(c => String(c ?? '').trim());
+    if (rowStrs.includes('Class Title') && rowStrs.includes('Attendance Status')) {
+      return true;
+    }
+
+    // Legacy positional ILT: email in col[1], "completed" in col[2]
     const col1 = String(row[1] ?? '');
     const col2 = String(row[2] ?? '');
     const col0 = String(row[0] ?? '');
@@ -124,8 +142,16 @@ function detectClassroomFormat(jsonData) {
 function processILT(jsonData, config, filename, warnings, errors) {
   const activities = [];
   const usersMap = new Map();
-  const sessionName = deriveSessionName(filename);
   const points = config?.generalCourses?.['Classroom Training'] ?? 100;
+
+  // Detect header-based format by finding the header row
+  const headerIdx = findILTHeaderRow(jsonData);
+  if (headerIdx !== -1) {
+    return processHeaderBasedILT(jsonData, headerIdx, config, filename, warnings, errors);
+  }
+
+  // Legacy positional format
+  const sessionName = deriveSessionName(filename);
 
   for (let i = 0; i < jsonData.length; i++) {
     try {
@@ -138,6 +164,83 @@ function processILT(jsonData, config, filename, warnings, errors) {
       }
     } catch (err) {
       warnings.push(`Row ${i + 1}: error — ${err.message}`);
+    }
+  }
+
+  return { activities, users: [...usersMap.values()], warnings, errors };
+}
+
+/**
+ * Find a header row containing "Attendance Status" within first 5 rows.
+ * @param {*[][]} jsonData
+ * @returns {number} index, or -1
+ */
+function findILTHeaderRow(jsonData) {
+  for (let i = 0; i < Math.min(5, jsonData.length); i++) {
+    if (!jsonData[i]) continue;
+    const rowStrs = jsonData[i].map(c => String(c ?? '').trim());
+    if (rowStrs.includes('Attendance Status')) return i;
+  }
+  return -1;
+}
+
+/** Attendance statuses that count as "completed" for ILT */
+const ILT_COMPLETED_STATUSES = new Set(['attended', 'partially attended']);
+
+/**
+ * Process header-based ILT format (Class ID, Class Title, Name, Email, Enrolled Status, Attendance Status).
+ */
+function processHeaderBasedILT(jsonData, headerIdx, config, filename, warnings, errors) {
+  const headers = jsonData[headerIdx].map(c => String(c ?? '').trim());
+  const colIdx = (name) => headers.findIndex(h => h.toLowerCase() === name.toLowerCase());
+
+  const emailCol = colIdx('Email');
+  const nameCol = colIdx('Name');
+  const titleCol = colIdx('Class Title');
+  const attendanceCol = colIdx('Attendance Status');
+
+  if (emailCol === -1 || attendanceCol === -1) {
+    errors.push(`ILT header missing required columns (Email, Attendance Status) in ${filename}`);
+    return { activities: [], users: [], warnings, errors };
+  }
+
+  const activities = [];
+  const usersMap = new Map();
+  const points = config?.generalCourses?.['Classroom Training'] ?? 100;
+
+  for (let i = headerIdx + 1; i < jsonData.length; i++) {
+    const row = jsonData[i];
+    if (!row || row.length < 2) continue;
+
+    const email = String(row[emailCol] ?? '').trim().toLowerCase();
+    const name = nameCol !== -1 ? String(row[nameCol] ?? '').trim() : '';
+    const title = titleCol !== -1 ? String(row[titleCol] ?? '').trim() : deriveSessionName(filename);
+    const attendance = String(row[attendanceCol] ?? '').trim().toLowerCase();
+
+    if (!email.includes('@')) continue;
+
+    if (!ILT_COMPLETED_STATUSES.has(attendance)) {
+      warnings.push(`Row ${i + 1}: skipped, attendance="${row[attendanceCol]}"`);
+      continue;
+    }
+
+    const externalId = `ILT_${sanitiseForId(filename)}_${i}`;
+    activities.push(createActivity({
+      id: generateActivityId(email, externalId),
+      userId: email,
+      externalId,
+      title: title || 'Classroom Training Session',
+      type: 'course',
+      level: 'classroom',
+      courseType: 'Classroom Training',
+      pointsEarned: points,
+      completedDate: new Date().toISOString(),
+      status: 'completed',
+      source: 'course-import',
+    }));
+
+    if (!usersMap.has(email)) {
+      usersMap.set(email, createUser(email, name || email.split('@')[0]));
     }
   }
 
@@ -182,6 +285,70 @@ function processILTRow(row, rowIndex, points, sessionName, filename) {
   });
 
   return { activity, email, name };
+}
+
+// ── Cohort dashboard processing ─────────────────────────────────────
+
+/**
+ * Process a cohort dashboard "Individual leaderboard" sheet.
+ * Imports users with their earned points. No email available,
+ * so display name is used as a synthetic email-like identifier.
+ *
+ * @param {*[][]} jsonData
+ * @param {PointConfig} config
+ * @param {string} filename
+ * @param {string[]} warnings
+ * @param {string[]} errors
+ * @returns {ImportResult}
+ */
+function processCohortLeaderboard(jsonData, config, filename, warnings, errors) {
+  if (!jsonData || jsonData.length < 2) {
+    errors.push(`Individual leaderboard sheet is empty in ${filename}`);
+    return { activities: [], users: [], warnings, errors };
+  }
+
+  const headers = jsonData[0].map(c => String(c ?? '').trim());
+  const nameCol = headers.findIndex(h => h.toLowerCase() === 'display name');
+  const pointsCol = headers.findIndex(h => h.toLowerCase() === 'points');
+
+  if (nameCol === -1 || pointsCol === -1) {
+    errors.push(`Leaderboard missing "Display name" or "Points" columns in ${filename}`);
+    return { activities: [], users: [], warnings, errors };
+  }
+
+  const activities = [];
+  const usersMap = new Map();
+
+  for (let i = 1; i < jsonData.length; i++) {
+    const row = jsonData[i];
+    if (!row) continue;
+    const displayName = String(row[nameCol] ?? '').trim();
+    if (!displayName) continue;
+
+    // Use display name as a synthetic email since cohort exports have no email
+    const syntheticEmail = `${displayName.toLowerCase().replace(/[^a-z0-9]/g, '')}@cohort.local`;
+
+    const externalId = `COHORT_${sanitiseForId(filename)}_${i}`;
+    activities.push(createActivity({
+      id: generateActivityId(syntheticEmail, externalId),
+      userId: syntheticEmail,
+      externalId,
+      title: 'Cohort Learning Progress',
+      type: 'course',
+      level: '',
+      courseType: 'Skill Builder Course',
+      pointsEarned: 0,
+      completedDate: null,
+      status: 'enrolled',
+      source: 'course-import',
+    }));
+
+    if (!usersMap.has(syntheticEmail)) {
+      usersMap.set(syntheticEmail, createUser(syntheticEmail, displayName));
+    }
+  }
+
+  return { activities, users: [...usersMap.values()], warnings, errors };
 }
 
 // ── Standard course processing ──────────────────────────────────────

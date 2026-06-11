@@ -307,6 +307,156 @@ describe('importCourseFile — ILT format', () => {
   });
 });
 
+// ── Header-based ILT format (Skill Builder class export) ────────────
+
+describe('importCourseFile — header-based ILT format', () => {
+  const ILT_HEADERS = ['Class ID', 'Class Title', 'Name', 'Email', 'Enrolled Status', 'Attendance Status'];
+
+  function mockHeaderIlt(rows) {
+    return {
+      read: () => ({
+        SheetNames: ['sheet1'],
+        Sheets: { sheet1: '__mock__' },
+      }),
+      utils: {
+        sheet_to_json: () => rows,
+      },
+    };
+  }
+
+  it('detects and processes header-based ILT with "Attended" status', async () => {
+    const rows = [
+      ['Student Class Status'],
+      [],
+      ILT_HEADERS,
+      ['abc-123', 'MLOps on AWS', 'Alice Smith', 'alice@b.com', 'Registered', 'Attended'],
+      ['abc-123', 'MLOps on AWS', 'Bob Jones', 'bob@b.com', 'Registered', 'Attended'],
+    ];
+    const result = await importCourseFile(toBuffer(), mockHeaderIlt(rows), opts({ filename: 'ilt.xlsx' }));
+    expect(result.activities).toHaveLength(2);
+    expect(result.activities[0].courseType).toBe('Classroom Training');
+    expect(result.activities[0].title).toBe('MLOps on AWS');
+  });
+
+  it('treats "Partially Attended" as completed', async () => {
+    const rows = [
+      ILT_HEADERS,
+      ['abc-123', 'AWS Training', 'Alice', 'alice@b.com', 'Registered', 'Partially Attended'],
+    ];
+    const result = await importCourseFile(toBuffer(), mockHeaderIlt(rows), opts());
+    expect(result.activities).toHaveLength(1);
+  });
+
+  it('skips "No Show" with a warning', async () => {
+    const rows = [
+      ILT_HEADERS,
+      ['abc-123', 'AWS Training', 'Alice', 'alice@b.com', 'Registered', 'Attended'],
+      ['abc-123', 'AWS Training', 'Bob', 'bob@b.com', 'Registered', 'No Show'],
+    ];
+    const result = await importCourseFile(toBuffer(), mockHeaderIlt(rows), opts());
+    expect(result.activities).toHaveLength(1);
+    expect(result.warnings.some(w => w.includes('No Show'))).toBe(true);
+  });
+
+  it('skips "Not Marked" with a warning', async () => {
+    const rows = [
+      ILT_HEADERS,
+      ['abc-123', 'AWS Training', 'Alice', 'alice@b.com', 'Withdrawn', 'Not Marked'],
+    ];
+    const result = await importCourseFile(toBuffer(), mockHeaderIlt(rows), opts());
+    expect(result.activities).toHaveLength(0);
+    expect(result.warnings.some(w => w.includes('Not Marked'))).toBe(true);
+  });
+
+  it('creates users with names from the Name column', async () => {
+    const rows = [
+      ILT_HEADERS,
+      ['abc-123', 'Training', 'Alice Smith (ZA)', 'alice@b.com', 'Registered', 'Attended'],
+    ];
+    const result = await importCourseFile(toBuffer(), mockHeaderIlt(rows), opts());
+    expect(result.users).toHaveLength(1);
+    expect(result.users[0].name).toBe('Alice Smith (ZA)');
+    expect(result.users[0].email).toBe('alice@b.com');
+  });
+
+  it('awards Classroom Training points', async () => {
+    const rows = [
+      ILT_HEADERS,
+      ['abc-123', 'Training', 'Alice', 'alice@b.com', 'Registered', 'Attended'],
+    ];
+    const result = await importCourseFile(toBuffer(), mockHeaderIlt(rows), opts());
+    expect(result.activities[0].pointsEarned).toBe(100);
+  });
+});
+
+// ── Cohort dashboard format ─────────────────────────────────────────
+
+describe('importCourseFile — cohort dashboard format', () => {
+  function mockCohortXlsx(leaderboardRows) {
+    return {
+      read: () => ({
+        SheetNames: ['Cohort data', 'Individual leaderboard', 'Activity list'],
+        Sheets: {
+          'Cohort data': '__mock__',
+          'Individual leaderboard': '__mock_lb__',
+          'Activity list': '__mock_al__',
+        },
+      }),
+      utils: {
+        sheet_to_json: (sheet) => {
+          if (sheet === '__mock_lb__') return leaderboardRows;
+          return [];
+        },
+      },
+    };
+  }
+
+  it('detects cohort dashboard and processes Individual leaderboard', async () => {
+    const rows = [
+      ['Ranking', 'Display name', 'Points', 'Progress'],
+      [1, 'SulaimanL', 650, '26%'],
+      [2, 'MapitsoK', 450, '17%'],
+    ];
+    const result = await importCourseFile(toBuffer(), mockCohortXlsx(rows), opts({ filename: 'cohort-dashboard.xlsx' }));
+    expect(result.activities).toHaveLength(2);
+    expect(result.users).toHaveLength(2);
+  });
+
+  it('imports users without awarding points', async () => {
+    const rows = [
+      ['Ranking', 'Display name', 'Points', 'Progress'],
+      [1, 'Alice', 650, '50%'],
+    ];
+    const result = await importCourseFile(toBuffer(), mockCohortXlsx(rows), opts());
+    expect(result.activities[0].pointsEarned).toBe(0);
+  });
+
+  it('creates users with display name', async () => {
+    const rows = [
+      ['Ranking', 'Display name', 'Points', 'Progress'],
+      [1, 'SulaimanLodewyk', 650, '26%'],
+    ];
+    const result = await importCourseFile(toBuffer(), mockCohortXlsx(rows), opts());
+    expect(result.users[0].name).toBe('SulaimanLodewyk');
+  });
+
+  it('skips rows with empty display name', async () => {
+    const rows = [
+      ['Ranking', 'Display name', 'Points', 'Progress'],
+      [1, 'Alice', 650, '26%'],
+      [2, '', 100, '0%'],
+      [3, '   ', 50, '0%'],
+    ];
+    const result = await importCourseFile(toBuffer(), mockCohortXlsx(rows), opts());
+    expect(result.activities).toHaveLength(1);
+  });
+
+  it('returns error when leaderboard sheet is empty', async () => {
+    const result = await importCourseFile(toBuffer(), mockCohortXlsx([]), opts());
+    expect(result.errors.some(e => e.includes('empty'))).toBe(true);
+  });
+});
+
 // ── Error handling ──────────────────────────────────────────────────
 
 describe('importCourseFile — error handling', () => {
