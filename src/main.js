@@ -22,6 +22,7 @@ import { showTab } from './views/tabs.js';
 import {
   refreshUsersTable, toggleUserSelection, toggleSelectAllUsers, selectAllUsers, deselectAllUsers,
   addManualPoints, closeAddPointsModal, submitManualPoints, filterManualPointsUsers, selectManualPointsUser,
+  onActivityTypePicked,
   filterUsers, toggleUserSort, toggleUserSortOrder,
   bulkAwardPoints, closeBulkAwardPointsModal, submitBulkAwardPoints,
   bulkAssignTeam, closeBulkAssignTeamModal, submitBulkAssignTeam, bulkExportUsers,
@@ -49,6 +50,10 @@ import {
 import { updatePointConfig, loadConfiguration, saveConfiguration, openResetDataModal, closeResetDataModal, confirmResetAllData, refreshHistoryTables } from './views/config.js';
 import { processAllFiles, updateFileList, _setRefreshFns as setImportRefs } from './views/import.js';
 import {
+  clickSignupFile, signupFileChosen, closeSignupCampaignModal, submitSignupImport,
+  _setRefreshFns as setSignupRefs,
+} from './views/signups.js';
+import {
   setReportsSubTab, setReportEntity, clearReportEntity, filterReportEntities,
   refreshReports,
 } from './views/reports.js';
@@ -61,6 +66,7 @@ setTeamRefs({ refreshDashboard });
 setActivityRefs({ refreshDashboard, refreshUsersTable, refreshTeamsTable });
 setCampaignRefs({ refreshDashboard });
 setImportRefs({ refreshDashboard, refreshHistoryTables });
+setSignupRefs({ refreshDashboard, refreshHistoryTables, refreshCampaignsTable, refreshUsersTable });
 
 // ── Action dispatch map ─────────────────────────────────────────────
 
@@ -76,6 +82,9 @@ const ACTIONS = {
   setDashboardCampaign:        (el) => setDashboardCampaign(el.value),
   clickCourseFiles:           () => document.getElementById('courseFiles').click(),
   clickTeamsFiles:            () => document.getElementById('teamsFiles').click(),
+  clickSignupFile,
+  closeSignupCampaignModal,
+  submitSignupImport,
   processAllFiles,
   processImportData,
   closeImportDataModal,
@@ -89,6 +98,7 @@ const ACTIONS = {
   submitManualPoints,
   filterManualPointsUsers,
   selectManualPointsUser:   (el) => selectManualPointsUser(el.dataset.email, el.dataset.name),
+  onActivityTypePicked,
   filterUsers,
   toggleUserSort:             (el) => toggleUserSort(el.dataset.field),
   toggleUserSortOrder,
@@ -180,6 +190,10 @@ function initApp() {
   document.getElementById('teamsFiles').addEventListener('change', (e) => {
     selectedFiles.teams = Array.from(e.target.files);
     updateFileList('teams', selectedFiles.teams);
+  });
+  document.getElementById('signupFile').addEventListener('change', (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (file) signupFileChosen(file);
   });
 
   loadData();

@@ -246,6 +246,206 @@ describe('importTeamsFile — result shape', () => {
   });
 });
 
+// ── Sectioned report format (newer Teams attendance export) ─────────
+
+describe('importTeamsFile — sectioned report format', () => {
+  // Mirrors the screenshot the user shared: tabular "2. Participants"
+  // section with Name | First Join | Last Leave | In-Meeting Duration
+  // | Email | Participant ID (UPN) | Role | Engagement: ... columns.
+  function sectionedCsv({ title, participants, includeSummary = true }) {
+    const lines = [];
+    if (includeSummary) {
+      lines.push('1. Summary');
+      if (title) lines.push(`Meeting title\t${title}`);
+      lines.push(`Attended participants\t${participants.length}`);
+      lines.push('');
+    }
+    lines.push('2. Participants');
+    lines.push([
+      'Name', 'First Join', 'Last Leave', 'In-Meeting Duration', 'Email',
+      'Participant ID (UPN)', 'Role', 'Engagement: Reaction-Applause',
+      'Engagement: Camera On', 'Engagement: Raise Hands', 'Engagement: Unmute',
+    ].join('\t'));
+    for (const p of participants) {
+      lines.push([
+        p.name, p.firstJoin ?? '', p.lastLeave ?? '', p.duration ?? '',
+        p.email, p.upn ?? p.email, p.role ?? 'Attendee',
+        '', '', '', '',
+      ].join('\t'));
+    }
+    return lines.join('\n');
+  }
+
+  it('parses participants from a sectioned report with a Meeting title row', async () => {
+    const csv = sectionedCsv({
+      title: 'Cloud Incubator Evolve Session 5',
+      participants: [
+        { name: 'Alice One',   firstJoin: '5/14/26, 10:46:35 AM', lastLeave: '5/14/26, 12:01:22 PM', duration: '1h 14m 46s', email: 'alice.one@example.com',   role: 'Organiser' },
+        { name: 'Bob Two',     firstJoin: '5/14/26, 10:45:08 AM', lastLeave: '5/14/26, 11:09:29 AM', duration: '8m 21s',     email: 'bob.two@example.com',     role: 'Presenter' },
+        { name: 'Cara Three',  firstJoin: '5/14/26, 10:45:17 AM', lastLeave: '5/14/26, 10:45:30 AM', duration: '13s',        email: 'cara.three@example.com',  role: 'Presenter' },
+      ],
+    });
+    const result = await importTeamsFile(csv, opts({ filename: 'attendance.csv' }));
+    expect(result.errors).toEqual([]);
+    expect(result.activities).toHaveLength(3);
+    expect(result.activities[0].title).toBe('Cloud Incubator Evolve Session 5');
+    expect(result.activities.map(a => a.userId).sort()).toEqual([
+      'alice.one@example.com',
+      'bob.two@example.com',
+      'cara.three@example.com',
+    ]);
+  });
+
+  it('counts every attendee regardless of In-Meeting Duration (no min threshold)', async () => {
+    const csv = sectionedCsv({
+      title: 'Standup',
+      participants: [
+        { name: 'Long',  duration: '1h 14m 46s', email: 'long@b.com' },
+        { name: 'Short', duration: '13s',         email: 'short@b.com' },
+        { name: 'Zero',  duration: '0s',          email: 'zero@b.com' },
+      ],
+    });
+    const result = await importTeamsFile(csv, opts());
+    expect(result.activities).toHaveLength(3);
+    expect(result.activities.every(a => a.pointsEarned === 25)).toBe(true);
+  });
+
+  it('synthesises a title from the filename when section 1 omits one', async () => {
+    const csv = sectionedCsv({
+      title: null,
+      includeSummary: false,
+      participants: [
+        { name: 'Alice', email: 'alice@b.com', duration: '1h' },
+      ],
+    });
+    const result = await importTeamsFile(csv, opts({
+      filename: 'MeetingAttendanceReport-Weekly Sync-2026-05-14.csv',
+    }));
+    expect(result.errors).toEqual([]);
+    expect(result.activities).toHaveLength(1);
+    expect(result.activities[0].title).toBe('Weekly Sync');
+  });
+
+  it('stops at the next numbered section (e.g. 3. In-Meeting Activities)', async () => {
+    const csv = [
+      sectionedCsv({
+        title: 'Standup',
+        participants: [
+          { name: 'Alice', email: 'alice@b.com', duration: '1h' },
+          { name: 'Bob',   email: 'bob@b.com',   duration: '30m' },
+        ],
+      }),
+      '',
+      '3. In-Meeting Activities',
+      'Timestamp\tEvent\tUser',
+      '10:46:00 AM\tJoined\tspy@somewhere.com',
+    ].join('\n');
+    const result = await importTeamsFile(csv, opts());
+    expect(result.activities.map(a => a.userId).sort()).toEqual(['alice@b.com', 'bob@b.com']);
+  });
+
+  it('falls back to the email-shaped value on the row when the Email column is blank', async () => {
+    // Simulate a row whose dedicated Email column is empty but the
+    // UPN column carries the address.
+    const header = ['Name', 'First Join', 'Last Leave', 'In-Meeting Duration', 'Email', 'Participant ID (UPN)', 'Role'].join('\t');
+    const csv = [
+      '2. Participants',
+      header,
+      ['Alice', '', '', '1h', '', 'alice@b.com', 'Attendee'].join('\t'),
+    ].join('\n');
+    const result = await importTeamsFile(csv, opts());
+    expect(result.activities).toHaveLength(1);
+    expect(result.activities[0].userId).toBe('alice@b.com');
+  });
+
+  it('still works when "Meeting title" uses the legacy label spelling', async () => {
+    const csv = [
+      '1. Summary',
+      'Meeting title\tBoard Meeting',
+      '',
+      '2. Participants',
+      ['Name', 'First Join', 'Last Leave', 'In-Meeting Duration', 'Email', 'Role'].join('\t'),
+      ['Alice', '', '', '1h', 'alice@b.com', 'Organiser'].join('\t'),
+    ].join('\n');
+    const result = await importTeamsFile(csv, opts());
+    expect(result.activities[0].title).toBe('Board Meeting');
+  });
+
+  it('distinguishes recurring meetings with the same title via Start time', async () => {
+    // Two attendance reports from the same recurring webinar:
+    // identical title, different dates. Both should land — the
+    // meetingId is suffixed with the meeting date so externalIds
+    // don't collide in dedup.
+    const may = sectionedCsv({
+      title: 'Weekly Webinar',
+      participants: [{ name: 'Alice One', duration: '55m', email: 'alice.one@example.com' }],
+    }).replace('Attended participants\t1', 'Attended participants\t1\nStart time\t5/07/26, 10:54:04 AM');
+    const jun = sectionedCsv({
+      title: 'Weekly Webinar',
+      participants: [{ name: 'Alice One', duration: '1h', email: 'alice.one@example.com' }],
+    }).replace('Attended participants\t1', 'Attended participants\t1\nStart time\t6/04/26, 10:54:04 AM');
+
+    const r1 = await importTeamsFile(may, opts({ filename: 'webinar_may.csv' }));
+    const r2 = await importTeamsFile(jun, opts({ filename: 'webinar_jun.csv' }));
+
+    expect(r1.activities).toHaveLength(1);
+    expect(r2.activities).toHaveLength(1);
+    expect(r1.activities[0].externalId).not.toBe(r2.activities[0].externalId);
+    expect(r1.activities[0].externalId).toContain('2026-05-07');
+    expect(r2.activities[0].externalId).toContain('2026-06-04');
+    expect(r1.activities[0].completedDate.slice(0, 10)).toBe('2026-05-07');
+    expect(r2.activities[0].completedDate.slice(0, 10)).toBe('2026-06-04');
+  });
+
+  it('produces a stable externalId on re-import of the same file (idempotent)', async () => {
+    const csv = sectionedCsv({
+      title: 'Weekly Webinar',
+      participants: [{ name: 'Alice One', duration: '55m', email: 'alice.one@example.com' }],
+    }).replace('Attended participants\t1', 'Attended participants\t1\nStart time\t5/07/26, 10:54:04 AM');
+    const r1 = await importTeamsFile(csv, opts({ filename: 'webinar.csv' }));
+    const r2 = await importTeamsFile(csv, opts({ filename: 'webinar.csv' }));
+    expect(r1.activities[0].externalId).toBe(r2.activities[0].externalId);
+  });
+
+  it('decodes a UTF-16LE BOM ArrayBuffer (Teams CSV export encoding)', async () => {
+    // Teams attendance CSVs are exported as UTF-16LE with a BOM, which
+    // breaks the default UTF-8 decode path. Verify the BOM-aware decode
+    // recovers the document.
+    const text = sectionedCsv({
+      title: 'Weekly Webinar',
+      participants: [
+        { name: 'Alice One', duration: '55m 14s', email: 'alice.one@example.com' },
+        { name: 'Bob Two',   duration: '59s',     email: 'bob.two@example.com' },
+      ],
+    });
+    // Encode to UTF-16LE with a BOM, mimicking the Teams export.
+    const encoded = new Uint8Array(2 + text.length * 2);
+    encoded[0] = 0xFF; encoded[1] = 0xFE;
+    for (let i = 0; i < text.length; i++) {
+      const cc = text.charCodeAt(i);
+      encoded[2 + i * 2]     = cc & 0xFF;
+      encoded[2 + i * 2 + 1] = (cc >> 8) & 0xFF;
+    }
+    const result = await importTeamsFile(encoded.buffer, opts({ filename: 'webinar_attendance.csv' }));
+    expect(result.errors).toEqual([]);
+    expect(result.activities).toHaveLength(2);
+    expect(result.activities[0].title).toBe('Weekly Webinar');
+    expect(result.activities.map(a => a.userId).sort()).toEqual([
+      'alice.one@example.com',
+      'bob.two@example.com',
+    ]);
+  });
+
+  it('does not interfere with legacy line-oriented format', async () => {
+    // Sanity check — legacy format keeps working when the tabular
+    // detector finds nothing.
+    const csv = meetingCsv('Legacy Standup', 2, ['alice@b.com', 'bob@b.com']);
+    const result = await importTeamsFile(csv, opts());
+    expect(result.activities).toHaveLength(2);
+    expect(result.activities[0].title).toBe('Legacy Standup');
+  });
+});
+
 // ── XLSX support ────────────────────────────────────────────────────
 
 describe('importTeamsFile — XLSX support', () => {

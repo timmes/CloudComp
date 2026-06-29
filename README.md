@@ -2,7 +2,7 @@
 
 > Transform your organization's learning culture with points, leaderboards, and friendly competition!
 
-[![Version](https://img.shields.io/badge/version-1.4-blue.svg)](https://github.com/timmes/cloudcomp)
+[![Version](https://img.shields.io/badge/version-1.5-blue.svg)](https://github.com/timmes/cloudcomp)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![No Server Required](https://img.shields.io/badge/deployment-local%20files-orange.svg)](#getting-started)
 
@@ -39,9 +39,10 @@ Perfect for **AWS Skills Guilds**, corporate training programs, or any organizat
 
 ### 🔄 Data Import
 - **Excel/CSV course files** — upload via the Import tab; SheetJS parses dates correctly via `cellDates: true`
-- **Teams meeting attendance** — extract attendees from meeting reports
+- **Teams meeting attendance** — supports both the legacy line-oriented exports and the newer sectioned report format (`1. Summary` / `2. Participants`); UTF-16LE CSV exports decode correctly via BOM detection
+- **Program sign-ups** — upload an XLSX/CSV of participants; the app creates users in bulk and a campaign in one step (prompts for the campaign name)
 - **Multi-file processing** — queue several files; a spinner shows in the Processing Log while work is in flight
-- **Smart deduplication** — duplicate activities are detected and either skipped or upgraded (e.g. in-progress → completed)
+- **Smart deduplication** — duplicates detected on `userId + externalId`; recurring Teams meetings are distinguished by their meeting date so weekly sessions don't collapse onto one another
 
 ### 👥 Team Management
 - **Team builder** — create teams with custom colors and descriptions
@@ -162,7 +163,7 @@ Points are organised into five categories. All values are editable in the **Conf
 
 - **Vanilla JS (ES modules)** with **JSDoc** type annotations — no React, no TypeScript
 - **Vite + `vite-plugin-singlefile`** — builds the whole app into one self-contained `index.html`
-- **Vitest** for the unit-test suite (456 tests at v1.4)
+- **Vitest** for the unit-test suite (491 tests at v1.5)
 - **Tailwind CSS** + **Basecoat UI** design tokens for styling
 - **SheetJS (`xlsx`)** for Excel/CSV parsing — loaded from CDN
 - **Chart.js** for the YTD charts in the Reports tab — loaded from CDN
@@ -188,6 +189,24 @@ dist/index.html  # production build (single self-contained file)
 - ✅ Firefox 88+
 - ✅ Safari 14+
 - ✅ Edge 90+
+
+## 🎨 What's New in v1.5
+
+### Import
+- **Program sign-up sheets** — new third row in the Import tab. Upload an XLSX/CSV with an `Email` column (plus optional `Name` / `Full Name` / `Display Name`, or `First Name` + `Last Name`), confirm a campaign name in the prompt, and the app creates the participants and an active campaign in one step. Header detection scans the first 25 rows, accepts label variants like *"Email Address"* or *"Please enter your email"*, and falls back to auto-detecting the email column by `@`-cell density when no recognisable header exists.
+- **Newer Teams attendance format** — the sectioned `1. Summary` / `2. Participants` reports are now parsed by column index (Name / First Join / Last Leave / In-Meeting Duration / Email / Role / …). The legacy line-oriented parser is still in place as a fallback.
+- **UTF-16 BOM decoding** — Microsoft Teams exports CSV attendance as UTF-16LE with a BOM, which previously decoded as garbage. The importers now sniff the BOM and decode UTF-16LE / UTF-16BE / UTF-8 BOM correctly.
+- **Recurring meetings no longer collapse** — meeting IDs now include the meeting date (parsed from `Start time` in section 1), so weekly webinars with the same title are distinguished. Re-uploading the same file is still idempotent. The activity's `completedDate` reflects the actual meeting date instead of "today".
+- **Honest import log** — the Processing Log now reports `N new activities, M duplicates skipped` from the dedup stats instead of the parser's raw row count. Each entry renders on its own line (`white-space: pre-wrap`).
+
+### Bug fixes
+- **`createActivity` now preserves `externalId`** — the factory previously dropped it on the returned object, so every persisted activity had `externalId = undefined` and the dedup key collapsed to `userId|`. As a result, each user could have at most one Teams meeting activity in the store, ever — every subsequent import was silently skipped. Fixing this is the underlying cause of the "59 attendees but no points" symptom for any user with a prior meeting activity.
+
+### Manual points + Bulk Award
+- **Activity Type picker** — both modals gained an *Activity Type* dropdown that mirrors the Configuration tab's five sections. Picking a type auto-fills the title and points (still editable); the resulting activity is tagged with `category` + `subCategory` so manual entries are recognised as the same kind as imported ones. A *Custom (free-form)* option preserves the previous flow.
+
+### Header / UX
+- **Auto-updating "Data loaded" indicator** — the header counter (`Data loaded: N users, T teams, A activities`) now subscribes to the `DATA_CHANGED` event, so it refreshes after any import, manual award, restore, etc. — no per-flow plumbing required.
 
 ## 🎨 What's New in v1.3
 

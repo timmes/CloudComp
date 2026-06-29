@@ -12,6 +12,7 @@ import {
   addImportHistoryEntry, addExportHistoryEntry,
   log, updateDataStatus, downloadJSON,
 } from './shared.js';
+import { EVENTS, on } from '../core/events.js';
 
 let loadConfiguration, refreshDashboard, refreshUsersTable, refreshActivitiesTable, refreshTeamsTable, refreshHistoryTables;
 export function _setRefreshFns(fns) {
@@ -21,13 +22,10 @@ export function _setRefreshFns(fns) {
 export function loadData() {
   try {
     loadFromStorage();
-    const users = getUsers();
-    const activities = getActivities();
-    const teams = getTeams();
-    const userCount = Object.keys(users).length;
-    const teamCount = Object.keys(teams).length;
-    if (userCount > 0 || activities.length > 0) {
-      updateDataStatus('success', `Data loaded: ${userCount} users, ${teamCount} teams, ${activities.length} activities`);
+    const userCount = Object.keys(getUsers()).length;
+    const activityCount = getActivities().length;
+    if (userCount > 0 || activityCount > 0) {
+      refreshDataStatus();
       if (loadConfiguration) loadConfiguration();
       if (refreshDashboard) refreshDashboard();
       log('Data loaded successfully from browser storage');
@@ -40,6 +38,28 @@ export function loadData() {
     log(`Error loading data: ${error.message}`);
   }
 }
+
+/**
+ * Recompute the header indicator from current state. Wired to
+ * DATA_CHANGED so every import path (course, teams, sign-up, manual,
+ * bulk, full-data restore) updates the header without per-importer
+ * plumbing.
+ */
+export function refreshDataStatus() {
+  const userCount = Object.keys(getUsers()).length;
+  const teamCount = Object.keys(getTeams()).length;
+  const activityCount = getActivities().length;
+  if (userCount === 0 && activityCount === 0 && teamCount === 0) {
+    updateDataStatus('warning', 'No existing data found - ready for first import');
+    return;
+  }
+  updateDataStatus(
+    'success',
+    `Data loaded: ${userCount} users, ${teamCount} teams, ${activityCount} activities`,
+  );
+}
+
+on(EVENTS.DATA_CHANGED, refreshDataStatus);
 
 // ── Export all data ─────────────────────────────────────────────────
 

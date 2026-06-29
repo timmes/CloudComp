@@ -11,6 +11,7 @@
  * @typedef {Object} Activity
  * @property {string}      id            - hash of userId + externalId
  * @property {string}      userId        - lowercase email
+ * @property {string}      externalId    - source-system id (course ID, meeting ID, etc.) — required for dedup
  * @property {string}      title
  * @property {string}      type          - 'course'|'meeting'|'quiz'|'hackathon'|'manual'
  * @property {string}      level         - 'foundational'|'associate'|'professional'|'specialty'|''
@@ -67,9 +68,11 @@ export function generateActivityId(userId, externalId) {
  */
 export function createActivity(fields) {
   const userId = (fields.userId ?? '').toLowerCase();
+  const externalId = fields.externalId ?? '';
   return {
-    id: fields.id ?? generateActivityId(userId, fields.externalId ?? ''),
+    id: fields.id ?? generateActivityId(userId, externalId),
     userId,
+    externalId,
     title: fields.title ?? '',
     type: fields.type ?? 'course',
     level: fields.level ?? '',

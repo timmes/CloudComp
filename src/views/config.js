@@ -130,6 +130,7 @@ export function calculatePoints(category, subCategory) {
 const IMPORT_TYPE_LABEL = {
   course: 'Course file',
   teams: 'Teams CSV',
+  signup: 'Sign-up sheet',
   'data-restore': 'Data restore',
 };
 
@@ -154,7 +155,9 @@ function renderImportsTable() {
     const s = r.stats || {};
     const parts = r.type === 'data-restore'
       ? buildRestoreStats(s)
-      : buildFileImportStats(s);
+      : r.type === 'signup'
+        ? buildSignupStats(s)
+        : buildFileImportStats(s);
     return `
       <tr>
         <td><span class="text-sm text-gray-900" style="word-break:break-all;">${esc(r.filename || '—')}</span></td>
@@ -195,6 +198,16 @@ function buildFileImportStats(s) {
   if (s.accepted) parts.push(`${formatNumber(s.accepted)} accepted`);
   if (s.upgraded) parts.push(`${formatNumber(s.upgraded)} upgraded`);
   if (s.duplicatesSkipped) parts.push(`${formatNumber(s.duplicatesSkipped)} duplicates`);
+  if (s.warnings) parts.push(`${formatNumber(s.warnings)} warnings`);
+  if (s.errors) parts.push(`${formatNumber(s.errors)} errors`);
+  return parts;
+}
+
+function buildSignupStats(s) {
+  const parts = [];
+  if (s.campaignName) parts.push(`campaign "${s.campaignName}"`);
+  if (s.accepted) parts.push(`${formatNumber(s.accepted)} participants`);
+  if (s.users) parts.push(`${formatNumber(s.users)} new users`);
   if (s.warnings) parts.push(`${formatNumber(s.warnings)} warnings`);
   if (s.errors) parts.push(`${formatNumber(s.errors)} errors`);
   return parts;

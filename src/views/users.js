@@ -5,7 +5,7 @@
  */
 
 import {
-  getUsers, getUser, getTeams, getActivities,
+  getUsers, getUser, getTeams, getActivities, getConfig,
   getUsersWithPoints, getUserWithPoints, getUserTotalPoints, getUserMonthPoints,
   upsertUser, upsertTeam, addActivity,
   bulkSelection, sortState, log, getCurrentMonth,
@@ -100,11 +100,14 @@ export function updateBulkSelectionUI(type) {
 export function bulkAwardPoints() {
   if (bulkSelection.users.size === 0) { alert('Please select users first'); return; }
   document.getElementById('bulkAwardUserCount').textContent = bulkSelection.users.size;
+  populateActivityTypePicker('bulkActivityType');
   document.getElementById('bulkAwardPointsModal').classList.remove('hidden');
 }
 
 export function closeBulkAwardPointsModal() {
   document.getElementById('bulkAwardPointsModal').classList.add('hidden');
+  const picker = document.getElementById('bulkActivityType');
+  if (picker) picker.value = '';
   document.getElementById('bulkActivityTitle').value = '';
   document.getElementById('bulkPoints').value = '';
   document.getElementById('bulkDescription').value = '';
@@ -116,9 +119,12 @@ export function submitBulkAwardPoints() {
   const description = document.getElementById('bulkDescription').value.trim();
   if (!title || !points) { alert('Please fill in all required fields'); return; }
 
+  const { category, subCategory } = readPickerSelection('bulkActivityType');
+  const courseType = subCategory || 'Bulk Award';
+
   let successCount = 0;
   bulkSelection.users.forEach(email => {
-    addActivity({ id: `bulk_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, userEmail: email, userId: email, courseId: `bulk_${Date.now()}`, title, level: 'manual', courseType: 'Bulk Award', pointsEarned: points, completedDate: new Date().toISOString(), score: null, source: 'bulk_award', importDate: new Date().toISOString(), monthYear: getCurrentMonth(), description });
+    addActivity({ id: `bulk_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, userEmail: email, userId: email, courseId: `bulk_${Date.now()}`, title, level: 'manual', category, subCategory, courseType, pointsEarned: points, completedDate: new Date().toISOString(), score: null, source: 'bulk_award', importDate: new Date().toISOString(), monthYear: getCurrentMonth(), description });
     const user = getUser(email);
     if (user) {
       upsertUser({ ...user, lastActivity: new Date().toISOString() });
@@ -221,6 +227,7 @@ export function filterUsers() {
 // ── Manual points + stubs ───────────────────────────────────────────
 
 export function addManualPoints() {
+  populateActivityTypePicker('manualActivityType');
   document.getElementById('addPointsModal').classList.remove('hidden');
   document.getElementById('manualUserResults').style.display = 'none';
 }
@@ -230,6 +237,8 @@ export function closeAddPointsModal() {
   document.getElementById('manualUserSearch').value = '';
   document.getElementById('manualUserEmail').value = '';
   document.getElementById('manualUserResults').style.display = 'none';
+  const picker = document.getElementById('manualActivityType');
+  if (picker) picker.value = '';
   document.getElementById('manualActivityTitle').value = '';
   document.getElementById('manualPoints').value = '';
   document.getElementById('manualDescription').value = '';
@@ -272,7 +281,10 @@ export function submitManualPoints() {
   const description = document.getElementById('manualDescription').value.trim();
   if (!email || !title || !points) { alert('Please fill in all required fields'); return; }
 
-  addActivity({ id: `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, userEmail: email, userId: email, courseId: `manual_${Date.now()}`, title, level: 'manual', courseType: 'Manual Award', pointsEarned: points, completedDate: new Date().toISOString(), score: null, source: 'manual_entry', importDate: new Date().toISOString(), monthYear: getCurrentMonth(), description });
+  const { category, subCategory } = readPickerSelection('manualActivityType');
+  const courseType = subCategory || 'Manual Award';
+
+  addActivity({ id: `manual_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`, userEmail: email, userId: email, courseId: `manual_${Date.now()}`, title, level: 'manual', category, subCategory, courseType, pointsEarned: points, completedDate: new Date().toISOString(), score: null, source: 'manual_entry', importDate: new Date().toISOString(), monthYear: getCurrentMonth(), description });
 
   let user = getUser(email);
   if (!user) {
@@ -286,4 +298,85 @@ export function submitManualPoints() {
   if (refreshActivitiesTable) refreshActivitiesTable();
   autoSave();
   log(`Manual points awarded: ${points} to ${email} for "${title}"`);
+}
+
+// ── Activity Type picker (shared by single + bulk manual flows) ─────
+//
+// The picker mirrors the activity types defined on the Configuration
+// tab so manually-entered activities can be tagged with the same
+// category/sub-category as imported ones. Options are rebuilt on every
+// modal open so any edits to point values show up immediately.
+
+const PICKER_SECTION_LABEL = {
+  selfPacedDigital:    'Self-Paced Digital Training',
+  liveLearning:        'Live Learning Sessions',
+  certifications:      'Certifications & Exams',
+  gamifiedEvents:      'Gamified Events & Challenges',
+  communityEngagement: 'Community Engagement',
+};
+
+/**
+ * Rebuild the option list of an Activity Type <select> from the
+ * current point configuration.
+ *
+ * @param {string} selectId - DOM id of the <select> element
+ */
+export function populateActivityTypePicker(selectId) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+  const pc = getConfig().pointConfig || {};
+  const groups = Object.entries(PICKER_SECTION_LABEL)
+    .map(([key, label]) => {
+      const entries = Object.entries(pc[key] || {});
+      if (entries.length === 0) return '';
+      const opts = entries.map(([sub, pts]) =>
+        `<option value="${esc(key)}|${esc(sub)}" data-points="${pts}">${esc(sub)} — ${pts} pts</option>`
+      ).join('');
+      return `<optgroup label="${esc(label)}">${opts}</optgroup>`;
+    })
+    .join('');
+  sel.innerHTML = `<option value="">Custom (free-form)</option>${groups}`;
+  sel.value = '';
+}
+
+/**
+ * Parse the picker's current selection into { category, subCategory }.
+ * Returns { category: '', subCategory: '' } for the Custom option.
+ *
+ * @param {string} selectId
+ * @returns {{ category: string, subCategory: string }}
+ */
+function readPickerSelection(selectId) {
+  const sel = document.getElementById(selectId);
+  const raw = sel?.value || '';
+  if (!raw) return { category: '', subCategory: '' };
+  const [category, ...rest] = raw.split('|');
+  return { category, subCategory: rest.join('|') };
+}
+
+/**
+ * Auto-fill the title and points inputs when the user picks a
+ * predefined activity type. The picker carries the target input IDs
+ * via `data-title-id` and `data-points-id` so a single handler
+ * serves both the manual and bulk modals.
+ *
+ * @param {HTMLSelectElement} el
+ */
+export function onActivityTypePicked(el) {
+  const titleId = el.dataset.titleId;
+  const pointsId = el.dataset.pointsId;
+  const titleInput = titleId ? document.getElementById(titleId) : null;
+  const pointsInput = pointsId ? document.getElementById(pointsId) : null;
+  if (!titleInput || !pointsInput) return;
+
+  if (!el.value) {
+    titleInput.value = '';
+    pointsInput.value = '';
+    return;
+  }
+
+  const opt = el.options[el.selectedIndex];
+  const { subCategory } = readPickerSelection(el.id);
+  titleInput.value = subCategory;
+  pointsInput.value = opt?.dataset?.points ?? '';
 }

@@ -26,7 +26,7 @@
         <div class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-3">
                 <span class="cc-header-title">Cloud Comp</span>
-                <span class="text-xs text-gray-400">v1.4</span>
+                <span class="text-xs text-gray-400">v1.5</span>
                 <div id="dataStatus" class="flex items-center text-xs text-gray-500 ml-4">
                     <div class="status-indicator status-warning"></div>
                     <span>No data loaded</span>
@@ -222,6 +222,7 @@
                 <div class="px-6">
                     <input type="file" id="courseFiles" accept=".xlsx,.csv" multiple class="hidden">
                     <input type="file" id="teamsFiles" accept=".csv,.xlsx" multiple class="hidden">
+                    <input type="file" id="signupFile" accept=".xlsx,.csv" class="hidden">
 
                     <div class="cc-settings-row">
                         <div class="cc-settings-label">
@@ -234,7 +235,7 @@
                         </div>
                     </div>
 
-                    <div class="cc-settings-row" style="border-bottom:none;">
+                    <div class="cc-settings-row">
                         <div class="cc-settings-label">
                             <h4>MS Teams Meetings</h4>
                             <p>CSV files with meeting attendance data</p>
@@ -242,6 +243,17 @@
                         </div>
                         <div class="cc-settings-control" style="width:auto;">
                             <button data-action="clickTeamsFiles" class="cc-btn cc-btn-ghost">Choose Files</button>
+                        </div>
+                    </div>
+
+                    <div class="cc-settings-row" style="border-bottom:none;">
+                        <div class="cc-settings-label">
+                            <h4>Program Sign-ups</h4>
+                            <p>XLSX/CSV with an Email column — adds participants and creates a campaign</p>
+                            <div id="signupFileList" class="text-xs mt-1" style="color:var(--cc-accent);"></div>
+                        </div>
+                        <div class="cc-settings-control" style="width:auto;">
+                            <button data-action="clickSignupFile" class="cc-btn cc-btn-ghost">Choose File</button>
                         </div>
                     </div>
                 </div>
@@ -259,7 +271,7 @@
                         </svg>
                     </div>
                     <div class="px-6 py-3">
-                        <div id="importLog" style="font-family:ui-monospace,SFMono-Regular,monospace;font-size:0.75rem;color:var(--cc-text-secondary);max-height:16rem;overflow-y:auto;line-height:1.6;"></div>
+                        <div id="importLog" style="font-family:ui-monospace,SFMono-Regular,monospace;font-size:0.75rem;color:var(--cc-text-secondary);max-height:16rem;overflow-y:auto;line-height:1.6;white-space:pre-wrap;word-break:break-word;"></div>
                     </div>
                 </div>
             </div>
@@ -894,7 +906,28 @@
                 <p>Classroom training awards <strong>100 points</strong> per session by default.</p>
 
                 <h3>Teams Meeting Files</h3>
-                <p>CSV exports from Microsoft Teams. The parser extracts meeting titles and attendee emails. Each attendee receives the <strong>Live Webinar</strong> point value (25 by default).</p>
+                <p>CSV or XLSX exports from Microsoft Teams. Both layouts are supported:</p>
+                <ul>
+                    <li><strong>Legacy line-oriented format</strong> &mdash; <code>Meeting title: …</code> headers followed by attendee email lines.</li>
+                    <li><strong>Sectioned report</strong> (newer Teams export) &mdash; a <code>1. Summary</code> block followed by a tabular <code>2. Participants</code> section with columns <em>Name / First Join / Last Leave / In-Meeting Duration / Email / Participant ID (UPN) / Role / Engagement: …</em>. The parser reads attendees by column index and stops at the next numbered section (e.g. <code>3. In-Meeting Activities</code>).</li>
+                </ul>
+                <p>Each attendee receives the <strong>Live Webinar</strong> point value (25 by default), regardless of how long they were in the meeting.</p>
+
+                <div class="cc-callout">
+                    <p><strong>UTF-16 encoding:</strong> Teams exports CSV as UTF-16LE with a byte-order mark. The importer detects the BOM and decodes correctly &mdash; no need to convert the file first.</p>
+                </div>
+
+                <div class="cc-callout">
+                    <p><strong>Recurring meetings:</strong> the meeting ID now incorporates the date parsed from section 1's <code>Start time</code> row, so weekly webinars with the same title are kept as separate activities. Re-uploading the same file is still idempotent (same date &rArr; same ID &rArr; dedup correctly skips). The activity's completion date reflects the actual meeting date.</p>
+                </div>
+
+                <h3>Program Sign-ups</h3>
+                <p>Upload a list of participants who signed up for a program. Required: an <code>Email</code> column. Optional name columns: a single <code>Name</code> / <code>Full Name</code> / <code>Display Name</code>, or <code>First Name</code> + <code>Last Name</code>. The importer scans the first 25 rows for the header, accepts variant labels (e.g. <em>"Email Address"</em>, <em>"Please enter your email"</em>), and falls back to auto-detecting the email column by <code>@</code>-cell density when no recognisable header exists.</p>
+                <ol>
+                    <li>Choose a file in the <strong>Program Sign-ups</strong> row of the Import tab.</li>
+                    <li>The parser shows the file name and participant count in a modal and pre-fills a campaign name derived from the filename.</li>
+                    <li>Edit the name if needed and confirm &mdash; the app upserts the users and creates an <strong>active</strong> campaign linked to all of them. Edit dates, status, or color later from the Campaigns tab.</li>
+                </ol>
 
                 <h3>Import Process</h3>
                 <ol>
@@ -940,6 +973,8 @@
 
                 <h3>Manual Points</h3>
                 <p>Click <strong>Add Points</strong> to award custom points for special achievements. Start typing a name or email to auto-suggest existing users; if no match exists, the email is used as-is and a new user is created.</p>
+                <p>The dialog has an <strong>Activity Type</strong> dropdown at the top that mirrors the Configuration tab's five sections. Pick a type to auto-fill the title and points (both still editable); the resulting activity is tagged with the picked category and sub-category so it's recognised as the same kind as imported ones. Pick <em>Custom (free-form)</em> for a free-text title and points.</p>
+                <p>The <strong>Bulk Award Points</strong> dialog on the Users tab has the same picker.</p>
 
                 <h2 id="teams">Managing Teams</h2>
 
@@ -1093,6 +1128,9 @@
                         <tr><td>Points incorrect for new imports</td><td>Adjust the Configuration tab values and click Save Changes; the new values apply to future imports/manual awards only</td></tr>
                         <tr><td>Teams not showing points</td><td>Make sure members are assigned via the team's Manage option; points are derived from member activity totals</td></tr>
                         <tr><td>App slow after a big import</td><td>Imports persist in one batch from v1.3 on. If you upgraded from an earlier version, a one-time re-import resolves any leftover slowness from the previous schema</td></tr>
+                        <tr><td>Teams CSV import looks like garbage / no meetings found</td><td>Older builds decoded the file as UTF-8. Teams exports CSV as UTF-16LE with a BOM &mdash; v1.5 detects and decodes it automatically. Re-upload with this version.</td></tr>
+                        <tr><td>Re-uploaded a Teams attendance report but users didn't get new points</td><td>Pre-v1.5 builds didn't persist <code>externalId</code> on activities, so a user's <em>second</em> meeting activity always collided with their first in dedup. v1.5 fixes the factory; re-upload to land the missed points. Recurring meetings with the same title are now distinguished by meeting date.</td></tr>
+                        <tr><td>Sign-up sheet import fails with "No Email column found"</td><td>Check the error preview &mdash; it includes the first rows scanned. If the header label is unusual, v1.5 accepts variants and can also auto-detect the email column by <code>@</code>-cell density.</td></tr>
                     </tbody>
                 </table>
 
@@ -1110,7 +1148,7 @@
 
                 <h2 id="support">Support</h2>
                 <p>For additional support or feature requests, contact your system administrator.</p>
-                <p>Version <strong>1.4</strong> &mdash; Built by <strong>Tim Huettemeister</strong>.</p>
+                <p>Version <strong>1.5</strong> &mdash; Built by <strong>Tim Huettemeister</strong>.</p>
 
             </div><!-- end .cc-docs -->
 
@@ -1140,7 +1178,7 @@
     <!-- Footer -->
     <footer style="border-top: 1px solid var(--cc-border); margin-top: 3rem; padding: 1.5rem;">
         <div class="max-w-7xl mx-auto text-center">
-            <p style="font-size: 0.8125rem; color: var(--cc-text-muted);">Cloud Comp v1.3 &mdash; Built by Tim Huettemeister</p>
+            <p style="font-size: 0.8125rem; color: var(--cc-text-muted);">Cloud Comp v1.5 &mdash; Built by Tim Huettemeister</p>
         </div>
     </footer>
 
@@ -1204,6 +1242,15 @@
                         <input type="hidden" id="manualUserEmail">
                         <div id="manualUserResults" class="absolute left-0 right-0 mt-1 bg-white border rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto" style="display:none;border-color:var(--cc-border);"></div>
                     </div>
+                </div>
+                <div class="cc-field-group">
+                    <label class="cc-label">Activity Type</label>
+                    <select id="manualActivityType" class="cc-select"
+                            data-action="onActivityTypePicked" data-trigger="change"
+                            data-title-id="manualActivityTitle" data-points-id="manualPoints">
+                        <option value="">Custom (free-form)</option>
+                    </select>
+                    <p class="cc-field-hint">Pick a type from the Configuration tab to auto-fill the title and points.</p>
                 </div>
                 <div class="cc-field-group">
                     <label class="cc-label">Activity Title</label>
@@ -1305,6 +1352,15 @@
             <div class="cc-modal-body">
                 <p class="cc-modal-subtitle">Award points to <span id="bulkAwardUserCount" class="font-semibold text-[var(--cc-text)]">0</span> selected users</p>
                 <div class="cc-field-group">
+                    <label class="cc-label">Activity Type</label>
+                    <select id="bulkActivityType" class="cc-select"
+                            data-action="onActivityTypePicked" data-trigger="change"
+                            data-title-id="bulkActivityTitle" data-points-id="bulkPoints">
+                        <option value="">Custom (free-form)</option>
+                    </select>
+                    <p class="cc-field-hint">Pick a type from the Configuration tab to auto-fill the title and points per user.</p>
+                </div>
+                <div class="cc-field-group">
                     <label class="cc-label">Activity Title</label>
                     <input type="text" id="bulkActivityTitle" class="cc-input" placeholder="Bulk Award">
                 </div>
@@ -1377,6 +1433,31 @@
             <div class="cc-modal-footer">
                 <button data-action="closeBulkAdjustPointsModal" class="cc-btn cc-btn-ghost">Cancel</button>
                 <button data-action="submitBulkAdjustPoints" class="cc-btn cc-btn-primary">Adjust Points</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign-up Import: Campaign Name Modal -->
+    <div id="signupCampaignModal" class="hidden cc-modal-backdrop">
+        <div class="cc-modal">
+            <div class="cc-modal-header">
+                <h3 class="cc-modal-title">Create Campaign from Sign-ups</h3>
+                <button data-action="closeSignupCampaignModal" class="cc-modal-close">&times;</button>
+            </div>
+            <div class="cc-modal-body">
+                <p class="cc-modal-subtitle">
+                    Found <span id="signupParticipantCount" class="font-semibold text-[var(--cc-text)]">0</span>
+                    participants in <span id="signupFilename" class="font-semibold text-[var(--cc-text)]">—</span>.
+                </p>
+                <div class="cc-field-group">
+                    <label class="cc-label">Campaign Name *</label>
+                    <input type="text" id="signupCampaignName" class="cc-input" placeholder="e.g. Cloud Incubator Evolve">
+                    <p class="cc-field-hint">A new active campaign with these participants will be created. You can edit it later from the Campaigns tab.</p>
+                </div>
+            </div>
+            <div class="cc-modal-footer">
+                <button data-action="closeSignupCampaignModal" class="cc-btn cc-btn-ghost">Cancel</button>
+                <button data-action="submitSignupImport" class="cc-btn cc-btn-primary">Create Campaign</button>
             </div>
         </div>
     </div>

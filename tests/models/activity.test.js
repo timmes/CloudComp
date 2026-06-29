@@ -142,14 +142,24 @@ describe('createActivity', () => {
     expect(createActivity({ userId: 'a@b.com' }).title).toBe('');
   });
 
-  it('returns all 12 typedef properties', () => {
+  it('returns all 13 typedef properties', () => {
     const act = createActivity({ userId: 'a@b.com', title: 'X' });
     const keys = Object.keys(act).sort();
     expect(keys).toEqual([
-      'completedDate', 'courseType', 'id', 'isDuplicate',
+      'completedDate', 'courseType', 'externalId', 'id', 'isDuplicate',
       'level', 'pointsEarned', 'score', 'source', 'status',
       'title', 'type', 'userId',
     ]);
+  });
+
+  it('preserves externalId on the returned object (used by dedup)', () => {
+    const act = createActivity({ userId: 'a@b.com', title: 'X', externalId: 'COURSE-1' });
+    expect(act.externalId).toBe('COURSE-1');
+  });
+
+  it('defaults externalId to empty string when not provided', () => {
+    const act = createActivity({ userId: 'a@b.com', title: 'X' });
+    expect(act.externalId).toBe('');
   });
 
   it('each call returns a distinct object', () => {

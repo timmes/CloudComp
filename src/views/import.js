@@ -79,18 +79,25 @@ async function processCourseFile(file) {
       return { processed: 0, activities: 0 };
     }
     const dedupStats = commitImportResult(result);
-    log(`${file.name}: ${result.activities.length} activities, ${result.users.length} users`);
+    const parts = [`${dedupStats.accepted} new activities`];
+    if (dedupStats.upgraded > 0) parts.push(`${dedupStats.upgraded} status upgrades`);
+    if (dedupStats.duplicatesSkipped > 0) parts.push(`${dedupStats.duplicatesSkipped} duplicates skipped`);
+    parts.push(`${result.users.length} users seen`);
+    log(`${file.name}: ${parts.join(', ')}`);
     recordImportHistory(file.name, 'course', result, dedupStats);
-    return { processed: result.activities.length + result.warnings.length, activities: result.activities.length };
+    return { processed: result.activities.length + result.warnings.length, activities: dedupStats.accepted };
   } catch (error) { log(`Error processing ${file.name}: ${error.message}`); return { processed: 0, activities: 0 }; }
 }
 
 async function processTeamsFile(file) {
   log(`Processing Teams file: ${file.name}`);
   try {
-    const isXlsx = /\.xlsx?$/i.test(file.name);
-    const content = isXlsx ? await file.arrayBuffer() : await file.text();
-    const result = await importTeamsFile(content, { config: getConfig().pointConfig, filename: file.name, xlsx: isXlsx ? window.XLSX : undefined });
+    // Always pass an ArrayBuffer — the importer detects XLSX vs.
+    // CSV/TSV from the filename and decodes CSV honouring its BOM
+    // (Teams exports CSV as UTF-16LE).
+    const buffer = await file.arrayBuffer();
+    const isXlsx = /\.xlsx$/i.test(file.name);
+    const result = await importTeamsFile(buffer, { config: getConfig().pointConfig, filename: file.name, xlsx: isXlsx ? window.XLSX : undefined });
     result.warnings.forEach(w => log(`${file.name}: ${w}`));
     result.errors.forEach(e => log(`${file.name}: ${e}`));
     if (result.errors.length > 0) {
@@ -98,9 +105,12 @@ async function processTeamsFile(file) {
       return { processed: 0, activities: 0 };
     }
     const dedupStats = commitImportResult(result);
-    log(`${file.name}: ${result.activities.length} meeting attendance activities`);
+    const parts = [`${dedupStats.accepted} new attendance activities`];
+    if (dedupStats.duplicatesSkipped > 0) parts.push(`${dedupStats.duplicatesSkipped} duplicates skipped`);
+    if (dedupStats.upgraded > 0) parts.push(`${dedupStats.upgraded} status upgrades`);
+    log(`${file.name}: ${parts.join(', ')}`);
     recordImportHistory(file.name, 'teams', result, dedupStats);
-    return { processed: result.activities.length + result.warnings.length, activities: result.activities.length };
+    return { processed: result.activities.length + result.warnings.length, activities: dedupStats.accepted };
   } catch (error) { log(`Error processing Teams file ${file.name}: ${error.message}`); return { processed: 0, activities: 0 }; }
 }
 
